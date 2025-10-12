@@ -4,23 +4,45 @@ on:
   push:
     branches: [ main ]
     paths: [ 'data.json' ]
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
     - name: Generate HTML Dashboard
       run: |
-        # Read data.json
-        DATA=$(cat data.json)
+        # Create a Python script to generate the HTML
+        cat > generate_html.py << 'EOF'
+        import json
+        import datetime
         
-        # Generate the public dashboard HTML
-        cat > index.html << 'EOF'
-        <!DOCTYPE html>
+        # Read the data.json file
+        with open('data.json', 'r') as f:
+            data = json.load(f)
+        
+        # Calculate totals
+        total_credits = sum(tx['amount'] for tx in data['transactions'] if tx['type'] == 'credit')
+        total_debits = sum(tx['amount'] for tx in data['transactions'] if tx['type'] == 'debit')
+        balance = total_credits - total_debits
+        
+        # Generate HTML
+        html_template = '''<!DOCTYPE html>
         <html lang="en">
         <head>
           <meta charset="UTF-8">
@@ -34,27 +56,29 @@ jobs:
             <header class="text-center mb-8">
               <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
               <p class="text-gray-600">Track shared household expenses with transparency</p>
-              <p class="text-sm text-gray-500 mt-2">Last updated: <span id="lastUpdated">$(date)</span></p>
+              <p class="text-sm text-gray-500 mt-2">Last updated: {last_updated}</p>
             </header>
 
             <div class="grid md:grid-cols-3 gap-6 mb-8">
               <div class="bg-white rounded-lg shadow-md p-5 text-center">
-                <div class="text-2xl font-bold text-green-600" id="totalCredits">0</div>
+                <div class="text-2xl font-bold text-green-600">{total_credits}</div>
                 <div class="text-sm text-gray-600">Total Credits</div>
               </div>
               <div class="bg-white rounded-lg shadow-md p-5 text-center">
-                <div class="text-2xl font-bold text-red-600" id="totalDebits">0</div>
+                <div class="text-2xl font-bold text-red-600">{total_debits}</div>
                 <div class="text-sm text-gray-600">Total Debits</div>
               </div>
               <div class="bg-white rounded-lg shadow-md p-5 text-center">
-                <div class="text-2xl font-bold text-indigo-600" id="balance">0</div>
+                <div class="text-2xl font-bold text-indigo-600">{balance}</div>
                 <div class="text-sm text-gray-600">Current Balance</div>
               </div>
             </div>
 
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
-              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
+              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary">
+                {people_summary}
+              </div>
             </div>
 
             <div class="bg-white rounded-lg shadow-md p-6">
@@ -70,7 +94,9 @@ jobs:
                       <th class="p-3 font-medium text-right">Amount (SOM)</th>
                     </tr>
                   </thead>
-                  <tbody id="transactionBody"></tbody>
+                  <tbody>
+                    {transactions}
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -79,87 +105,73 @@ jobs:
               <p>Kharcha — House Fund Tracker • Updated automatically</p>
             </footer>
           </div>
-
-          <script>
-            const data = $DATA;
-
-            function renderDashboard() {
-              // Calculate totals
-              let totalCredits = 0;
-              let totalDebits = 0;
-              
-              data.transactions.forEach(tx => {
-                if (tx.type === 'credit') {
-                  totalCredits += tx.amount;
-                } else {
-                  totalDebits += tx.amount;
-                }
-              });
-              
-              const balance = totalCredits - totalDebits;
-              
-              // Update summary cards
-              document.getElementById('totalCredits').textContent = totalCredits.toLocaleString();
-              document.getElementById('totalDebits').textContent = totalDebits.toLocaleString();
-              document.getElementById('balance').textContent = balance.toLocaleString();
-              
-              // Update people summary
-              const peopleSummary = document.getElementById('peopleSummary');
-              peopleSummary.innerHTML = '';
-              Object.entries(data.people).forEach(([person, amount]) => {
-                const personCard = document.createElement('div');
-                personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
-                personCard.innerHTML = `
-                  <div class="font-medium text-gray-800">${person}</div>
-                  <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
-                `;
-                peopleSummary.appendChild(personCard);
-              });
-              
-              // Update transaction history
-              const transactionBody = document.getElementById('transactionBody');
-              transactionBody.innerHTML = '';
-              data.transactions.forEach(tx => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-100 hover:bg-gray-50';
-                
-                const date = new Date(tx.date);
-                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                
-                const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
-                const typeIcon = tx.type === 'credit' ? 
-                  '<i class="fas fa-arrow-down mr-1"></i>' : 
-                  '<i class="fas fa-arrow-up mr-1"></i>';
-                
-                row.innerHTML = `
-                  <td class="p-3">${formattedDate}</td>
-                  <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
-                  <td class="p-3 font-medium">${tx.whoOrBill}</td>
-                  <td class="p-3 text-gray-600">${tx.note || '-'}</td>
-                  <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
-                `;
-                
-                transactionBody.appendChild(row);
-              });
-
-              // Update last updated time
-              document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-            }
-
-            document.addEventListener('DOMContentLoaded', renderDashboard);
-          </script>
         </body>
-        </html>
+        </html>'''
+        
+        # Generate people summary HTML
+        people_summary_html = ''
+        for person, amount in data['people'].items():
+            people_summary_html += f'''
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">{person}</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.0f} SOM</div>
+                </div>'''
+        
+        # Generate transactions HTML
+        transactions_html = ''
+        for tx in data['transactions']:
+            date = datetime.datetime.fromisoformat(tx['date'].replace('Z', '+00:00'))
+            formatted_date = date.strftime('%Y-%m-%d %H:%M')
+            
+            type_class = 'text-green-600' if tx['type'] == 'credit' else 'text-red-600'
+            type_icon = '<i class="fas fa-arrow-down mr-1"></i>' if tx['type'] == 'credit' else '<i class="fas fa-arrow-up mr-1"></i>'
+            
+            transactions_html += f'''
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-3">{formatted_date}</td>
+                  <td class="p-3 {type_class}">{type_icon}{tx['type']}</td>
+                  <td class="p-3 font-medium">{tx['whoOrBill']}</td>
+                  <td class="p-3 text-gray-600">{tx.get('note', '-')}</td>
+                  <td class="p-3 text-right font-medium {type_class}">{tx['amount']:,.0f}</td>
+                </tr>'''
+        
+        # Format numbers with commas
+        total_credits_str = f"{total_credits:,.0f}"
+        total_debits_str = f"{total_debits:,.0f}"
+        balance_str = f"{balance:,.0f}"
+        
+        # Final HTML generation
+        final_html = html_template.format(
+            last_updated=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            total_credits=total_credits_str,
+            total_debits=total_debits_str,
+            balance=balance_str,
+            people_summary=people_summary_html,
+            transactions=transactions_html
+        )
+        
+        # Write the HTML file
+        with open('index.html', 'w') as f:
+            f.write(final_html)
+        
+        print("HTML dashboard generated successfully!")
         EOF
+        
+        # Run the Python script
+        python3 generate_html.py
 
-        # Replace the placeholder with actual data
-        sed -i "s/\$DATA/$(echo "$DATA" | sed 's/&/\\&/g; s/"/\\"/g')/g" index.html
-        sed -i "s/\$(date)/$(date)/g" index.html
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./
-        publish_branch: gh-pages
-        keep_files: false
+        path: .
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
