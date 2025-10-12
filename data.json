@@ -1,6 +1,6 @@
 {
   "people": {
-    "Raza": 500,
+    "Raza": 300,
     "Salman": 0,
     "Mujeeb": 0,
     "Gulam": 0,
@@ -11,10 +11,12 @@
   },
   "transactions": [
     {
-      "type": "Credit",
-      "person": "Raza",
-      "amount": 500,
-      "date": "2025-10-12"
+      "id": "tx_1760268302114_fr0rf",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "",
+      "amount": 300,
+      "date": "2025-10-12T11:25:02.114Z"
     }
   ]
 }
