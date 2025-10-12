@@ -92,16 +92,24 @@
         </div>
       </div>
 
-      <!-- Commit Section -->
+      <!-- PAT & Commit Section -->
       <div class="mt-6 border-t pt-4">
-        <h3 class="font-medium mb-3">Commit Changes to GitHub</h3>
+        <h3 class="font-medium mb-3">GitHub Integration</h3>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p class="text-sm text-blue-800 mb-3">
-            When you're ready to save your changes, click the button below to open GitHub's web editor where you can commit the updated data.
+            To commit changes directly to GitHub, you need to provide a Personal Access Token with <code>repo</code> scope.
           </p>
-          <button id="commitBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 flex items-center">
-            <i class="fab fa-github mr-2"></i> Commit to GitHub
-          </button>
+          
+          <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <button id="setPATBtn" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition duration-200 flex items-center justify-center">
+              <i class="fab fa-github mr-2"></i> Enter GitHub PAT
+            </button>
+            <button id="commitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-cloud-upload-alt mr-2"></i> Commit to GitHub
+            </button>
+          </div>
+          
+          <div id="commitStatus" class="text-sm mt-2"></div>
         </div>
       </div>
     </div>
@@ -154,43 +162,6 @@
     </footer>
   </div>
 
-  <!-- Modal for GitHub Commit -->
-  <div id="commitModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Commit to GitHub</h3>
-        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <p class="mb-4 text-sm text-gray-600">
-        This will open GitHub's web editor where you can commit the updated data.
-        <strong>Important:</strong> Make sure you're logged into GitHub as <span id="repoOwner" class="font-semibold">DelightReza</span>.
-      </p>
-      <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
-        <p class="text-sm text-yellow-800">
-          <i class="fas fa-info-circle mr-1"></i>
-          After GitHub opens, replace the entire content with the JSON below, then commit changes.
-        </p>
-      </div>
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Updated Data (Copy this):</label>
-        <textarea id="jsonData" class="w-full h-40 font-mono text-sm border border-gray-300 rounded-md p-3 bg-gray-50" readonly></textarea>
-        <button id="copyJson" class="mt-2 w-full bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition duration-200">
-          <i class="fas fa-copy mr-2"></i>Copy to Clipboard
-        </button>
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button id="cancelCommit" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200">
-          Cancel
-        </button>
-        <button id="confirmCommit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
-          Open GitHub Editor
-        </button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // Configuration
     const REPO_OWNER = 'DelightReza';
@@ -204,6 +175,7 @@
       people: {},
       transactions: []
     };
+    let githubPAT = "";
 
     // DOM Elements
     const loginSection = document.getElementById('loginSection');
@@ -219,14 +191,9 @@
     const debitAmount = document.getElementById('debitAmount');
     const debitNote = document.getElementById('debitNote');
     const addDebitBtn = document.getElementById('addDebitBtn');
+    const setPATBtn = document.getElementById('setPATBtn');
     const commitBtn = document.getElementById('commitBtn');
-    const commitModal = document.getElementById('commitModal');
-    const closeModal = document.getElementById('closeModal');
-    const cancelCommit = document.getElementById('cancelCommit');
-    const confirmCommit = document.getElementById('confirmCommit');
-    const repoOwner = document.getElementById('repoOwner');
-    const jsonData = document.getElementById('jsonData');
-    const copyJson = document.getElementById('copyJson');
+    const commitStatus = document.getElementById('commitStatus');
     const totalCreditsEl = document.getElementById('totalCredits');
     const totalDebitsEl = document.getElementById('totalDebits');
     const balanceEl = document.getElementById('balance');
@@ -240,6 +207,12 @@
         `<option value="${person}">${person}</option>`
       ).join('');
 
+      // Load saved PAT if exists
+      githubPAT = localStorage.getItem('kharcha_pat') || '';
+      if (githubPAT) {
+        updatePATStatus('PAT loaded from storage');
+      }
+
       // Load data
       loadData();
 
@@ -248,14 +221,8 @@
       logoutBtn.addEventListener('click', handleLogout);
       addCreditBtn.addEventListener('click', () => addTransaction('credit'));
       addDebitBtn.addEventListener('click', () => addTransaction('debit'));
-      commitBtn.addEventListener('click', showCommitModal);
-      closeModal.addEventListener('click', hideCommitModal);
-      cancelCommit.addEventListener('click', hideCommitModal);
-      confirmCommit.addEventListener('click', openGitHubEditor);
-      copyJson.addEventListener('click', copyJsonToClipboard);
-
-      // Set repo owner in modal
-      repoOwner.textContent = REPO_OWNER;
+      setPATBtn.addEventListener('click', setPAT);
+      commitBtn.addEventListener('click', commitToGitHub);
     }
 
     // Login handler
@@ -278,15 +245,39 @@
       usernameInput.value = '';
     }
 
-    // Load data from localStorage or initialize
-    function loadData() {
+    // Load data from GitHub or localStorage
+    async function loadData() {
       try {
-        const savedData = localStorage.getItem('kharcha_data');
-        
-        if (savedData) {
-          data = JSON.parse(savedData);
+        // Try to load from GitHub first
+        const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${DATA_FILE}`;
+        const res = await fetch(rawUrl);
+        if (res.ok) {
+          data = await res.json();
+          updateCommitStatus('✅ Data loaded from GitHub');
         } else {
-          // Initialize with sample data if none exists
+          throw new Error('Failed to load from GitHub');
+        }
+      } catch (error) {
+        console.log('Loading from GitHub failed, trying localStorage:', error);
+        // Fallback to localStorage
+        try {
+          const savedData = localStorage.getItem('kharcha_data');
+          if (savedData) {
+            data = JSON.parse(savedData);
+            updateCommitStatus('⚠️ Using local data (GitHub load failed)');
+          } else {
+            // Initialize with default data
+            data = {
+              people: DEFAULT_PEOPLE.reduce((acc, person) => {
+                acc[person] = 0;
+                return acc;
+              }, {}),
+              transactions: []
+            };
+            updateCommitStatus('📝 Using default data');
+          }
+        } catch (localError) {
+          console.error('Error loading from localStorage:', localError);
           data = {
             people: DEFAULT_PEOPLE.reduce((acc, person) => {
               acc[person] = 0;
@@ -294,22 +285,10 @@
             }, {}),
             transactions: []
           };
-          saveData();
         }
-        
-        renderDashboard();
-      } catch (error) {
-        console.error('Error loading data:', error);
-        // Fallback to empty data
-        data = {
-          people: DEFAULT_PEOPLE.reduce((acc, person) => {
-            acc[person] = 0;
-            return acc;
-          }, {}),
-          transactions: []
-        };
-        renderDashboard();
       }
+      
+      renderDashboard();
     }
 
     // Save data to localStorage
@@ -373,7 +352,7 @@
       renderDashboard();
       
       // Show success message
-      alert(`${type === 'credit' ? 'Credit' : 'Debit'} added successfully!`);
+      updateCommitStatus('✅ Transaction added locally');
     }
 
     // Render dashboard
@@ -435,59 +414,95 @@
       });
     }
 
-    // Show commit modal
-    function showCommitModal() {
-      if (!isAdmin) return;
-      
-      // Update the JSON data in the textarea
-      jsonData.value = JSON.stringify(data, null, 2);
-      commitModal.classList.remove('hidden');
-    }
-
-    // Hide commit modal
-    function hideCommitModal() {
-      commitModal.classList.add('hidden');
-    }
-
-    // Copy JSON to clipboard
-    function copyJsonToClipboard() {
-      jsonData.select();
-      jsonData.setSelectionRange(0, 99999); // For mobile devices
-      
-      try {
-        navigator.clipboard.writeText(jsonData.value).then(() => {
-          // Show success feedback
-          const originalText = copyJson.innerHTML;
-          copyJson.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
-          copyJson.classList.remove('bg-gray-600');
-          copyJson.classList.add('bg-green-600');
-          
-          setTimeout(() => {
-            copyJson.innerHTML = originalText;
-            copyJson.classList.remove('bg-green-600');
-            copyJson.classList.add('bg-gray-600');
-          }, 2000);
-        });
-      } catch (err) {
-        // Fallback for older browsers
-        document.execCommand('copy');
-        alert('Data copied to clipboard!');
+    // Set PAT
+    function setPAT() {
+      const token = prompt("Enter your GitHub Personal Access Token (with 'repo' scope):");
+      if (token) {
+        githubPAT = token;
+        localStorage.setItem('kharcha_pat', token);
+        updatePATStatus('✅ PAT saved successfully');
       }
     }
 
-    // Open GitHub editor
-    function openGitHubEditor() {
-      // Construct GitHub editor URL
-      const githubURL = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/main/${DATA_FILE}`;
-      
-      // Open in new tab
-      window.open(githubURL, '_blank');
-      
-      // Hide modal after a short delay
+    // Update PAT status
+    function updatePATStatus(message) {
+      commitStatus.innerHTML = `<span class="text-green-600">${message}</span>`;
       setTimeout(() => {
-        hideCommitModal();
-        alert('GitHub editor opened in a new tab. Remember to:\n\n1. Replace the content with the copied JSON\n2. Add a commit message\n3. Click "Commit changes"');
-      }, 500);
+        commitStatus.textContent = '';
+      }, 3000);
+    }
+
+    // Update commit status
+    function updateCommitStatus(message) {
+      commitStatus.textContent = message;
+      setTimeout(() => {
+        if (!commitStatus.textContent.includes('PAT')) {
+          commitStatus.textContent = '';
+        }
+      }, 5000);
+    }
+
+    // Commit to GitHub
+    async function commitToGitHub() {
+      if (!githubPAT) {
+        updateCommitStatus('❌ Please set your PAT first');
+        return;
+      }
+
+      updateCommitStatus('🔄 Committing to GitHub...');
+
+      try {
+        // 1. Get current file SHA
+        const getRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE}`, {
+          headers: {
+            "Authorization": `token ${githubPAT}`,
+            "Accept": "application/vnd.github.v3+json"
+          }
+        });
+
+        let sha = null;
+        if (getRes.ok) {
+          const getData = await getRes.json();
+          sha = getData.sha;
+        } else if (getRes.status === 404) {
+          // File doesn't exist yet, we'll create it
+          updateCommitStatus('📝 Creating new data file...');
+        } else {
+          throw new Error(`Failed to get file: ${getRes.status}`);
+        }
+
+        // 2. Prepare updated content
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        const commitMessage = `Update kharcha data - ${new Date().toLocaleString()}`;
+
+        // 3. Send PUT request to GitHub API
+        const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `token ${githubPAT}`,
+            "Accept": "application/vnd.github.v3+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: commitMessage,
+            content: content,
+            sha: sha // Will be null if creating new file
+          })
+        });
+
+        if (putRes.ok) {
+          updateCommitStatus('✅ Data committed successfully to GitHub!');
+          // Clear local storage since we've synced to GitHub
+          localStorage.removeItem('kharcha_data');
+        } else {
+          const errorData = await putRes.json();
+          console.error('GitHub API error:', errorData);
+          updateCommitStatus(`❌ Commit failed: ${errorData.message || 'Unknown error'}`);
+        }
+      } catch (err) {
+        console.error('Commit error:', err);
+        updateCommitStatus('❌ An error occurred while committing data');
+      }
     }
 
     // Initialize the app
