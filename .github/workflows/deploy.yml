@@ -165,10 +165,11 @@ jobs:
       with:
         path: .
 
-    deploy:
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+      needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
