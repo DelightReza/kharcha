@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1760271985821_cloek",
+      "type": "debit",
+      "whoOrBill": "Electricity",
+      "note": "",
+      "amount": 300,
+      "date": "2025-10-12T12:26:25.821Z"
+    },
+    {
       "id": "tx_1760271793121_ai1nq",
       "type": "credit",
       "whoOrBill": "Musawwar",
