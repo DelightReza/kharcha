@@ -1,6 +1,6 @@
 {
   "people": {
-    "Musawwar": 0,
+    "Musawwar": 500,
     "Raza": 0,
     "Salman": 0,
     "Mujeeb": 0,
@@ -9,5 +9,14 @@
     "Naved": 0,
     "Nizamuddin": 0
   },
-  "transactions": []
+  "transactions": [
+    {
+      "id": "tx_1760273481126_ndz4w",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "",
+      "amount": 500,
+      "date": "2025-10-12T12:51:21.127Z"
+    }
+  ]
 }
