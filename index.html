@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kharcha — House Fund Tracker (GitHub Connected)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-2">Kharcha — House Fund Tracker (GitHub Connected)</h1>
+    <p class="text-sm text-slate-600 mb-6">Add credits (people give money) and debits (you pay bills). Changes are committed to <code>data.json</code> in your private repo <strong>delightreza/kharcha</strong> using your PAT (entered here in the browser).</p>
+
+    <div class="bg-white shadow rounded p-4 mb-6">
+      <h2 class="font-medium mb-2">Repository & Authentication</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input id="gh_username" class="border rounded p-2" placeholder="GitHub username" value="delightreza" />
+        <input id="gh_repo" class="border rounded p-2" placeholder="Repo name (eg. kharcha)" value="kharcha" />
+        <select id="gh_branch" class="border rounded p-2">
+          <option value="main">main</option>
+          <option value="master">master</option>
+        </select>
+      </div>
+      <div class="mt-3">
+        <input id="pat_input" type="password" class="border rounded p-2 w-full" placeholder="Personal Access Token (enter here, NOT stored on server)" />
+        <p class="text-xs text-slate-500 mt-1">PAT needs <code>repo</code> scope for private repo. See README instructions below.</p>
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button id="connectBtn" class="bg-blue-600 text-white px-3 py-1 rounded">Connect / Load data.json</button>
+        <button id="createDataBtn" class="bg-amber-600 text-white px-3 py-1 rounded">Create data.json if not exists</button>
+        <button id="clearToken" class="bg-slate-200 px-3 py-1 rounded">Clear token</button>
+      </div>
+      <p id="repoStatus" class="text-sm mt-2 text-slate-600"></p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="font-medium mb-2">Add Credit (money received)</h3>
+        <div class="grid gap-2">
+          <select id="personSelect" class="border rounded p-2"></select>
+          <input id="creditAmount" type="number" class="border rounded p-2" placeholder="Amount (e.g. 500)" />
+          <textarea id="creditNote" class="border rounded p-2" placeholder="Optional note (e.g. for which month)"></textarea>
+          <div class="flex gap-2">
+            <button id="addCreditBtn" class="bg-green-600 text-white px-3 py-1 rounded">Add Credit & Commit</button>
+            <button id="addCreditLocalBtn" class="bg-green-300 px-3 py-1 rounded">Add Credit (Local only)</button>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h3 class="font-medium mb-2">Add Debit (bill paid)</h3>
+        <div class="grid gap-2">
+          <select id="debitType" class="border rounded p-2">
+            <option>Electricity</option>
+            <option>Garbage</option>
+            <option>Water</option>
+            <option>Gas</option>
+            <option>Internet</option>
+            <option>Other</option>
+          </select>
+          <input id="debitAmount" type="number" class="border rounded p-2" placeholder="Amount paid" />
+          <textarea id="debitNote" class="border rounded p-2" placeholder="Optional note (where used, receipt#, month)"></textarea>
+          <div class="flex gap-2">
+            <button id="addDebitBtn" class="bg-red-600 text-white px-3 py-1 rounded">Add Debit & Commit</button>
+            <button id="addDebitLocalBtn" class="bg-red-300 px-3 py-1 rounded">Add Debit (Local only)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white shadow rounded p-4">
+        <h3 class="font-medium mb-2">Summary</h3>
+        <div id="summaryArea" class="space-y-3"></div>
+        <hr class="my-3"/>
+        <h4 class="font-medium mb-1">Balance</h4>
+        <div id="balanceArea" class="text-lg font-semibold"></div>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded p-4 mt-6">
+      <h3 class="font-medium mb-2">Transaction History</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="txTable">
+          <thead class="text-left text-slate-600">
+            <tr>
+              <th class="p-2">Date</th>
+              <th class="p-2">Type</th>
+              <th class="p-2">Person / Bill</th>
+              <th class="p-2">Note</th>
+              <th class="p-2">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-6 text-xs text-slate-500">
+      <strong>Notes:</strong> When you press "Add & Commit", the page updates <code>data.json</code> in your repo with a new commit. Use "Local only" to test without committing.
+    </div>
+
+    <pre id="debug" class="mt-4 text-xs text-slate-500"></pre>
+  </div>
+
+<script>
+const defaultPeople = [
+  "Raza","Salman","Mujeeb","Gulam","Rana","Naved","Musawwar","Nizamuddin"
+];
+
+let state = {
+  username: "",
+  repo: "",
+  branch: "main",
+  token: "",
+  data: null,
+  fileSha: null,
+  path: "data.json"
+};
+
+const el = id => document.getElementById(id);
+
+function initUI(){
+  const personSelect = el('personSelect');
+  personSelect.innerHTML = defaultPeople.map(p => `<option>${p}</option>`).join('');
+  el('connectBtn').onclick = connectAndLoad;
+  el('createDataBtn').onclick = createDataJsonIfNotExists;
+  el('clearToken').onclick = ()=>{ el('pat_input').value=''; state.token=''; repoStatus('Token cleared'); };
+  el('addCreditBtn').onclick = () => addTransaction('credit', true);
+  el('addCreditLocalBtn').onclick = () => addTransaction('credit', false);
+  el('addDebitBtn').onclick = () => addTransaction('debit', true);
+  el('addDebitLocalBtn').onclick = () => addTransaction('debit', false);
+}
+
+function repoStatus(msg){ el('repoStatus').innerText = msg; }
+function showDebug(x){ el('debug').innerText = JSON.stringify(x, null, 2); }
+
+function emptyData(){
+  return {
+    people: defaultPeople.reduce((acc, p)=>(acc[p]=0,acc),{}),
+    transactions: []
+  };
+}
+
+function readInputs(){
+  state.username = el('gh_username').value.trim();
+  state.repo = el('gh_repo').value.trim();
+  state.branch = el('gh_branch').value || 'main';
+  state.token = el('pat_input').value.trim();
+}
+
+async function ghFetch(path, opts){
+  const token = state.token;
+  if(!token) throw new Error('Token not set. Enter your PAT in the field.');
+  const headers = Object.assign({}, opts && opts.headers ? opts.headers : {});
+  headers['Authorization'] = 'token ' + token;
+  headers['Accept'] = 'application/vnd.github+json';
+  const url = `https://api.github.com/repos/${state.username}/${state.repo}${path}`;
+  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  if(res.status === 401) throw new Error('Unauthorized (check PAT scopes)');
+  return res;
+}
+
+async function connectAndLoad(){
+  try{
+    readInputs();
+    if(!state.username || !state.repo) { repoStatus('Enter username & repo name.'); return; }
+    repoStatus('Loading data.json from repo...');
+    const res = await ghFetch(`/contents/${state.path}?ref=${state.branch}`, { method: 'GET' });
+    if(res.status === 404){
+      repoStatus('data.json not found. You can create it with "Create data.json if not exists".');
+      renderData(emptyData());
+      return;
+    }
+    const obj = await res.json();
+    state.fileSha = obj.sha;
+    const content = atob(obj.content.replace(/\n/g,''));
+    const json = JSON.parse(content);
+    state.data = json;
+    repoStatus(`Loaded data.json (sha: ${state.fileSha})`);
+    renderData(state.data);
+  } catch(err){
+    repoStatus('Error: ' + err.message);
+    showDebug(err.message || err);
+  }
+}
+
+async function createDataJsonIfNotExists(){
+  try{
+    readInputs();
+    if(!state.username || !state.repo) { repoStatus('Enter username & repo name.'); return; }
+    try {
+      const res = await ghFetch(`/contents/${state.path}?ref=${state.branch}`, { method:'GET' });
+      if(res.status === 200){ repoStatus('data.json already exists. Loaded instead.'); return connectAndLoad(); }
+    } catch(e){}
+    const dataObj = emptyData();
+    const contentB64 = btoa(JSON.stringify(dataObj, null, 2));
+    const body = { message: "Create initial data.json for kharcha", content: contentB64, branch: state.branch };
+    const res2 = await ghFetch(`/contents/${state.path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if(res2.status === 201){
+      const j = await res2.json();
+      state.fileSha = j.content.sha;
+      state.data = dataObj;
+      repoStatus('data.json created.');
+      renderData(state.data);
+    } else {
+      const txt = await res2.text();
+      throw new Error('Failed to create file: ' + res2.status + ' ' + txt);
+    }
+  } catch(err){
+    repoStatus('Error: ' + err.message);
+    showDebug(err);
+  }
+}
+
+async function commitData(newData, commitMessage){
+  try{
+    readInputs();
+    if(!state.username || !state.repo) throw new Error('Enter username & repo name.');
+    if(!state.token) throw new Error('Enter PAT token to commit.');
+    const contentB64 = btoa(JSON.stringify(newData, null, 2));
+    const body = { message: commitMessage, content: contentB64, branch: state.branch };
+    if(state.fileSha) body.sha = state.fileSha;
+    const res = await ghFetch(`/contents/${state.path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const j = await res.json();
+    if(res.status === 201 || res.status === 200){
+      state.fileSha = j.content.sha;
+      state.data = newData;
+      repoStatus('Committed: ' + commitMessage);
+      renderData(newData);
+    } else {
+      throw new Error('Commit failed: ' + (j.message || JSON.stringify(j)));
+    }
+  } catch(err){
+    repoStatus('Commit error: ' + err.message);
+    showDebug(err);
+  }
+}
+
+function addTransaction(type, commitFlag){
+  try{
+    const amountInput = (type === 'credit') ? el('creditAmount').value : el('debitAmount').value;
+    const amount = Number(amountInput);
+    if(!amount || isNaN(amount) || amount <= 0) { repoStatus('Enter valid amount'); return; }
+    const dateISO = new Date().toISOString();
+    let whoOrBill = '';
+    let note = '';
+    if(type === 'credit'){ whoOrBill = el('personSelect').value; note = el('creditNote').value || ''; }
+    else { whoOrBill = el('debitType').value; note = el('debitNote').value || ''; }
+    const tx = { id: 'tx_' + Math.random().toString(36).slice(2,9), type, whoOrBill, note, amount: Number(amount), date: dateISO };
+    if(!state.data) state.data = emptyData();
+    state.data.transactions.unshift(tx);
+    if(type === 'credit'){
+      if(!(whoOrBill in state.data.people)) state.data.people[whoOrBill] = 0;
+      state.data.people[whoOrBill] = Number(state.data.people[whoOrBill]) + Number(amount);
+    }
+    if(!commitFlag){
+      repoStatus('Added locally (not committed). Use "Add & Commit" to sync to GitHub.');
+      renderData(state.data);
+      return;
+    }
+    const commitMsg = (type === 'credit')
+      ? `Add credit: ${whoOrBill} +${amount} (${new Date(dateISO).toLocaleString()})`
+      : `Add debit: ${whoOrBill} -${amount} (${new Date(dateISO).toLocaleString()})`;
+    (async () => {
+      try{
+        try {
+          const head = await ghFetch(`/contents/${state.path}?ref=${state.branch}`, { method:'GET' });
+          if(head.status === 200){
+            const headJson = await head.json();
+            state.fileSha = headJson.sha;
+            const remoteContent = JSON.parse(atob(headJson.content.replace(/\n/g,'')));
+            const remoteTx = Array.isArray(remoteContent.transactions) ? remoteContent.transactions.slice() : [];
+            const ourTx = state.data.transactions;
+            const combined = [...ourTx];
+            const existingIds = new Set(combined.map(t=>t.id));
+            for(const r of remoteTx){ if(!existingIds.has(r.id)) combined.push(r); }
+            const recomputedPeople = {};
+            for(const tx of combined){
+              if(tx.type === 'credit'){
+                if(!recomputedPeople[tx.whoOrBill]) recomputedPeople[tx.whoOrBill] = 0;
+                recomputedPeople[tx.whoOrBill] += Number(tx.amount);
+              }
+            }
+            for(const p of Object.keys(state.data.people || {})){
+              if(!(p in recomputedPeople)) recomputedPeople[p] = state.data.people[p];
+            }
+            const newData = { people: recomputedPeople, transactions: combined };
+            await commitData(newData, commitMsg);
+          } else {
+            await commitData(state.data, commitMsg);
+          }
+        } catch(innerErr){
+          await commitData(state.data, commitMsg);
+        }
+      } catch(e){
+        repoStatus('Commit flow error: ' + e.message);
+        showDebug(e);
+      }
+    })();
+  } catch(err){
+    repoStatus('Add transaction error: ' + err.message);
+    showDebug(err);
+  }
+}
+
+function renderData(data){
+  if(!data) data = emptyData();
+  const summaryArea = el('summaryArea');
+  summaryArea.innerHTML = '';
+  for(const person of Object.keys(data.people || {})){
+    const amt = Number(data.people[person] || 0);
+    const row = document.createElement('div');
+    row.className = 'flex justify-between';
+    row.innerHTML = `<div>${person}</div><div class="font-semibold">${amt} SOM</div>`;
+    summaryArea.appendChild(row);
+  }
+  let totalReceived = 0;
+  let totalSpent = 0;
+  for(const tx of data.transactions || []){
+    if(tx.type === 'credit') totalReceived += Number(tx.amount || 0);
+    else if(tx.type === 'debit') totalSpent += Number(tx.amount || 0);
+  }
+  el('balanceArea').innerText = `${totalReceived - totalSpent} SOM (Received: ${totalReceived} — Spent: ${totalSpent})`;
+  const txBody = el('txBody');
+  txBody.innerHTML = '';
+  (data.transactions || []).slice(0,200).forEach(tx => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="p-2 align-top">${new Date(tx.date).toLocaleString()}</td>
+      <td class="p-2 align-top">${tx.type}</td>
+      <td class="p-2 align-top">${tx.whoOrBill}</td>
+      <td class="p-2 align-top">${tx.note || ''}</td>
+      <td class="p-2 align-top">${tx.amount}</td>
+    `;
+    txBody.appendChild(tr);
+  });
+  showDebug({ sha: state.fileSha });
+}
+
+initUI();
+renderData(emptyData());
+</script>
+</body>
+</html>
