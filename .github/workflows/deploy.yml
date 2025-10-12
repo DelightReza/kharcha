@@ -38,7 +38,7 @@ jobs:
         total_debits = sum(tx['amount'] for tx in data['transactions'] if tx['type'] == 'debit')
         balance = total_credits - total_debits
         
-        # Generate HTML for public dashboard (NO ADMIN PANEL)
+        # Generate HTML for public dashboard
         html_template = '''<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -150,11 +150,11 @@ jobs:
             transactions=transactions_html
         )
         
-        # Write the PUBLIC dashboard file (not overwriting index.html)
-        with open('public.html', 'w') as f:
+        # Write as index.html for GitHub Pages (this will be the public dashboard)
+        with open('index.html', 'w') as f:
             f.write(final_html)
         
-        print("Public dashboard generated successfully as public.html!")
+        print("Public dashboard generated successfully as index.html!")
         EOF
         
         # Run the Python script
@@ -166,11 +166,8 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        # Upload the generated public.html AND the original index.html (admin panel)
-        path: |
-          public.html
-          index.html
-          data.json
+        # Upload only the generated index.html (public dashboard)
+        path: '.'
 
   deploy:
     environment:
