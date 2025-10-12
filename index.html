@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kharcha — House Fund Tracker</title>
+  <title>Kharcha — Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
-  <div class="max-w-6xl mx-auto p-4">
+  <div class="max-w-4xl mx-auto p-4">
     <!-- Header -->
     <header class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
-      <p class="text-gray-600">Track shared household expenses with transparency</p>
+      <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — Admin Panel</h1>
+      <p class="text-gray-600">Manage household expenses privately</p>
     </header>
 
     <!-- Login Section -->
@@ -20,7 +20,7 @@
       <h2 class="text-xl font-semibold mb-4 text-center">Admin Login</h2>
       <div class="mb-4">
         <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
-        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="DelightReza">
       </div>
       <button id="loginBtn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-200">
         Login as Admin
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Admin Panel (Hidden by default) -->
-    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6 mb-8">
+    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">Admin Panel</h2>
         <div class="flex items-center space-x-2">
@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
         <!-- Add Credit -->
         <div class="border border-gray-200 rounded-lg p-4">
           <h3 class="font-medium mb-3 text-green-700"><i class="fas fa-plus-circle mr-2"></i>Add Credit (Money Received)</h3>
@@ -92,12 +92,13 @@
         </div>
       </div>
 
-      <!-- PAT & Commit Section -->
-      <div class="mt-6 border-t pt-4">
+      <!-- Current Data & GitHub Integration -->
+      <div class="border-t pt-6">
         <h3 class="font-medium mb-3">GitHub Integration</h3>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p class="text-sm text-blue-800 mb-3">
-            To commit changes directly to GitHub, you need to provide a Personal Access Token with <code>repo</code> scope.
+            <i class="fas fa-info-circle mr-1"></i>
+            When you commit changes, a GitHub Action will automatically generate the public dashboard.
           </p>
           
           <div class="flex flex-col sm:flex-row gap-4 mb-4">
@@ -111,54 +112,18 @@
           
           <div id="commitStatus" class="text-sm mt-2"></div>
         </div>
-      </div>
-    </div>
 
-    <!-- Dashboard -->
-    <div class="grid md:grid-cols-3 gap-6 mb-8">
-      <!-- Summary Cards -->
-      <div class="bg-white rounded-lg shadow-md p-5 text-center">
-        <div class="text-2xl font-bold text-green-600" id="totalCredits">0</div>
-        <div class="text-sm text-gray-600">Total Credits</div>
-      </div>
-      <div class="bg-white rounded-lg shadow-md p-5 text-center">
-        <div class="text-2xl font-bold text-red-600" id="totalDebits">0</div>
-        <div class="text-sm text-gray-600">Total Debits</div>
-      </div>
-      <div class="bg-white rounded-lg shadow-md p-5 text-center">
-        <div class="text-2xl font-bold text-indigo-600" id="balance">0</div>
-        <div class="text-sm text-gray-600">Current Balance</div>
-      </div>
-    </div>
-
-    <!-- People Summary -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
-    </div>
-
-    <!-- Transaction History -->
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="text-left bg-gray-100">
-            <tr>
-              <th class="p-3 font-medium">Date</th>
-              <th class="p-3 font-medium">Type</th>
-              <th class="p-3 font-medium">Person / Bill</th>
-              <th class="p-3 font-medium">Note</th>
-              <th class="p-3 font-medium text-right">Amount (SOM)</th>
-            </tr>
-          </thead>
-          <tbody id="transactionBody"></tbody>
-        </table>
+        <!-- Current Data Preview -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h4 class="font-medium mb-2">Current Data Preview</h4>
+          <pre id="dataPreview" class="text-xs bg-white p-3 rounded border max-h-60 overflow-auto"></pre>
+        </div>
       </div>
     </div>
 
     <!-- Footer -->
     <footer class="mt-8 text-center text-sm text-gray-500">
-      <p>Kharcha — House Fund Tracker • Updated automatically from GitHub</p>
+      <p>Kharcha — Private Admin Panel • <a href="https://delightreza.github.io/kharcha" class="text-indigo-600 hover:underline" target="_blank">View Public Dashboard</a></p>
     </footer>
   </div>
 
@@ -194,11 +159,7 @@
     const setPATBtn = document.getElementById('setPATBtn');
     const commitBtn = document.getElementById('commitBtn');
     const commitStatus = document.getElementById('commitStatus');
-    const totalCreditsEl = document.getElementById('totalCredits');
-    const totalDebitsEl = document.getElementById('totalDebits');
-    const balanceEl = document.getElementById('balance');
-    const peopleSummary = document.getElementById('peopleSummary');
-    const transactionBody = document.getElementById('transactionBody');
+    const dataPreview = document.getElementById('dataPreview');
 
     // Initialize
     function init() {
@@ -210,10 +171,10 @@
       // Load saved PAT if exists
       githubPAT = localStorage.getItem('kharcha_pat') || '';
       if (githubPAT) {
-        updatePATStatus('PAT loaded from storage');
+        updateCommitStatus('PAT loaded from storage');
       }
 
-      // Load data
+      // Load data from localStorage
       loadData();
 
       // Event listeners
@@ -245,39 +206,15 @@
       usernameInput.value = '';
     }
 
-    // Load data from GitHub or localStorage
-    async function loadData() {
+    // Load data from localStorage
+    function loadData() {
       try {
-        // Try to load from GitHub first
-        const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${DATA_FILE}`;
-        const res = await fetch(rawUrl);
-        if (res.ok) {
-          data = await res.json();
-          updateCommitStatus('✅ Data loaded from GitHub');
+        const savedData = localStorage.getItem('kharcha_data');
+        if (savedData) {
+          data = JSON.parse(savedData);
+          updateCommitStatus('✅ Data loaded from local storage');
         } else {
-          throw new Error('Failed to load from GitHub');
-        }
-      } catch (error) {
-        console.log('Loading from GitHub failed, trying localStorage:', error);
-        // Fallback to localStorage
-        try {
-          const savedData = localStorage.getItem('kharcha_data');
-          if (savedData) {
-            data = JSON.parse(savedData);
-            updateCommitStatus('⚠️ Using local data (GitHub load failed)');
-          } else {
-            // Initialize with default data
-            data = {
-              people: DEFAULT_PEOPLE.reduce((acc, person) => {
-                acc[person] = 0;
-                return acc;
-              }, {}),
-              transactions: []
-            };
-            updateCommitStatus('📝 Using default data');
-          }
-        } catch (localError) {
-          console.error('Error loading from localStorage:', localError);
+          // Initialize with default data
           data = {
             people: DEFAULT_PEOPLE.reduce((acc, person) => {
               acc[person] = 0;
@@ -285,15 +222,31 @@
             }, {}),
             transactions: []
           };
+          updateCommitStatus('📝 Using default data');
         }
+      } catch (localError) {
+        console.error('Error loading from localStorage:', localError);
+        data = {
+          people: DEFAULT_PEOPLE.reduce((acc, person) => {
+            acc[person] = 0;
+            return acc;
+          }, {}),
+          transactions: []
+        };
       }
       
-      renderDashboard();
+      updateDataPreview();
     }
 
     // Save data to localStorage
     function saveData() {
       localStorage.setItem('kharcha_data', JSON.stringify(data));
+      updateDataPreview();
+    }
+
+    // Update data preview
+    function updateDataPreview() {
+      dataPreview.textContent = JSON.stringify(data, null, 2);
     }
 
     // Add transaction
@@ -349,69 +302,9 @@
 
       // Save and render
       saveData();
-      renderDashboard();
       
       // Show success message
       updateCommitStatus('✅ Transaction added locally');
-    }
-
-    // Render dashboard
-    function renderDashboard() {
-      // Calculate totals
-      let totalCredits = 0;
-      let totalDebits = 0;
-      
-      data.transactions.forEach(tx => {
-        if (tx.type === 'credit') {
-          totalCredits += tx.amount;
-        } else {
-          totalDebits += tx.amount;
-        }
-      });
-      
-      const balance = totalCredits - totalDebits;
-      
-      // Update summary cards
-      totalCreditsEl.textContent = totalCredits.toLocaleString();
-      totalDebitsEl.textContent = totalDebits.toLocaleString();
-      balanceEl.textContent = balance.toLocaleString();
-      
-      // Update people summary
-      peopleSummary.innerHTML = '';
-      Object.entries(data.people).forEach(([person, amount]) => {
-        const personCard = document.createElement('div');
-        personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
-        personCard.innerHTML = `
-          <div class="font-medium text-gray-800">${person}</div>
-          <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
-        `;
-        peopleSummary.appendChild(personCard);
-      });
-      
-      // Update transaction history
-      transactionBody.innerHTML = '';
-      data.transactions.forEach(tx => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-gray-100 hover:bg-gray-50';
-        
-        const date = new Date(tx.date);
-        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
-        const typeIcon = tx.type === 'credit' ? 
-          '<i class="fas fa-arrow-down mr-1"></i>' : 
-          '<i class="fas fa-arrow-up mr-1"></i>';
-        
-        row.innerHTML = `
-          <td class="p-3">${formattedDate}</td>
-          <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
-          <td class="p-3 font-medium">${tx.whoOrBill}</td>
-          <td class="p-3 text-gray-600">${tx.note || '-'}</td>
-          <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
-        `;
-        
-        transactionBody.appendChild(row);
-      });
     }
 
     // Set PAT
@@ -420,16 +313,8 @@
       if (token) {
         githubPAT = token;
         localStorage.setItem('kharcha_pat', token);
-        updatePATStatus('✅ PAT saved successfully');
+        updateCommitStatus('✅ PAT saved successfully');
       }
-    }
-
-    // Update PAT status
-    function updatePATStatus(message) {
-      commitStatus.innerHTML = `<span class="text-green-600">${message}</span>`;
-      setTimeout(() => {
-        commitStatus.textContent = '';
-      }, 3000);
     }
 
     // Update commit status
@@ -491,7 +376,7 @@
         });
 
         if (putRes.ok) {
-          updateCommitStatus('✅ Data committed successfully to GitHub!');
+          updateCommitStatus('✅ Data committed successfully! GitHub Action will deploy public dashboard shortly.');
           // Clear local storage since we've synced to GitHub
           localStorage.removeItem('kharcha_data');
         } else {
