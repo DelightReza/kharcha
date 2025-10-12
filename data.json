@@ -1,46 +1,13 @@
 {
   "people": {
-    "Raza": 300,
+    "Musawwar": 0,
+    "Raza": 0,
     "Salman": 0,
     "Mujeeb": 0,
     "Gulam": 0,
     "Rana": 0,
     "Naved": 0,
-    "Musawwar": 500,
     "Nizamuddin": 0
   },
-  "transactions": [
-    {
-      "id": "tx_1760273146164_74ds0",
-      "type": "debit",
-      "whoOrBill": "Electricity",
-      "note": "",
-      "amount": 18.9,
-      "date": "2025-10-12T12:45:46.164Z"
-    },
-    {
-      "id": "tx_1760271985821_cloek",
-      "type": "debit",
-      "whoOrBill": "Electricity",
-      "note": "",
-      "amount": 300,
-      "date": "2025-10-12T12:26:25.821Z"
-    },
-    {
-      "id": "tx_1760271793121_ai1nq",
-      "type": "credit",
-      "whoOrBill": "Musawwar",
-      "note": "",
-      "amount": 500,
-      "date": "2025-10-12T12:23:13.121Z"
-    },
-    {
-      "id": "tx_1760268302114_fr0rf",
-      "type": "credit",
-      "whoOrBill": "Raza",
-      "note": "",
-      "amount": 300,
-      "date": "2025-10-12T11:25:02.114Z"
-    }
-  ]
+  "transactions": []
 }
