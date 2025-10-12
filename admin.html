@@ -50,7 +50,7 @@
         <table class="w-full text-sm">
           <thead class="text-left bg-gray-100">
             <tr>
-              <th class="p-3 font-medium">Date</th>
+              <th class="p-3 font-medium">Date (UTC+6)</th>
               <th class="p-3 font-medium">Type</th>
               <th class="p-3 font-medium">Person / Bill</th>
               <th class="p-3 font-medium">Note</th>
@@ -359,6 +359,21 @@
       }
     }
 
+    // Convert to UTC+6 time
+    function toUTC6(dateString) {
+      const date = new Date(dateString);
+      // Convert to UTC+6 by adding 6 hours
+      const utc6Date = new Date(date.getTime() + (6 * 60 * 60 * 1000));
+      return utc6Date.toLocaleString('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(',', '');
+    }
+
     // Add transaction
     function addTransaction(type) {
       if (!isAdmin) return;
@@ -393,14 +408,14 @@
         debitNote.value = '';
       }
 
-      // Create transaction
+      // Create transaction (store in UTC, but we'll display as UTC+6)
       const transaction = {
         id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
         type,
         whoOrBill,
         note,
         amount,
-        date: new Date().toISOString()
+        date: new Date().toISOString() // Store in UTC
       };
 
       // Update data
@@ -451,14 +466,13 @@
         peopleSummary.appendChild(personCard);
       });
       
-      // Update transaction history
+      // Update transaction history with UTC+6 time
       transactionBody.innerHTML = '';
       data.transactions.forEach(tx => {
         const row = document.createElement('tr');
         row.className = 'border-b border-gray-100 hover:bg-gray-50';
         
-        const date = new Date(tx.date);
-        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const formattedDate = toUTC6(tx.date);
         
         const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
         const typeIcon = tx.type === 'credit' ? 
