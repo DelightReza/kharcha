@@ -1,199 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kharcha Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kharcha — House Fund Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+  <div class="max-w-6xl mx-auto p-4">
+    <!-- Header -->
+    <header class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
+      <p class="text-gray-600">Track shared household expenses with transparency</p>
+    </header>
 
-<!-- Container -->
-<div class="max-w-6xl mx-auto p-6">
-
-  <!-- Header -->
-  <header class="flex justify-between items-center mb-6">
-    <h1 class="text-4xl font-bold text-gray-800">Kharcha Dashboard</h1>
-    <button id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition">Login</button>
-  </header>
-
-  <!-- Summary Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white rounded shadow p-5 text-center">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Credits</h2>
-      <p id="totalCredits" class="text-2xl font-bold text-green-600">0</p>
+    <!-- Login Section -->
+    <div id="loginSection" class="bg-white rounded-lg shadow-md p-6 mb-8 max-w-md mx-auto">
+      <h2 class="text-xl font-semibold mb-4 text-center">Admin Login</h2>
+      <div class="mb-4">
+        <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
+        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <button id="loginBtn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-200">
+        Login as Admin
+      </button>
     </div>
-    <div class="bg-white rounded shadow p-5 text-center">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Debits</h2>
-      <p id="totalDebits" class="text-2xl font-bold text-red-600">0</p>
-    </div>
-    <div class="bg-white rounded shadow p-5 text-center">
-      <h2 class="text-lg font-semibold text-gray-700 mb-2">Balance</h2>
-      <p id="balance" class="text-2xl font-bold text-gray-800">0</p>
-    </div>
-  </div>
 
-  <!-- Transactions Table -->
-  <div class="bg-white rounded shadow overflow-x-auto mb-6">
-    <table class="w-full table-auto border-collapse border border-gray-200">
-      <thead class="bg-gray-200 sticky top-0">
-        <tr>
-          <th class="border px-4 py-2 text-left">Date</th>
-          <th class="border px-4 py-2 text-left">Person / Bill</th>
-          <th class="border px-4 py-2 text-left">Type</th>
-          <th class="border px-4 py-2 text-left">Amount</th>
-        </tr>
-      </thead>
-      <tbody id="txTable">
-        <!-- Transactions dynamically inserted here -->
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Admin Panel (Hidden by default) -->
-  <div id="adminPanel" class="hidden bg-white rounded shadow p-6 mb-6">
-
-    <h2 class="text-2xl font-bold mb-4">Admin Panel</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Add Credit Form -->
-      <div class="p-4 bg-green-50 rounded">
-        <h3 class="font-semibold text-gray-700 mb-3">Add Credit</h3>
-        <form id="creditForm" class="flex flex-col gap-3">
-          <select id="creditPerson" class="border p-2 rounded w-full">
-            <option>Raza</option>
-            <option>Salman</option>
-            <option>Mujeeb</option>
-            <option>Gulam</option>
-            <option>Rana</option>
-            <option>Naved</option>
-            <option>Musawwar</option>
-            <option>Nizamuddin</option>
-          </select>
-          <input type="number" id="creditAmount" placeholder="Amount" class="border p-2 rounded w-full" required>
-          <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Add Credit</button>
-        </form>
+    <!-- Admin Panel (Hidden by default) -->
+    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6 mb-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Admin Panel</h2>
+        <div class="flex items-center space-x-2">
+          <span class="text-green-600"><i class="fas fa-circle text-xs"></i> Admin Mode</span>
+          <button id="logoutBtn" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded transition duration-200">
+            Logout
+          </button>
+        </div>
       </div>
 
-      <!-- Add Debit Form -->
-      <div class="p-4 bg-red-50 rounded">
-        <h3 class="font-semibold text-gray-700 mb-3">Add Debit</h3>
-        <form id="debitForm" class="flex flex-col gap-3">
-          <select id="debitType" class="border p-2 rounded w-full">
-            <option>Electricity</option>
-            <option>Water</option>
-            <option>Gas</option>
-            <option>Garbage</option>
-            <option>Other</option>
-          </select>
-          <input type="text" id="debitNote" placeholder="Note (optional)" class="border p-2 rounded w-full">
-          <input type="number" id="debitAmount" placeholder="Amount" class="border p-2 rounded w-full" required>
-          <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Add Debit</button>
-        </form>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Add Credit -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="font-medium mb-3 text-green-700"><i class="fas fa-plus-circle mr-2"></i>Add Credit (Money Received)</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Person</label>
+              <select id="personSelect" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"></select>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Amount (SOM)</label>
+              <input id="creditAmount" type="number" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g. 500">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
+              <textarea id="creditNote" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g. For January rent" rows="2"></textarea>
+            </div>
+            <button id="addCreditBtn" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-200">
+              Add Credit
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Debit -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="font-medium mb-3 text-red-700"><i class="fas fa-minus-circle mr-2"></i>Add Debit (Bill Paid)</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Bill Type</label>
+              <select id="debitType" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <option>Electricity</option>
+                <option>Water</option>
+                <option>Gas</option>
+                <option>Garbage</option>
+                <option>Internet</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Amount (SOM)</label>
+              <input id="debitAmount" type="number" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="e.g. 250">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
+              <textarea id="debitNote" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="e.g. January bill, receipt #123" rows="2"></textarea>
+            </div>
+            <button id="addDebitBtn" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-200">
+              Add Debit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commit Section -->
+      <div class="mt-6 border-t pt-4">
+        <h3 class="font-medium mb-3">Commit Changes to GitHub</h3>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800 mb-3">
+            When you're ready to save your changes, click the button below to open GitHub's web editor where you can commit the updated data.
+          </p>
+          <button id="commitBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200 flex items-center">
+            <i class="fab fa-github mr-2"></i> Commit to GitHub
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Commit Button -->
-    <div class="mt-6 text-center">
-      <button id="commitBtn" class="px-6 py-3 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition">Commit to GitHub</button>
+    <!-- Dashboard -->
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      <!-- Summary Cards -->
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-green-600" id="totalCredits">0</div>
+        <div class="text-sm text-gray-600">Total Credits</div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-red-600" id="totalDebits">0</div>
+        <div class="text-sm text-gray-600">Total Debits</div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-indigo-600" id="balance">0</div>
+        <div class="text-sm text-gray-600">Current Balance</div>
+      </div>
     </div>
 
+    <!-- People Summary -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left bg-gray-100">
+            <tr>
+              <th class="p-3 font-medium">Date</th>
+              <th class="p-3 font-medium">Type</th>
+              <th class="p-3 font-medium">Person / Bill</th>
+              <th class="p-3 font-medium">Note</th>
+              <th class="p-3 font-medium text-right">Amount (SOM)</th>
+            </tr>
+          </thead>
+          <tbody id="transactionBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-sm text-gray-500">
+      <p>Kharcha — House Fund Tracker • Updated automatically from GitHub</p>
+    </footer>
   </div>
 
-</div>
+  <!-- Modal for GitHub Commit -->
+  <div id="commitModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Commit to GitHub</h3>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p class="mb-4 text-sm text-gray-600">
+        This will open GitHub's web editor where you can commit the updated data.
+        <strong>Important:</strong> Make sure you're logged into GitHub as <span id="repoOwner" class="font-semibold">DelightReza</span>.
+      </p>
+      <div class="flex justify-end space-x-3">
+        <button id="cancelCommit" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200">
+          Cancel
+        </button>
+        <button id="confirmCommit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
+          Open GitHub
+        </button>
+      </div>
+    </div>
+  </div>
 
-<script>
-// Repo info
-const repoOwner = "delightreza";
-const repoName = "kharcha";
-const filePath = "data.json";
+  <script>
+    // Configuration
+    const REPO_OWNER = 'DelightReza';
+    const REPO_NAME = 'kharcha';
+    const DATA_FILE = 'data.json';
+    const DEFAULT_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin'];
 
-// Default data
-let data = {
-  people: {
-    "Raza": 0,"Salman":0,"Mujeeb":0,"Gulam":0,"Rana":0,"Naved":0,"Musawwar":0,"Nizamuddin":0
-  },
-  transactions: []
-};
+    // State
+    let isAdmin = false;
+    let data = {
+      people: {},
+      transactions: []
+    };
 
-// Load data.json from GitHub
-async function loadData() {
-  try {
-    const rawUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${filePath}`;
-    const res = await fetch(rawUrl);
-    if(res.ok) data = await res.json();
-  } catch(err) {
-    console.log("Using default data", err);
-  }
-  renderDashboard();
-}
+    // DOM Elements
+    const loginSection = document.getElementById('loginSection');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const usernameInput = document.getElementById('usernameInput');
+    const personSelect = document.getElementById('personSelect');
+    const creditAmount = document.getElementById('creditAmount');
+    const creditNote = document.getElementById('creditNote');
+    const addCreditBtn = document.getElementById('addCreditBtn');
+    const debitType = document.getElementById('debitType');
+    const debitAmount = document.getElementById('debitAmount');
+    const debitNote = document.getElementById('debitNote');
+    const addDebitBtn = document.getElementById('addDebitBtn');
+    const commitBtn = document.getElementById('commitBtn');
+    const commitModal = document.getElementById('commitModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelCommit = document.getElementById('cancelCommit');
+    const confirmCommit = document.getElementById('confirmCommit');
+    const repoOwner = document.getElementById('repoOwner');
+    const totalCreditsEl = document.getElementById('totalCredits');
+    const totalDebitsEl = document.getElementById('totalDebits');
+    const balanceEl = document.getElementById('balance');
+    const peopleSummary = document.getElementById('peopleSummary');
+    const transactionBody = document.getElementById('transactionBody');
 
-// Render dashboard totals and transaction table
-function renderDashboard() {
-  const totalCredits = data.transactions.filter(t=>t.type==="Credit").reduce((a,b)=>a+b.amount,0);
-  const totalDebits = data.transactions.filter(t=>t.type==="Debit").reduce((a,b)=>a+b.amount,0);
-  document.getElementById("totalCredits").textContent = totalCredits;
-  document.getElementById("totalDebits").textContent = totalDebits;
-  document.getElementById("balance").textContent = totalCredits - totalDebits;
+    // Initialize
+    function init() {
+      // Initialize people select
+      personSelect.innerHTML = DEFAULT_PEOPLE.map(person => 
+        `<option value="${person}">${person}</option>`
+      ).join('');
 
-  const txTable = document.getElementById("txTable");
-  txTable.innerHTML = "";
-  data.transactions.forEach(tx=>{
-    const tr = document.createElement("tr");
-    tr.className = "hover:bg-gray-100";
-    tr.innerHTML = `<td class="border px-4 py-2">${tx.date}</td>
-                    <td class="border px-4 py-2">${tx.person || tx.bill}</td>
-                    <td class="border px-4 py-2">${tx.type}</td>
-                    <td class="border px-4 py-2">${tx.amount}</td>`;
-    txTable.appendChild(tr);
-  });
-}
+      // Load data
+      loadData();
 
-// Admin login
-document.getElementById("loginBtn").addEventListener("click", ()=>{
-  const username = prompt("Enter GitHub username:");
-  if(username === "delightreza"){
-    document.getElementById("adminPanel").classList.remove("hidden");
-    alert("Admin panel unlocked!");
-  } else {
-    alert("Access denied");
-  }
-});
+      // Event listeners
+      loginBtn.addEventListener('click', handleLogin);
+      logoutBtn.addEventListener('click', handleLogout);
+      addCreditBtn.addEventListener('click', () => addTransaction('credit'));
+      addDebitBtn.addEventListener('click', () => addTransaction('debit'));
+      commitBtn.addEventListener('click', showCommitModal);
+      closeModal.addEventListener('click', hideCommitModal);
+      cancelCommit.addEventListener('click', hideCommitModal);
+      confirmCommit.addEventListener('click', openGitHubEditor);
 
-// Add Credit
-document.getElementById("creditForm").addEventListener("submit", e=>{
-  e.preventDefault();
-  const person = document.getElementById("creditPerson").value;
-  const amount = parseFloat(document.getElementById("creditAmount").value);
-  const date = new Date().toISOString().split('T')[0];
-  data.transactions.push({type:"Credit", person, amount, date});
-  data.people[person] += amount;
-  renderDashboard();
-  e.target.reset();
-});
+      // Set repo owner in modal
+      repoOwner.textContent = REPO_OWNER;
+    }
 
-// Add Debit
-document.getElementById("debitForm").addEventListener("submit", e=>{
-  e.preventDefault();
-  const bill = document.getElementById("debitType").value;
-  const note = document.getElementById("debitNote").value;
-  const amount = parseFloat(document.getElementById("debitAmount").value);
-  const date = new Date().toISOString().split('T')[0];
-  data.transactions.push({type:"Debit", bill: bill + (note?` (${note})`:""), amount, date});
-  renderDashboard();
-  e.target.reset();
-});
+    // Login handler
+    function handleLogin() {
+      const username = usernameInput.value.trim();
+      if (username.toLowerCase() === REPO_OWNER.toLowerCase()) {
+        isAdmin = true;
+        loginSection.classList.add('hidden');
+        adminPanel.classList.remove('hidden');
+      } else {
+        alert('Access denied. Only the repository owner can access the admin panel.');
+      }
+    }
 
-// Commit URL generator
-document.getElementById("commitBtn").addEventListener("click", ()=>{
-  const jsonContent = encodeURIComponent(JSON.stringify(data, null, 2));
-  const commitMessage = encodeURIComponent("Update kharcha data");
-  const githubUrl = `https://github.com/${repoOwner}/${repoName}/edit/main/${filePath}?message=${commitMessage}`;
-  window.open(githubUrl, "_blank");
-});
+    // Logout handler
+    function handleLogout() {
+      isAdmin = false;
+      adminPanel.classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      usernameInput.value = '';
+    }
 
-loadData();
-</script>
+    // Load data from GitHub
+    async function loadData() {
+      try {
+        // In a real implementation, this would fetch from the GitHub repo
+        // For now, we'll use localStorage or sample data
+        const savedData = localStorage.getItem('kharcha_data');
+        
+        if (savedData) {
+          data = JSON.parse(savedData);
+        } else {
+          // Initialize with sample data if none exists
+          data = {
+            people: DEFAULT_PEOPLE.reduce((acc, person) => {
+              acc[person] = 0;
+              return acc;
+            }, {}),
+            transactions: []
+          };
+          saveData();
+        }
+        
+        renderDashboard();
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fallback to empty data
+        data = {
+          people: DEFAULT_PEOPLE.reduce((acc, person) => {
+            acc[person] = 0;
+            return acc;
+          }, {}),
+          transactions: []
+        };
+        renderDashboard();
+      }
+    }
 
+    // Save data to localStorage (in real implementation, this would commit to GitHub)
+    function saveData() {
+      localStorage.setItem('kharcha_data', JSON.stringify(data));
+    }
+
+    // Add transaction
+    function addTransaction(type) {
+      if (!isAdmin) return;
+
+      let amount, whoOrBill, note;
+
+      if (type === 'credit') {
+        amount = parseFloat(creditAmount.value);
+        whoOrBill = personSelect.value;
+        note = creditNote.value;
+        
+        if (!amount || amount <= 0) {
+          alert('Please enter a valid amount');
+          return;
+        }
+        
+        // Clear form
+        creditAmount.value = '';
+        creditNote.value = '';
+      } else {
+        amount = parseFloat(debitAmount.value);
+        whoOrBill = debitType.value;
+        note = debitNote.value;
+        
+        if (!amount || amount <= 0) {
+          alert('Please enter a valid amount');
+          return;
+        }
+        
+        // Clear form
+        debitAmount.value = '';
+        debitNote.value = '';
+      }
+
+      // Create transaction
+      const transaction = {
+        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        type,
+        whoOrBill,
+        note,
+        amount,
+        date: new Date().toISOString()
+      };
+
+      // Update data
+      data.transactions.unshift(transaction);
+      
+      if (type === 'credit') {
+        data.people[whoOrBill] = (data.people[whoOrBill] || 0) + amount;
+      }
+
+      // Save and render
+      saveData();
+      renderDashboard();
+      
+      // Show success message
+      alert(`${type === 'credit' ? 'Credit' : 'Debit'} added successfully!`);
+    }
+
+    // Render dashboard
+    function renderDashboard() {
+      // Calculate totals
+      let totalCredits = 0;
+      let totalDebits = 0;
+      
+      data.transactions.forEach(tx => {
+        if (tx.type === 'credit') {
+          totalCredits += tx.amount;
+        } else {
+          totalDebits += tx.amount;
+        }
+      });
+      
+      const balance = totalCredits - totalDebits;
+      
+      // Update summary cards
+      totalCreditsEl.textContent = totalCredits.toLocaleString();
+      totalDebitsEl.textContent = totalDebits.toLocaleString();
+      balanceEl.textContent = balance.toLocaleString();
+      
+      // Update people summary
+      peopleSummary.innerHTML = '';
+      Object.entries(data.people).forEach(([person, amount]) => {
+        const personCard = document.createElement('div');
+        personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
+        personCard.innerHTML = `
+          <div class="font-medium text-gray-800">${person}</div>
+          <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
+        `;
+        peopleSummary.appendChild(personCard);
+      });
+      
+      // Update transaction history
+      transactionBody.innerHTML = '';
+      data.transactions.forEach(tx => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-gray-100 hover:bg-gray-50';
+        
+        const date = new Date(tx.date);
+        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
+        const typeIcon = tx.type === 'credit' ? 
+          '<i class="fas fa-arrow-down mr-1"></i>' : 
+          '<i class="fas fa-arrow-up mr-1"></i>';
+        
+        row.innerHTML = `
+          <td class="p-3">${formattedDate}</td>
+          <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
+          <td class="p-3 font-medium">${tx.whoOrBill}</td>
+          <td class="p-3 text-gray-600">${tx.note || '-'}</td>
+          <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+        `;
+        
+        transactionBody.appendChild(row);
+      });
+    }
+
+    // Show commit modal
+    function showCommitModal() {
+      if (!isAdmin) return;
+      commitModal.classList.remove('hidden');
+    }
+
+    // Hide commit modal
+    function hideCommitModal() {
+      commitModal.classList.add('hidden');
+    }
+
+    // Open GitHub editor
+    function openGitHubEditor() {
+      // In a real implementation, this would open the GitHub editor
+      // For now, we'll just show a message
+      alert('In a real implementation, this would open GitHub editor to commit changes.\n\nFor now, data is saved to localStorage.');
+      hideCommitModal();
+    }
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
