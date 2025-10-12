@@ -1,0 +1,165 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'data.json' ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Generate HTML Dashboard
+      run: |
+        # Read data.json
+        DATA=$(cat data.json)
+        
+        # Generate the public dashboard HTML
+        cat > index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Kharcha — House Fund Tracker</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        </head>
+        <body class="bg-gray-50 text-gray-800 min-h-screen">
+          <div class="max-w-6xl mx-auto p-4">
+            <header class="text-center mb-8">
+              <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
+              <p class="text-gray-600">Track shared household expenses with transparency</p>
+              <p class="text-sm text-gray-500 mt-2">Last updated: <span id="lastUpdated">$(date)</span></p>
+            </header>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-green-600" id="totalCredits">0</div>
+                <div class="text-sm text-gray-600">Total Credits</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-red-600" id="totalDebits">0</div>
+                <div class="text-sm text-gray-600">Total Debits</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-indigo-600" id="balance">0</div>
+                <div class="text-sm text-gray-600">Current Balance</div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead class="text-left bg-gray-100">
+                    <tr>
+                      <th class="p-3 font-medium">Date</th>
+                      <th class="p-3 font-medium">Type</th>
+                      <th class="p-3 font-medium">Person / Bill</th>
+                      <th class="p-3 font-medium">Note</th>
+                      <th class="p-3 font-medium text-right">Amount (SOM)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <footer class="mt-8 text-center text-sm text-gray-500">
+              <p>Kharcha — House Fund Tracker • Updated automatically</p>
+            </footer>
+          </div>
+
+          <script>
+            const data = $DATA;
+
+            function renderDashboard() {
+              // Calculate totals
+              let totalCredits = 0;
+              let totalDebits = 0;
+              
+              data.transactions.forEach(tx => {
+                if (tx.type === 'credit') {
+                  totalCredits += tx.amount;
+                } else {
+                  totalDebits += tx.amount;
+                }
+              });
+              
+              const balance = totalCredits - totalDebits;
+              
+              // Update summary cards
+              document.getElementById('totalCredits').textContent = totalCredits.toLocaleString();
+              document.getElementById('totalDebits').textContent = totalDebits.toLocaleString();
+              document.getElementById('balance').textContent = balance.toLocaleString();
+              
+              // Update people summary
+              const peopleSummary = document.getElementById('peopleSummary');
+              peopleSummary.innerHTML = '';
+              Object.entries(data.people).forEach(([person, amount]) => {
+                const personCard = document.createElement('div');
+                personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
+                personCard.innerHTML = `
+                  <div class="font-medium text-gray-800">${person}</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
+                `;
+                peopleSummary.appendChild(personCard);
+              });
+              
+              // Update transaction history
+              const transactionBody = document.getElementById('transactionBody');
+              transactionBody.innerHTML = '';
+              data.transactions.forEach(tx => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-100 hover:bg-gray-50';
+                
+                const date = new Date(tx.date);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
+                const typeIcon = tx.type === 'credit' ? 
+                  '<i class="fas fa-arrow-down mr-1"></i>' : 
+                  '<i class="fas fa-arrow-up mr-1"></i>';
+                
+                row.innerHTML = `
+                  <td class="p-3">${formattedDate}</td>
+                  <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
+                  <td class="p-3 font-medium">${tx.whoOrBill}</td>
+                  <td class="p-3 text-gray-600">${tx.note || '-'}</td>
+                  <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+                `;
+                
+                transactionBody.appendChild(row);
+              });
+
+              // Update last updated time
+              document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            }
+
+            document.addEventListener('DOMContentLoaded', renderDashboard);
+          </script>
+        </body>
+        </html>
+        EOF
+
+        # Replace the placeholder with actual data
+        sed -i "s/\$DATA/$(echo "$DATA" | sed 's/&/\\&/g; s/"/\\"/g')/g" index.html
+        sed -i "s/\$(date)/$(date)/g" index.html
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
+        publish_branch: gh-pages
+        keep_files: false
