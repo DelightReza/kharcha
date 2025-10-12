@@ -28,6 +28,7 @@ jobs:
         cat > generate_public.py << 'EOF'
         import json
         import datetime
+        from datetime import timezone, timedelta
         
         # Read the data.json file
         with open('data.json', 'r') as f:
@@ -79,7 +80,7 @@ jobs:
                 <table class="w-full text-sm">
                   <thead class="text-left bg-gray-100">
                     <tr>
-                      <th class="p-3 font-medium">Date</th>
+                      <th class="p-3 font-medium">Date (UTC+6)</th>
                       <th class="p-3 font-medium">Type</th>
                       <th class="p-3 font-medium">Person / Bill</th>
                       <th class="p-3 font-medium">Note</th>
@@ -117,11 +118,13 @@ jobs:
                   <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.0f} SOM</div>
                 </div>'''
         
-        # Generate transactions HTML
+        # Generate transactions HTML with UTC+6 time
         transactions_html = ''
         for tx in data['transactions']:
-            date = datetime.datetime.fromisoformat(tx['date'].replace('Z', '+00:00'))
-            formatted_date = date.strftime('%Y-%m-%d %H:%M')
+            # Convert to UTC+6
+            utc_time = datetime.datetime.fromisoformat(tx['date'].replace('Z', '+00:00'))
+            utc6_time = utc_time + timedelta(hours=6)
+            formatted_date = utc6_time.strftime('%Y-%m-%d %H:%M')
             
             type_class = 'text-green-600' if tx['type'] == 'credit' else 'text-red-600'
             type_icon = '<i class="fas fa-arrow-down mr-1"></i>' if tx['type'] == 'credit' else '<i class="fas fa-arrow-up mr-1"></i>'
@@ -140,9 +143,14 @@ jobs:
         total_debits_str = f"{total_debits:,.0f}"
         balance_str = f"{balance:,.0f}"
         
+        # Get current time in UTC+6 for last updated
+        utc_now = datetime.datetime.now(timezone.utc)
+        utc6_now = utc_now + timedelta(hours=6)
+        last_updated = utc6_now.strftime('%Y-%m-%d %H:%M:%S UTC+6')
+        
         # Final HTML generation
         final_html = html_template.format(
-            last_updated=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            last_updated=last_updated,
             total_credits=total_credits_str,
             total_debits=total_debits_str,
             balance=balance_str,
