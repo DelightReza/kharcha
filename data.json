@@ -6,10 +6,18 @@
     "Gulam": 0,
     "Rana": 0,
     "Naved": 0,
-    "Musawwar": 0,
+    "Musawwar": 500,
     "Nizamuddin": 0
   },
   "transactions": [
+    {
+      "id": "tx_1760271793121_ai1nq",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "",
+      "amount": 500,
+      "date": "2025-10-12T12:23:13.121Z"
+    },
     {
       "id": "tx_1760268302114_fr0rf",
       "type": "credit",
