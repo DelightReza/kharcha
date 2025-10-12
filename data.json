@@ -1,13 +1,20 @@
 {
   "people": {
-    "Musawwar": 0,
-    "Raza": 0,
+    "Raza": 500,
     "Salman": 0,
     "Mujeeb": 0,
     "Gulam": 0,
     "Rana": 0,
     "Naved": 0,
+    "Musawwar": 0,
     "Nizamuddin": 0
   },
-  "transactions": []
+  "transactions": [
+    {
+      "type": "Credit",
+      "person": "Raza",
+      "amount": 500,
+      "date": "2025-10-12"
+    }
+  ]
 }
