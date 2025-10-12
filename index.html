@@ -4,106 +4,111 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kharcha Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4">
+<body class="bg-gray-100 min-h-screen">
 
-<div class="max-w-4xl mx-auto">
+<!-- Container -->
+<div class="max-w-6xl mx-auto p-6">
 
   <!-- Header -->
   <header class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Kharcha Dashboard</h1>
-    <button id="loginBtn" class="px-4 py-2 bg-blue-500 text-white rounded">Login</button>
+    <h1 class="text-4xl font-bold text-gray-800">Kharcha Dashboard</h1>
+    <button id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition">Login</button>
   </header>
 
-  <!-- Summary -->
-  <div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold text-gray-700">Total Credits</h2>
-      <p id="totalCredits" class="text-2xl">0</p>
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded shadow p-5 text-center">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Credits</h2>
+      <p id="totalCredits" class="text-2xl font-bold text-green-600">0</p>
     </div>
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold text-gray-700">Total Debits</h2>
-      <p id="totalDebits" class="text-2xl">0</p>
+    <div class="bg-white rounded shadow p-5 text-center">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Total Debits</h2>
+      <p id="totalDebits" class="text-2xl font-bold text-red-600">0</p>
     </div>
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold text-gray-700">Balance</h2>
-      <p id="balance" class="text-2xl">0</p>
+    <div class="bg-white rounded shadow p-5 text-center">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Balance</h2>
+      <p id="balance" class="text-2xl font-bold text-gray-800">0</p>
     </div>
   </div>
 
-  <!-- Transaction Table -->
-  <div class="bg-white p-4 rounded shadow mb-6">
-    <h2 class="font-bold mb-2">Transactions</h2>
-    <table class="w-full table-auto border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border px-2 py-1">Date</th>
-          <th class="border px-2 py-1">Person / Bill</th>
-          <th class="border px-2 py-1">Type</th>
-          <th class="border px-2 py-1">Amount</th>
+  <!-- Transactions Table -->
+  <div class="bg-white rounded shadow overflow-x-auto mb-6">
+    <table class="w-full table-auto border-collapse border border-gray-200">
+      <thead class="bg-gray-200 sticky top-0">
+        <tr>
+          <th class="border px-4 py-2 text-left">Date</th>
+          <th class="border px-4 py-2 text-left">Person / Bill</th>
+          <th class="border px-4 py-2 text-left">Type</th>
+          <th class="border px-4 py-2 text-left">Amount</th>
         </tr>
       </thead>
       <tbody id="txTable">
-        <!-- Filled dynamically -->
+        <!-- Transactions dynamically inserted here -->
       </tbody>
     </table>
   </div>
 
-  <!-- Admin Panel (Hidden initially) -->
-  <div id="adminPanel" class="hidden bg-white p-4 rounded shadow mb-6">
-    <h2 class="font-bold mb-4">Admin Controls</h2>
+  <!-- Admin Panel (Hidden by default) -->
+  <div id="adminPanel" class="hidden bg-white rounded shadow p-6 mb-6">
 
-    <!-- Add Credit -->
-    <div class="mb-4">
-      <h3 class="font-semibold mb-2">Add Credit</h3>
-      <form id="creditForm" class="flex gap-2 items-center">
-        <select id="creditPerson" class="border p-1 rounded">
-          <option>Raza</option>
-          <option>Salman</option>
-          <option>Mujeeb</option>
-          <option>Gulam</option>
-          <option>Rana</option>
-          <option>Naved</option>
-          <option>Musawwar</option>
-          <option>Nizamuddin</option>
-        </select>
-        <input type="number" id="creditAmount" placeholder="Amount" class="border p-1 rounded w-24" required>
-        <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded">Add</button>
-      </form>
-    </div>
+    <h2 class="text-2xl font-bold mb-4">Admin Panel</h2>
 
-    <!-- Add Debit -->
-    <div>
-      <h3 class="font-semibold mb-2">Add Debit</h3>
-      <form id="debitForm" class="flex gap-2 items-center">
-        <select id="debitType" class="border p-1 rounded">
-          <option>Electricity</option>
-          <option>Water</option>
-          <option>Gas</option>
-          <option>Garbage</option>
-          <option>Other</option>
-        </select>
-        <input type="text" id="debitNote" placeholder="Note (optional)" class="border p-1 rounded w-32">
-        <input type="number" id="debitAmount" placeholder="Amount" class="border p-1 rounded w-24" required>
-        <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Add</button>
-      </form>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Add Credit Form -->
+      <div class="p-4 bg-green-50 rounded">
+        <h3 class="font-semibold text-gray-700 mb-3">Add Credit</h3>
+        <form id="creditForm" class="flex flex-col gap-3">
+          <select id="creditPerson" class="border p-2 rounded w-full">
+            <option>Raza</option>
+            <option>Salman</option>
+            <option>Mujeeb</option>
+            <option>Gulam</option>
+            <option>Rana</option>
+            <option>Naved</option>
+            <option>Musawwar</option>
+            <option>Nizamuddin</option>
+          </select>
+          <input type="number" id="creditAmount" placeholder="Amount" class="border p-2 rounded w-full" required>
+          <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Add Credit</button>
+        </form>
+      </div>
+
+      <!-- Add Debit Form -->
+      <div class="p-4 bg-red-50 rounded">
+        <h3 class="font-semibold text-gray-700 mb-3">Add Debit</h3>
+        <form id="debitForm" class="flex flex-col gap-3">
+          <select id="debitType" class="border p-2 rounded w-full">
+            <option>Electricity</option>
+            <option>Water</option>
+            <option>Gas</option>
+            <option>Garbage</option>
+            <option>Other</option>
+          </select>
+          <input type="text" id="debitNote" placeholder="Note (optional)" class="border p-2 rounded w-full">
+          <input type="number" id="debitAmount" placeholder="Amount" class="border p-2 rounded w-full" required>
+          <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">Add Debit</button>
+        </form>
+      </div>
     </div>
 
     <!-- Commit Button -->
-    <div class="mt-4">
-      <button id="commitBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Commit to GitHub</button>
+    <div class="mt-6 text-center">
+      <button id="commitBtn" class="px-6 py-3 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition">Commit to GitHub</button>
     </div>
+
   </div>
 
 </div>
 
 <script>
+// Repo info
 const repoOwner = "delightreza";
 const repoName = "kharcha";
 const filePath = "data.json";
 
-// Sample initial data (used if fetch fails)
+// Default data
 let data = {
   people: {
     "Raza": 0,"Salman":0,"Mujeeb":0,"Gulam":0,"Rana":0,"Naved":0,"Musawwar":0,"Nizamuddin":0
@@ -123,7 +128,7 @@ async function loadData() {
   renderDashboard();
 }
 
-// Render dashboard totals and transactions
+// Render dashboard totals and transaction table
 function renderDashboard() {
   const totalCredits = data.transactions.filter(t=>t.type==="Credit").reduce((a,b)=>a+b.amount,0);
   const totalDebits = data.transactions.filter(t=>t.type==="Debit").reduce((a,b)=>a+b.amount,0);
@@ -135,20 +140,21 @@ function renderDashboard() {
   txTable.innerHTML = "";
   data.transactions.forEach(tx=>{
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="border px-2 py-1">${tx.date}</td>
-                    <td class="border px-2 py-1">${tx.person || tx.bill}</td>
-                    <td class="border px-2 py-1">${tx.type}</td>
-                    <td class="border px-2 py-1">${tx.amount}</td>`;
+    tr.className = "hover:bg-gray-100";
+    tr.innerHTML = `<td class="border px-4 py-2">${tx.date}</td>
+                    <td class="border px-4 py-2">${tx.person || tx.bill}</td>
+                    <td class="border px-4 py-2">${tx.type}</td>
+                    <td class="border px-4 py-2">${tx.amount}</td>`;
     txTable.appendChild(tr);
   });
 }
 
-// Admin login simulation
+// Admin login
 document.getElementById("loginBtn").addEventListener("click", ()=>{
-  const username = prompt("Enter your GitHub username to unlock admin controls:");
+  const username = prompt("Enter GitHub username:");
   if(username === "delightreza"){
     document.getElementById("adminPanel").classList.remove("hidden");
-    alert("Admin controls unlocked!");
+    alert("Admin panel unlocked!");
   } else {
     alert("Access denied");
   }
@@ -163,6 +169,7 @@ document.getElementById("creditForm").addEventListener("submit", e=>{
   data.transactions.push({type:"Credit", person, amount, date});
   data.people[person] += amount;
   renderDashboard();
+  e.target.reset();
 });
 
 // Add Debit
@@ -174,6 +181,7 @@ document.getElementById("debitForm").addEventListener("submit", e=>{
   const date = new Date().toISOString().split('T')[0];
   data.transactions.push({type:"Debit", bill: bill + (note?` (${note})`:""), amount, date});
   renderDashboard();
+  e.target.reset();
 });
 
 // Commit URL generator
