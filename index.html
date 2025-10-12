@@ -3,32 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kharcha — Admin Panel</title>
+  <title>Kharcha — House Fund Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
-  <div class="max-w-4xl mx-auto p-4">
+  <div class="max-w-6xl mx-auto p-4">
     <!-- Header -->
     <header class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — Admin Panel</h1>
-      <p class="text-gray-600">Manage household expenses privately</p>
+      <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
+      <p class="text-gray-600">Track shared household expenses with transparency</p>
     </header>
 
-    <!-- Login Section -->
-    <div id="loginSection" class="bg-white rounded-lg shadow-md p-6 mb-8 max-w-md mx-auto">
-      <h2 class="text-xl font-semibold mb-4 text-center">Admin Login</h2>
-      <div class="mb-4">
-        <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
-        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="DelightReza">
-      </div>
-      <button id="loginBtn" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-200">
-        Login as Admin
+    <!-- Login Button (Top Right) -->
+    <div class="flex justify-end mb-6">
+      <button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center">
+        <i class="fas fa-lock mr-2"></i> Admin Login
       </button>
     </div>
 
+    <!-- Balance Summary Cards -->
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-green-600" id="totalCredits">0</div>
+        <div class="text-sm text-gray-600">Total Credits</div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-red-600" id="totalDebits">0</div>
+        <div class="text-sm text-gray-600">Total Debits</div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-5 text-center">
+        <div class="text-2xl font-bold text-indigo-600" id="balance">0</div>
+        <div class="text-sm text-gray-600">Current Balance</div>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left bg-gray-100">
+            <tr>
+              <th class="p-3 font-medium">Date</th>
+              <th class="p-3 font-medium">Type</th>
+              <th class="p-3 font-medium">Person / Bill</th>
+              <th class="p-3 font-medium">Note</th>
+              <th class="p-3 font-medium text-right">Amount (SOM)</th>
+            </tr>
+          </thead>
+          <tbody id="transactionBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Amount per Person -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
+    </div>
+
     <!-- Admin Panel (Hidden by default) -->
-    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6">
+    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6 mb-8">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">Admin Panel</h2>
         <div class="flex items-center space-x-2">
@@ -92,7 +128,7 @@
         </div>
       </div>
 
-      <!-- Current Data & GitHub Integration -->
+      <!-- GitHub Integration -->
       <div class="border-t pt-6">
         <h3 class="font-medium mb-3">GitHub Integration</h3>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -123,8 +159,32 @@
 
     <!-- Footer -->
     <footer class="mt-8 text-center text-sm text-gray-500">
-      <p>Kharcha — Private Admin Panel • <a href="https://delightreza.github.io/kharcha" class="text-indigo-600 hover:underline" target="_blank">View Public Dashboard</a></p>
+      <p>Kharcha — House Fund Tracker • Updated automatically from GitHub</p>
     </footer>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Admin Login</h3>
+        <button id="closeLoginModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="mb-4">
+        <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
+        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="DelightReza">
+      </div>
+      <div class="flex justify-end space-x-3">
+        <button id="cancelLogin" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200">
+          Cancel
+        </button>
+        <button id="confirmLogin" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200">
+          Login
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -143,11 +203,14 @@
     let githubPAT = "";
 
     // DOM Elements
-    const loginSection = document.getElementById('loginSection');
-    const adminPanel = document.getElementById('adminPanel');
     const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
+    const loginModal = document.getElementById('loginModal');
+    const closeLoginModal = document.getElementById('closeLoginModal');
+    const cancelLogin = document.getElementById('cancelLogin');
+    const confirmLogin = document.getElementById('confirmLogin');
     const usernameInput = document.getElementById('usernameInput');
+    const adminPanel = document.getElementById('adminPanel');
+    const logoutBtn = document.getElementById('logoutBtn');
     const personSelect = document.getElementById('personSelect');
     const creditAmount = document.getElementById('creditAmount');
     const creditNote = document.getElementById('creditNote');
@@ -159,6 +222,11 @@
     const setPATBtn = document.getElementById('setPATBtn');
     const commitBtn = document.getElementById('commitBtn');
     const commitStatus = document.getElementById('commitStatus');
+    const totalCreditsEl = document.getElementById('totalCredits');
+    const totalDebitsEl = document.getElementById('totalDebits');
+    const balanceEl = document.getElementById('balance');
+    const peopleSummary = document.getElementById('peopleSummary');
+    const transactionBody = document.getElementById('transactionBody');
     const dataPreview = document.getElementById('dataPreview');
 
     // Initialize
@@ -174,11 +242,14 @@
         updateCommitStatus('PAT loaded from storage');
       }
 
-      // Load data from localStorage
-      loadData();
+      // Load data from GitHub Pages
+      loadDataFromGitHubPages();
 
       // Event listeners
-      loginBtn.addEventListener('click', handleLogin);
+      loginBtn.addEventListener('click', showLoginModal);
+      closeLoginModal.addEventListener('click', hideLoginModal);
+      cancelLogin.addEventListener('click', hideLoginModal);
+      confirmLogin.addEventListener('click', handleLogin);
       logoutBtn.addEventListener('click', handleLogout);
       addCreditBtn.addEventListener('click', () => addTransaction('credit'));
       addDebitBtn.addEventListener('click', () => addTransaction('debit'));
@@ -186,13 +257,28 @@
       commitBtn.addEventListener('click', commitToGitHub);
     }
 
+    // Show login modal
+    function showLoginModal() {
+      loginModal.classList.remove('hidden');
+      usernameInput.value = '';
+      usernameInput.focus();
+    }
+
+    // Hide login modal
+    function hideLoginModal() {
+      loginModal.classList.add('hidden');
+    }
+
     // Login handler
     function handleLogin() {
       const username = usernameInput.value.trim();
       if (username.toLowerCase() === REPO_OWNER.toLowerCase()) {
         isAdmin = true;
-        loginSection.classList.add('hidden');
         adminPanel.classList.remove('hidden');
+        loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i> Admin';
+        loginBtn.classList.remove('bg-indigo-600');
+        loginBtn.classList.add('bg-green-600');
+        hideLoginModal();
       } else {
         alert('Access denied. Only the repository owner can access the admin panel.');
       }
@@ -202,17 +288,33 @@
     function handleLogout() {
       isAdmin = false;
       adminPanel.classList.add('hidden');
-      loginSection.classList.remove('hidden');
-      usernameInput.value = '';
+      loginBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Admin Login';
+      loginBtn.classList.remove('bg-green-600');
+      loginBtn.classList.add('bg-indigo-600');
     }
 
-    // Load data from localStorage
-    function loadData() {
+    // Load data from GitHub Pages (public access)
+    async function loadDataFromGitHubPages() {
+      try {
+        // Try to load from GitHub Pages
+        const pagesUrl = `https://${REPO_OWNER}.github.io/${REPO_NAME}/${DATA_FILE}`;
+        const res = await fetch(pagesUrl);
+        if (res.ok) {
+          data = await res.json();
+          updateCommitStatus('✅ Data loaded from GitHub Pages');
+          renderDashboard();
+          return;
+        }
+      } catch (error) {
+        console.log('Failed to load from GitHub Pages:', error);
+      }
+
+      // Fallback to localStorage
       try {
         const savedData = localStorage.getItem('kharcha_data');
         if (savedData) {
           data = JSON.parse(savedData);
-          updateCommitStatus('✅ Data loaded from local storage');
+          updateCommitStatus('⚠️ Using local data (GitHub Pages not available)');
         } else {
           // Initialize with default data
           data = {
@@ -235,7 +337,7 @@
         };
       }
       
-      updateDataPreview();
+      renderDashboard();
     }
 
     // Save data to localStorage
@@ -302,9 +404,74 @@
 
       // Save and render
       saveData();
+      renderDashboard();
       
       // Show success message
       updateCommitStatus('✅ Transaction added locally');
+    }
+
+    // Render dashboard
+    function renderDashboard() {
+      // Calculate totals
+      let totalCredits = 0;
+      let totalDebits = 0;
+      
+      data.transactions.forEach(tx => {
+        if (tx.type === 'credit') {
+          totalCredits += tx.amount;
+        } else {
+          totalDebits += tx.amount;
+        }
+      });
+      
+      const balance = totalCredits - totalDebits;
+      
+      // Update summary cards
+      totalCreditsEl.textContent = totalCredits.toLocaleString();
+      totalDebitsEl.textContent = totalDebits.toLocaleString();
+      balanceEl.textContent = balance.toLocaleString();
+      
+      // Update people summary
+      peopleSummary.innerHTML = '';
+      Object.entries(data.people).forEach(([person, amount]) => {
+        const personCard = document.createElement('div');
+        personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
+        personCard.innerHTML = `
+          <div class="font-medium text-gray-800">${person}</div>
+          <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
+        `;
+        peopleSummary.appendChild(personCard);
+      });
+      
+      // Update transaction history
+      transactionBody.innerHTML = '';
+      data.transactions.forEach(tx => {
+        const row = document.createElement('tr');
+        row.className = 'border-b border-gray-100 hover:bg-gray-50';
+        
+        const date = new Date(tx.date);
+        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
+        const typeIcon = tx.type === 'credit' ? 
+          '<i class="fas fa-arrow-down mr-1"></i>' : 
+          '<i class="fas fa-arrow-up mr-1"></i>';
+        
+        row.innerHTML = `
+          <td class="p-3">${formattedDate}</td>
+          <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
+          <td class="p-3 font-medium">${tx.whoOrBill}</td>
+          <td class="p-3 text-gray-600">${tx.note || '-'}</td>
+          <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+        `;
+        
+        transactionBody.appendChild(row);
+      });
+
+      // Update data preview if admin is logged in
+      if (isAdmin) {
+        updateDataPreview();
+      }
     }
 
     // Set PAT
