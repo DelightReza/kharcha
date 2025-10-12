@@ -1,0 +1,22 @@
+{
+  "people": {
+    "Raza": 0,
+    "Salman": 0,
+    "Mujeeb": 0,
+    "Gulam": 0,
+    "Rana": 0,
+    "Naved": 0,
+    "Musawwar": 500,
+    "Nizamuddin": 0
+  },
+  "transactions": [
+    {
+      "id": "tx_bi3yeys",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "",
+      "amount": 500,
+      "date": "2025-10-12T10:12:08.692Z"
+    }
+  ]
+}
