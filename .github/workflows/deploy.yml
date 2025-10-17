@@ -22,21 +22,43 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Generate Public Dashboard
+    - name: Generate Public Dashboard and Transaction Pages
       run: |
-        # Create a Python script to generate the public dashboard
+        # Create a Python script to generate the public dashboard and transaction pages
         cat > generate_public.py << 'EOF'
         import json
         import datetime
         from datetime import timezone, timedelta
+        import os
         
         # Read the data.json file
         with open('data.json', 'r') as f:
             data = json.load(f)
         
-        # Calculate totals
-        total_credits = sum(tx['amount'] for tx in data['transactions'] if tx['type'] == 'credit')
-        total_debits = sum(tx['amount'] for tx in data['transactions'] if tx['type'] == 'debit')
+        # Calculate totals and running balances
+        total_credits = 0
+        total_debits = 0
+        running_balance = 0
+        transactions_with_balance = []
+        
+        # Sort transactions by date (oldest first for balance calculation)
+        sorted_transactions = sorted(data['transactions'], key=lambda x: x['date'])
+        
+        for tx in sorted_transactions:
+            if tx['type'] == 'credit':
+                total_credits += tx['amount']
+                running_balance += tx['amount']
+            else:
+                total_debits += tx['amount']
+                running_balance -= tx['amount']
+            
+            # Add running balance to transaction
+            tx_copy = tx.copy()
+            tx_copy['running_balance'] = running_balance
+            transactions_with_balance.append(tx_copy)
+        
+        # Reverse for display (newest first)
+        transactions_with_balance.reverse()
         balance = total_credits - total_debits
         
         # Generate HTML for public dashboard
@@ -109,6 +131,79 @@ jobs:
         </body>
         </html>'''
         
+        # Generate transaction detail page template
+        transaction_template = '''<!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Transaction {transaction_id} - Kharcha</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        </head>
+        <body class="bg-gray-50 text-gray-800 min-h-screen">
+          <div class="max-w-2xl mx-auto p-4">
+            <header class="text-center mb-8">
+              <h1 class="text-3xl font-bold text-indigo-700 mb-2">Transaction Details</h1>
+              <p class="text-gray-600">Kharcha — House Fund Tracker</p>
+              <p class="text-sm text-gray-500 mt-2"><a href="../index.html" class="text-indigo-600 hover:underline">← Back to Dashboard</a></p>
+            </header>
+
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 class="text-xl font-semibold mb-4">Transaction Information</h2>
+              <div class="space-y-4">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Transaction ID:</span>
+                  <span class="font-medium">{transaction_id}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Type:</span>
+                  <span class="font-medium {type_class}">{type_icon} {type}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Person / Bill:</span>
+                  <span class="font-medium">{whoOrBill}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Note:</span>
+                  <span class="font-medium">{note}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Amount:</span>
+                  <span class="font-medium {type_class}">{amount} SOM</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Date (UTC+6):</span>
+                  <span class="font-medium">{date}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h2 class="text-xl font-semibold mb-4">Balance Impact</h2>
+              <div class="space-y-4">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Balance Before Transaction:</span>
+                  <span class="font-medium">{balance_before} SOM</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Balance After Transaction:</span>
+                  <span class="font-medium">{balance_after} SOM</span>
+                </div>
+                <div class="flex justify-between border-t pt-4">
+                  <span class="text-gray-600 font-semibold">Net Change:</span>
+                  <span class="font-medium {type_class}">{net_change} SOM</span>
+                </div>
+              </div>
+            </div>
+
+            <footer class="mt-8 text-center text-sm text-gray-500">
+              <p>Kharcha — House Fund Tracker • Updated automatically from GitHub</p>
+            </footer>
+          </div>
+        </body>
+        </html>'''
+        
         # Generate people summary HTML
         people_summary_html = ''
         for person, amount in data['people'].items():
@@ -118,9 +213,9 @@ jobs:
                   <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.0f} SOM</div>
                 </div>'''
         
-        # Generate transactions HTML with UTC+6 time
+        # Generate transactions HTML with UTC+6 time and links
         transactions_html = ''
-        for tx in data['transactions']:
+        for tx in transactions_with_balance:
             # Convert to UTC+6
             utc_time = datetime.datetime.fromisoformat(tx['date'].replace('Z', '+00:00'))
             utc6_time = utc_time + timedelta(hours=6)
@@ -129,8 +224,9 @@ jobs:
             type_class = 'text-green-600' if tx['type'] == 'credit' else 'text-red-600'
             type_icon = '<i class="fas fa-arrow-down mr-1"></i>' if tx['type'] == 'credit' else '<i class="fas fa-arrow-up mr-1"></i>'
             
+            # Create clickable row that links to transaction detail page
             transactions_html += f'''
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/{tx['id']}.html'">
                   <td class="p-3">{formatted_date}</td>
                   <td class="p-3 {type_class}">{type_icon}{tx['type']}</td>
                   <td class="p-3 font-medium">{tx['whoOrBill']}</td>
@@ -148,7 +244,7 @@ jobs:
         utc6_now = utc_now + timedelta(hours=6)
         last_updated = utc6_now.strftime('%Y-%m-%d %H:%M:%S UTC+6')
         
-        # Final HTML generation
+        # Final HTML generation for main dashboard
         final_html = html_template.format(
             last_updated=last_updated,
             total_credits=total_credits_str,
@@ -158,11 +254,58 @@ jobs:
             transactions=transactions_html
         )
         
-        # Write as index.html for GitHub Pages (this will be the public dashboard)
+        # Write main dashboard
         with open('index.html', 'w') as f:
             f.write(final_html)
         
-        print("Public dashboard generated successfully as index.html!")
+        # Create transactions directory
+        os.makedirs('transactions', exist_ok=True)
+        
+        # Generate individual transaction pages
+        running_balance = 0
+        sorted_tx = sorted(data['transactions'], key=lambda x: x['date'])  # Sort by date for balance calculation
+        
+        for i, tx in enumerate(sorted_tx):
+            # Calculate balance before and after this transaction
+            balance_before = running_balance
+            
+            if tx['type'] == 'credit':
+                balance_after = running_balance + tx['amount']
+                net_change = f"+{tx['amount']:,.0f}"
+            else:
+                balance_after = running_balance - tx['amount']
+                net_change = f"-{tx['amount']:,.0f}"
+            
+            running_balance = balance_after
+            
+            # Convert to UTC+6
+            utc_time = datetime.datetime.fromisoformat(tx['date'].replace('Z', '+00:00'))
+            utc6_time = utc_time + timedelta(hours=6)
+            formatted_date = utc6_time.strftime('%Y-%m-%d %H:%M:%S')
+            
+            type_class = 'text-green-600' if tx['type'] == 'credit' else 'text-red-600'
+            type_icon = '<i class="fas fa-arrow-down mr-1"></i>' if tx['type'] == 'credit' else '<i class="fas fa-arrow-up mr-1"></i>'
+            
+            # Generate transaction detail page
+            tx_html = transaction_template.format(
+                transaction_id=tx['id'],
+                type=tx['type'],
+                type_class=type_class,
+                type_icon=type_icon,
+                whoOrBill=tx['whoOrBill'],
+                note=tx.get('note', 'No note provided'),
+                amount=f"{tx['amount']:,.0f}",
+                date=formatted_date,
+                balance_before=f"{balance_before:,.0f}",
+                balance_after=f"{balance_after:,.0f}",
+                net_change=net_change
+            )
+            
+            # Write transaction detail page
+            with open(f'transactions/{tx["id"]}.html', 'w') as f:
+                f.write(tx_html)
+        
+        print("Public dashboard and transaction pages generated successfully!")
         EOF
         
         # Run the Python script
@@ -174,7 +317,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        # Upload only the generated index.html (public dashboard)
+        # Upload the entire directory including transactions folder
         path: '.'
 
   deploy:
