@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1760698882474_sr9ky",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Liquid detergent ",
+      "amount": 180,
+      "date": "2025-10-17T11:01:22.474Z"
+    },
+    {
       "id": "tx_1760273481126_ndz4w",
       "type": "credit",
       "whoOrBill": "Musawwar",
