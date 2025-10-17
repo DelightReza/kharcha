@@ -139,7 +139,7 @@
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p class="text-sm text-blue-800 mb-3">
             <i class="fas fa-info-circle mr-1"></i>
-            When you commit changes, a GitHub Action will automatically generate the public dashboard.
+            When you commit changes, a GitHub Action will automatically generate the public dashboard and individual transaction pages.
           </p>
           
           <div class="flex flex-col sm:flex-row gap-4 mb-4">
@@ -192,6 +192,28 @@
     </div>
   </div>
 
+  <!-- Transaction Detail Modal -->
+  <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">Transaction Details</h3>
+        <button id="closeTransactionModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-4" id="transactionDetails">
+        <!-- Transaction details will be inserted here -->
+      </div>
+      
+      <div class="flex justify-end mt-6">
+        <button id="closeTransactionModalBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Configuration
     const REPO_OWNER = 'DelightReza';
@@ -233,6 +255,10 @@
     const peopleSummary = document.getElementById('peopleSummary');
     const transactionBody = document.getElementById('transactionBody');
     const dataPreview = document.getElementById('dataPreview');
+    const transactionModal = document.getElementById('transactionModal');
+    const closeTransactionModal = document.getElementById('closeTransactionModal');
+    const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
+    const transactionDetails = document.getElementById('transactionDetails');
 
     // Initialize
     function init() {
@@ -260,6 +286,15 @@
       addDebitBtn.addEventListener('click', () => addTransaction('debit'));
       setPATBtn.addEventListener('click', setPAT);
       commitBtn.addEventListener('click', commitToGitHub);
+      closeTransactionModal.addEventListener('click', hideTransactionModal);
+      closeTransactionModalBtn.addEventListener('click', hideTransactionModal);
+
+      // Close modal when clicking outside
+      transactionModal.addEventListener('click', (e) => {
+        if (e.target === transactionModal) {
+          hideTransactionModal();
+        }
+      });
     }
 
     // Show login modal
@@ -272,6 +307,16 @@
     // Hide login modal
     function hideLoginModal() {
       loginModal.classList.add('hidden');
+    }
+
+    // Show transaction modal
+    function showTransactionModal() {
+      transactionModal.classList.remove('hidden');
+    }
+
+    // Hide transaction modal
+    function hideTransactionModal() {
+      transactionModal.classList.add('hidden');
     }
 
     // Login handler
@@ -433,6 +478,109 @@
       updateCommitStatus('✅ Transaction added locally');
     }
 
+    // Show transaction details
+    function showTransactionDetail(transaction) {
+      // Calculate running balance for this transaction
+      let runningBalance = 0;
+      const sortedTransactions = [...data.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      let balanceBefore = 0;
+      let balanceAfter = 0;
+      let found = false;
+      
+      for (const tx of sortedTransactions) {
+        if (tx.id === transaction.id) {
+          balanceBefore = runningBalance;
+          if (tx.type === 'credit') {
+            balanceAfter = runningBalance + tx.amount;
+          } else {
+            balanceAfter = runningBalance - tx.amount;
+          }
+          found = true;
+          break;
+        }
+        
+        if (tx.type === 'credit') {
+          runningBalance += tx.amount;
+        } else {
+          runningBalance -= tx.amount;
+        }
+      }
+
+      // If transaction not found in sorted list (shouldn't happen), use current calculation
+      if (!found) {
+        balanceBefore = runningBalance;
+        if (transaction.type === 'credit') {
+          balanceAfter = runningBalance + transaction.amount;
+        } else {
+          balanceAfter = runningBalance - transaction.amount;
+        }
+      }
+      
+      const formattedDate = toUTC6(transaction.date);
+      const typeClass = transaction.type === 'credit' ? 'text-green-600' : 'text-red-600';
+      const typeIcon = transaction.type === 'credit' ? 
+        '<i class="fas fa-arrow-down mr-1"></i>' : 
+        '<i class="fas fa-arrow-up mr-1"></i>';
+      const netChange = transaction.type === 'credit' ? 
+        `+${transaction.amount.toLocaleString()}` : 
+        `-${transaction.amount.toLocaleString()}`;
+      
+      // Create transaction details HTML
+      transactionDetails.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
+          <div class="text-sm text-gray-900 bg-gray-50 p-2 rounded">${transaction.id}</div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <div class="text-sm ${typeClass} font-medium">${typeIcon} ${transaction.type}</div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Date (UTC+6)</label>
+            <div class="text-sm text-gray-900">${formattedDate}</div>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">${transaction.type === 'credit' ? 'From Person' : 'Bill Type'}</label>
+          <div class="text-sm text-gray-900 font-medium">${transaction.whoOrBill}</div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+          <div class="text-sm text-gray-900">${transaction.note || 'No note provided'}</div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+          <div class="text-sm font-medium ${typeClass}">${transaction.amount.toLocaleString()} SOM</div>
+        </div>
+        
+        <div class="border-t pt-4">
+          <h4 class="font-medium mb-3">Balance Impact</h4>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div class="text-gray-600">Balance Before</div>
+              <div class="font-medium">${balanceBefore.toLocaleString()} SOM</div>
+            </div>
+            <div>
+              <div class="text-gray-600">Balance After</div>
+              <div class="font-medium">${balanceAfter.toLocaleString()} SOM</div>
+            </div>
+            <div class="col-span-2 border-t pt-2 mt-2">
+              <div class="text-gray-600 font-semibold">Net Change</div>
+              <div class="font-medium ${typeClass} text-lg">${netChange} SOM</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      showTransactionModal();
+    }
+
     // Render dashboard
     function renderDashboard() {
       // Calculate totals
@@ -466,11 +614,11 @@
         peopleSummary.appendChild(personCard);
       });
       
-      // Update transaction history with UTC+6 time
+      // Update transaction history with UTC+6 time and clickable rows
       transactionBody.innerHTML = '';
       data.transactions.forEach(tx => {
         const row = document.createElement('tr');
-        row.className = 'border-b border-gray-100 hover:bg-gray-50';
+        row.className = 'border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
         
         const formattedDate = toUTC6(tx.date);
         
@@ -486,6 +634,11 @@
           <td class="p-3 text-gray-600">${tx.note || '-'}</td>
           <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
         `;
+        
+        // Make row clickable to show transaction details
+        row.addEventListener('click', () => {
+          showTransactionDetail(tx);
+        });
         
         transactionBody.appendChild(row);
       });
@@ -565,7 +718,7 @@
         });
 
         if (putRes.ok) {
-          updateCommitStatus('✅ Data committed successfully! GitHub Action will deploy public dashboard shortly.');
+          updateCommitStatus('✅ Data committed successfully! GitHub Action will deploy public dashboard and transaction pages shortly.');
           // Clear local storage since we've synced to GitHub
           localStorage.removeItem('kharcha_data');
         } else {
