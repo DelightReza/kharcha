@@ -97,6 +97,30 @@
               <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
               <textarea id="creditNote" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g. For January rent" rows="2"></textarea>
             </div>
+            
+            <!-- Date and Time Selection -->
+            <div class="border-t pt-3 mt-3">
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="creditCustomDate" class="mr-2">
+                <label for="creditCustomDate" class="text-sm text-gray-600">Set custom date & time</label>
+              </div>
+              <div id="creditDateTimeFields" class="hidden space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Date</label>
+                    <input type="date" id="creditDate" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Time (UTC+6)</label>
+                    <input type="time" id="creditTime" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-info-circle mr-1"></i>Leave time empty for 12:00
+                </div>
+              </div>
+            </div>
+
             <button id="addCreditBtn" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-200">
               Add Credit
             </button>
@@ -126,6 +150,30 @@
               <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
               <textarea id="debitNote" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="e.g. January bill, receipt #123" rows="2"></textarea>
             </div>
+            
+            <!-- Date and Time Selection -->
+            <div class="border-t pt-3 mt-3">
+              <div class="flex items-center mb-2">
+                <input type="checkbox" id="debitCustomDate" class="mr-2">
+                <label for="debitCustomDate" class="text-sm text-gray-600">Set custom date & time</label>
+              </div>
+              <div id="debitDateTimeFields" class="hidden space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Date</label>
+                    <input type="date" id="debitDate" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Time (UTC+6)</label>
+                    <input type="time" id="debitTime" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-info-circle mr-1"></i>Leave time empty for 12:00
+                </div>
+              </div>
+            </div>
+
             <button id="addDebitBtn" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-200">
               Add Debit
             </button>
@@ -260,12 +308,27 @@
     const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
     const transactionDetails = document.getElementById('transactionDetails');
 
+    // Date and Time Elements
+    const creditCustomDate = document.getElementById('creditCustomDate');
+    const creditDateTimeFields = document.getElementById('creditDateTimeFields');
+    const creditDate = document.getElementById('creditDate');
+    const creditTime = document.getElementById('creditTime');
+    const debitCustomDate = document.getElementById('debitCustomDate');
+    const debitDateTimeFields = document.getElementById('debitDateTimeFields');
+    const debitDate = document.getElementById('debitDate');
+    const debitTime = document.getElementById('debitTime');
+
     // Initialize
     function init() {
       // Initialize people select
       personSelect.innerHTML = DEFAULT_PEOPLE.map(person => 
         `<option value="${person}">${person}</option>`
       ).join('');
+
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      creditDate.value = today;
+      debitDate.value = today;
 
       // Load saved PAT if exists
       githubPAT = localStorage.getItem('kharcha_pat') || '';
@@ -288,6 +351,15 @@
       commitBtn.addEventListener('click', commitToGitHub);
       closeTransactionModal.addEventListener('click', hideTransactionModal);
       closeTransactionModalBtn.addEventListener('click', hideTransactionModal);
+
+      // Date and time toggle listeners
+      creditCustomDate.addEventListener('change', () => {
+        creditDateTimeFields.classList.toggle('hidden', !creditCustomDate.checked);
+      });
+      
+      debitCustomDate.addEventListener('change', () => {
+        debitDateTimeFields.classList.toggle('hidden', !debitCustomDate.checked);
+      });
 
       // Close modal when clicking outside
       transactionModal.addEventListener('click', (e) => {
@@ -342,6 +414,21 @@
       loginBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Admin Login';
       loginBtn.classList.remove('bg-green-600');
       loginBtn.classList.add('bg-indigo-600');
+    }
+
+    // Convert local date/time to UTC ISO string
+    function localToUTC(localDate, localTime) {
+      // Combine date and time (default to 12:00 if no time provided)
+      const timePart = localTime || '12:00';
+      const localDateTimeString = `${localDate}T${timePart}:00`;
+      
+      // Create date object (this will be interpreted as local time)
+      const localDateObj = new Date(localDateTimeString);
+      
+      // Convert to UTC by subtracting the timezone offset
+      const utcDateObj = new Date(localDateObj.getTime() - (localDateObj.getTimezoneOffset() * 60000));
+      
+      return utcDateObj.toISOString();
     }
 
     // Load data from GitHub Pages (public access)
@@ -423,7 +510,7 @@
     function addTransaction(type) {
       if (!isAdmin) return;
 
-      let amount, whoOrBill, note;
+      let amount, whoOrBill, note, transactionDate;
 
       if (type === 'credit') {
         amount = parseFloat(creditAmount.value);
@@ -435,9 +522,22 @@
           return;
         }
         
+        // Get date (custom or current)
+        if (creditCustomDate.checked) {
+          if (!creditDate.value) {
+            alert('Please select a date');
+            return;
+          }
+          transactionDate = localToUTC(creditDate.value, creditTime.value);
+        } else {
+          transactionDate = new Date().toISOString();
+        }
+        
         // Clear form
         creditAmount.value = '';
         creditNote.value = '';
+        creditCustomDate.checked = false;
+        creditDateTimeFields.classList.add('hidden');
       } else {
         amount = parseFloat(debitAmount.value);
         whoOrBill = debitType.value;
@@ -448,19 +548,32 @@
           return;
         }
         
+        // Get date (custom or current)
+        if (debitCustomDate.checked) {
+          if (!debitDate.value) {
+            alert('Please select a date');
+            return;
+          }
+          transactionDate = localToUTC(debitDate.value, debitTime.value);
+        } else {
+          transactionDate = new Date().toISOString();
+        }
+        
         // Clear form
         debitAmount.value = '';
         debitNote.value = '';
+        debitCustomDate.checked = false;
+        debitDateTimeFields.classList.add('hidden');
       }
 
-      // Create transaction (store in UTC, but we'll display as UTC+6)
+      // Create transaction
       const transaction = {
         id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
         type,
         whoOrBill,
         note,
         amount,
-        date: new Date().toISOString() // Store in UTC
+        date: transactionDate
       };
 
       // Update data
