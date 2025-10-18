@@ -80,6 +80,9 @@
         </div>
       </div>
 
+      <!-- Transaction Status Message -->
+      <div id="transactionStatus" class="hidden mb-4 p-3 rounded-md text-center text-sm font-medium"></div>
+
       <div class="grid md:grid-cols-2 gap-6 mb-6">
         <!-- Add Credit -->
         <div class="border border-gray-200 rounded-lg p-4">
@@ -121,8 +124,8 @@
               </div>
             </div>
 
-            <button id="addCreditBtn" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-200">
-              Add Credit
+            <button id="addCreditBtn" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-plus-circle mr-2"></i> Add Credit
             </button>
           </div>
         </div>
@@ -174,8 +177,8 @@
               </div>
             </div>
 
-            <button id="addDebitBtn" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-200">
-              Add Debit
+            <button id="addDebitBtn" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-minus-circle mr-2"></i> Add Debit
             </button>
           </div>
         </div>
@@ -307,6 +310,7 @@
     const closeTransactionModal = document.getElementById('closeTransactionModal');
     const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
     const transactionDetails = document.getElementById('transactionDetails');
+    const transactionStatus = document.getElementById('transactionStatus');
 
     // Date and Time Elements
     const creditCustomDate = document.getElementById('creditCustomDate');
@@ -389,6 +393,27 @@
     // Hide transaction modal
     function hideTransactionModal() {
       transactionModal.classList.add('hidden');
+    }
+
+    // Show transaction status
+    function showTransactionStatus(message, type = 'info') {
+      transactionStatus.textContent = message;
+      transactionStatus.className = 'mb-4 p-3 rounded-md text-center text-sm font-medium ';
+      
+      if (type === 'processing') {
+        transactionStatus.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-200');
+      } else if (type === 'success') {
+        transactionStatus.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-200');
+      } else if (type === 'error') {
+        transactionStatus.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-200');
+      }
+      
+      transactionStatus.classList.remove('hidden');
+    }
+
+    // Hide transaction status
+    function hideTransactionStatus() {
+      transactionStatus.classList.add('hidden');
     }
 
     // Login handler
@@ -511,84 +536,115 @@
       if (!isAdmin) return;
 
       let amount, whoOrBill, note, transactionDate;
+      let button, processingMessage, successMessage;
 
       if (type === 'credit') {
         amount = parseFloat(creditAmount.value);
         whoOrBill = personSelect.value;
         note = creditNote.value;
+        button = addCreditBtn;
+        processingMessage = "🔄 Adding credit transaction...";
+        successMessage = "✅ Credit added successfully!";
         
         if (!amount || amount <= 0) {
-          alert('Please enter a valid amount');
+          showTransactionStatus('❌ Please enter a valid amount', 'error');
+          setTimeout(hideTransactionStatus, 3000);
           return;
         }
         
         // Get date (custom or current)
         if (creditCustomDate.checked) {
           if (!creditDate.value) {
-            alert('Please select a date');
+            showTransactionStatus('❌ Please select a date', 'error');
+            setTimeout(hideTransactionStatus, 3000);
             return;
           }
           transactionDate = localToUTC(creditDate.value, creditTime.value);
         } else {
           transactionDate = new Date().toISOString();
         }
-        
-        // Clear form
-        creditAmount.value = '';
-        creditNote.value = '';
-        creditCustomDate.checked = false;
-        creditDateTimeFields.classList.add('hidden');
       } else {
         amount = parseFloat(debitAmount.value);
         whoOrBill = debitType.value;
         note = debitNote.value;
+        button = addDebitBtn;
+        processingMessage = "🔄 Adding debit transaction...";
+        successMessage = "✅ Debit added successfully!";
         
         if (!amount || amount <= 0) {
-          alert('Please enter a valid amount');
+          showTransactionStatus('❌ Please enter a valid amount', 'error');
+          setTimeout(hideTransactionStatus, 3000);
           return;
         }
         
         // Get date (custom or current)
         if (debitCustomDate.checked) {
           if (!debitDate.value) {
-            alert('Please select a date');
+            showTransactionStatus('❌ Please select a date', 'error');
+            setTimeout(hideTransactionStatus, 3000);
             return;
           }
           transactionDate = localToUTC(debitDate.value, debitTime.value);
         } else {
           transactionDate = new Date().toISOString();
         }
+      }
+
+      // Show processing state
+      showTransactionStatus(processingMessage, 'processing');
+      button.disabled = true;
+      button.innerHTML = type === 'credit' 
+        ? '<i class="fas fa-spinner fa-spin mr-2"></i> Adding...'
+        : '<i class="fas fa-spinner fa-spin mr-2"></i> Adding...';
+
+      // Simulate processing delay for better UX
+      setTimeout(() => {
+        // Create transaction
+        const transaction = {
+          id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          type,
+          whoOrBill,
+          note,
+          amount,
+          date: transactionDate
+        };
+
+        // Update data
+        data.transactions.unshift(transaction);
         
-        // Clear form
-        debitAmount.value = '';
-        debitNote.value = '';
-        debitCustomDate.checked = false;
-        debitDateTimeFields.classList.add('hidden');
-      }
+        if (type === 'credit') {
+          data.people[whoOrBill] = (data.people[whoOrBill] || 0) + amount;
+        }
 
-      // Create transaction
-      const transaction = {
-        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-        type,
-        whoOrBill,
-        note,
-        amount,
-        date: transactionDate
-      };
+        // Save and render
+        saveData();
+        renderDashboard();
+        
+        // Show success message
+        showTransactionStatus(successMessage, 'success');
+        
+        // Reset button state
+        button.disabled = false;
+        button.innerHTML = type === 'credit'
+          ? '<i class="fas fa-plus-circle mr-2"></i> Add Credit'
+          : '<i class="fas fa-minus-circle mr-2"></i> Add Debit';
 
-      // Update data
-      data.transactions.unshift(transaction);
-      
-      if (type === 'credit') {
-        data.people[whoOrBill] = (data.people[whoOrBill] || 0) + amount;
-      }
+        // Clear form fields
+        if (type === 'credit') {
+          creditAmount.value = '';
+          creditNote.value = '';
+          creditCustomDate.checked = false;
+          creditDateTimeFields.classList.add('hidden');
+        } else {
+          debitAmount.value = '';
+          debitNote.value = '';
+          debitCustomDate.checked = false;
+          debitDateTimeFields.classList.add('hidden');
+        }
 
-      // Save and render
-      saveData();
-      renderDashboard();
-      
-      // Show success message
-      updateCommitStatus('✅ Transaction added locally');
+        // Hide success message after 3 seconds
+        setTimeout(hideTransactionStatus, 3000);
+      }, 800); // 0.8 second processing delay for better UX
     }
 
     // Show transaction details
