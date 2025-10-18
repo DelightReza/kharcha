@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1760768305497_ljjw2",
+      "type": "debit",
+      "whoOrBill": "Water",
+      "note": "",
+      "amount": 402,
+      "date": "2025-10-18T06:18:24.672Z"
+    },
+    {
       "id": "tx_1760766646713_s8dzj",
       "type": "credit",
       "whoOrBill": "Raza",
