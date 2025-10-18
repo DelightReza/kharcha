@@ -4,12 +4,20 @@
     "Raza": 500,
     "Salman": 0,
     "Mujeeb": 0,
-    "Gulam": 0,
+    "Gulam": 330,
     "Rana": 0,
     "Naved": 0,
     "Nizamuddin": 0
   },
   "transactions": [
+    {
+      "id": "tx_1760800689994_eafn0",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "",
+      "amount": 330,
+      "date": "2025-10-18T15:18:09.178Z"
+    },
     {
       "id": "tx_1760768305497_ljjw2",
       "type": "debit",
