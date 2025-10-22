@@ -6,10 +6,18 @@
     "Mujeeb": 0,
     "Gulam": 330,
     "Rana": 0,
-    "Naved": 0,
+    "Naved": 500,
     "Nizamuddin": 0
   },
   "transactions": [
+    {
+      "id": "tx_1761141764453_sc2aq",
+      "type": "credit",
+      "whoOrBill": "Naved",
+      "note": "",
+      "amount": 500,
+      "date": "2025-10-22T14:02:43.638Z"
+    },
     {
       "id": "tx_1760800689994_eafn0",
       "type": "credit",
