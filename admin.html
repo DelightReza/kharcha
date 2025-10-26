@@ -45,7 +45,12 @@
 
     <!-- Transaction History -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <h2 class="text-xl font-semibold">Transaction History</h2>
+        <div class="text-sm text-gray-600" id="transactionsSummary"></div>
+      </div>
+
+      <!-- Transactions Container -->
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="text-left bg-gray-100">
@@ -59,6 +64,20 @@
           </thead>
           <tbody id="transactionBody"></tbody>
         </table>
+      </div>
+
+      <!-- Load More Button -->
+      <div id="loadMoreContainer" class="text-center mt-6 hidden">
+        <button id="loadMoreBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center justify-center mx-auto">
+          <i class="fas fa-chevron-down mr-2"></i> Load Older Transactions
+        </button>
+      </div>
+
+      <!-- No Transactions Message -->
+      <div id="noTransactions" class="hidden text-center py-8">
+        <i class="fas fa-receipt text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600">No transactions found</p>
+        <p class="text-sm text-gray-500 mt-1">Add your first transaction using the admin panel below</p>
       </div>
     </div>
 
@@ -215,7 +234,7 @@
 
     <!-- Footer -->
     <footer class="mt-8 text-center text-sm text-gray-500">
-      <p>Kharcha — Private Admin Panel</p>
+      <p>Kharcha — Private Admin Panel • Updated automatically from GitHub</p>
     </footer>
   </div>
 
@@ -271,6 +290,7 @@
     const REPO_NAME = 'kharcha';
     const DATA_FILE = 'data.json';
     const DEFAULT_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin'];
+    const TRANSACTIONS_PER_PAGE = 10;
 
     // State
     let isAdmin = false;
@@ -279,6 +299,7 @@
       transactions: []
     };
     let githubPAT = "";
+    let currentPage = 1;
 
     // DOM Elements
     const loginBtn = document.getElementById('loginBtn');
@@ -311,6 +332,10 @@
     const closeTransactionModalBtn = document.getElementById('closeTransactionModalBtn');
     const transactionDetails = document.getElementById('transactionDetails');
     const transactionStatus = document.getElementById('transactionStatus');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const noTransactions = document.getElementById('noTransactions');
+    const transactionsSummary = document.getElementById('transactionsSummary');
 
     // Date and Time Elements
     const creditCustomDate = document.getElementById('creditCustomDate');
@@ -355,6 +380,7 @@
       commitBtn.addEventListener('click', commitToGitHub);
       closeTransactionModal.addEventListener('click', hideTransactionModal);
       closeTransactionModalBtn.addEventListener('click', hideTransactionModal);
+      loadMoreBtn.addEventListener('click', loadMoreTransactions);
 
       // Date and time toggle listeners
       creditCustomDate.addEventListener('change', () => {
@@ -414,6 +440,12 @@
     // Hide transaction status
     function hideTransactionStatus() {
       transactionStatus.classList.add('hidden');
+    }
+
+    // Load more transactions
+    function loadMoreTransactions() {
+      currentPage++;
+      renderTransactions();
     }
 
     // Login handler
@@ -783,12 +815,41 @@
         peopleSummary.appendChild(personCard);
       });
       
-      // Update transaction history with UTC+6 time and clickable rows
-      transactionBody.innerHTML = '';
-      data.transactions.forEach(tx => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
-        
+      // Render transactions
+      renderTransactions();
+
+      // Update data preview if admin is logged in
+      if (isAdmin) {
+        updateDataPreview();
+      }
+    }
+
+    // Render transactions with pagination
+    function renderTransactions() {
+      const totalTransactions = data.transactions.length;
+      
+      // Show/hide no transactions message
+      if (totalTransactions === 0) {
+        transactionBody.innerHTML = '';
+        noTransactions.classList.remove('hidden');
+        loadMoreContainer.classList.add('hidden');
+        transactionsSummary.textContent = '';
+        return;
+      } else {
+        noTransactions.classList.add('hidden');
+      }
+
+      // Calculate pagination
+      const transactionsToShow = data.transactions.slice(0, currentPage * TRANSACTIONS_PER_PAGE);
+      const hasMore = totalTransactions > transactionsToShow.length;
+
+      // Update transactions summary
+      transactionsSummary.textContent = `Showing ${transactionsToShow.length} of ${totalTransactions} transactions`;
+
+      // Build transactions HTML
+      let transactionsHTML = '';
+
+      transactionsToShow.forEach(tx => {
         const formattedDate = toUTC6(tx.date);
         
         const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
@@ -796,25 +857,24 @@
           '<i class="fas fa-arrow-down mr-1"></i>' : 
           '<i class="fas fa-arrow-up mr-1"></i>';
         
-        row.innerHTML = `
-          <td class="p-3">${formattedDate}</td>
-          <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
-          <td class="p-3 font-medium">${tx.whoOrBill}</td>
-          <td class="p-3 text-gray-600">${tx.note || '-'}</td>
-          <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+        transactionsHTML += `
+          <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="showTransactionDetail(${JSON.stringify(tx).replace(/"/g, '&quot;')})">
+            <td class="p-3">${formattedDate}</td>
+            <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
+            <td class="p-3 font-medium">${tx.whoOrBill}</td>
+            <td class="p-3 text-gray-600">${tx.note || '-'}</td>
+            <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+          </tr>
         `;
-        
-        // Make row clickable to show transaction details
-        row.addEventListener('click', () => {
-          showTransactionDetail(tx);
-        });
-        
-        transactionBody.appendChild(row);
       });
 
-      // Update data preview if admin is logged in
-      if (isAdmin) {
-        updateDataPreview();
+      transactionBody.innerHTML = transactionsHTML;
+
+      // Update load more button
+      if (hasMore) {
+        loadMoreContainer.classList.remove('hidden');
+      } else {
+        loadMoreContainer.classList.add('hidden');
       }
     }
 
