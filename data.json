@@ -7,9 +7,17 @@
     "Gulam": 330,
     "Rana": 0,
     "Naved": 500,
-    "Nizamuddin": 0
+    "Nizamuddin": 500
   },
   "transactions": [
+    {
+      "id": "tx_1761489474828_hz936",
+      "type": "credit",
+      "whoOrBill": "Nizamuddin",
+      "note": "",
+      "amount": 500,
+      "date": "2025-10-26T14:37:54.005Z"
+    },
     {
       "id": "tx_1761141764453_sc2aq",
       "type": "credit",
