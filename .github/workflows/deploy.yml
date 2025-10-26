@@ -97,7 +97,11 @@ jobs:
 
             <!-- Transaction History -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h2 class="text-xl font-semibold">Transaction History</h2>
+                <div class="text-sm text-gray-600">Showing {shown_count} of {total_count} transactions</div>
+              </div>
+
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead class="text-left bg-gray-100">
@@ -114,6 +118,9 @@ jobs:
                   </tbody>
                 </table>
               </div>
+
+              <!-- Load More Button -->
+              {load_more_button}
             </div>
 
             <!-- Amount per Person -->
@@ -128,6 +135,38 @@ jobs:
               <p>Kharcha — House Fund Tracker</p>
             </footer>
           </div>
+
+          <script>
+            let currentPage = 1;
+            const transactionsPerPage = 10;
+            const totalTransactions = {total_count};
+
+            function loadMoreTransactions() {{
+              currentPage++;
+              const startIndex = 0;
+              const endIndex = currentPage * transactionsPerPage;
+              const transactionsToShow = Math.min(endIndex, totalTransactions);
+              
+              // Update the showing count
+              document.getElementById('transactionsCount').textContent = 
+                `Showing ${{transactionsToShow}} of ${{totalTransactions}} transactions`;
+              
+              // Show all transactions up to the current page
+              const allRows = document.querySelectorAll('#transactionBody tr');
+              allRows.forEach((row, index) => {{
+                if (index < transactionsToShow) {{
+                  row.style.display = 'table-row';
+                }} else {{
+                  row.style.display = 'none';
+                }}
+              }});
+              
+              // Hide load more button if no more transactions
+              if (transactionsToShow >= totalTransactions) {{
+                document.getElementById('loadMoreContainer').classList.add('hidden');
+              }}
+            }}
+          </script>
         </body>
         </html>'''
         
@@ -213,6 +252,11 @@ jobs:
                   <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.0f} SOM</div>
                 </div>'''
         
+        # Show only first 10 transactions initially
+        initial_transactions = transactions_with_balance[:10]
+        total_transactions = len(transactions_with_balance)
+        shown_count = min(10, total_transactions)
+        
         # Generate transactions HTML with UTC+6 time and links
         transactions_html = ''
         for tx in transactions_with_balance:
@@ -225,14 +269,29 @@ jobs:
             type_icon = '<i class="fas fa-arrow-down mr-1"></i>' if tx['type'] == 'credit' else '<i class="fas fa-arrow-up mr-1"></i>'
             
             # Create clickable row that links to transaction detail page
+            display_style = 'table-row' if transactions_with_balance.index(tx) < shown_count else 'none'
             transactions_html += f'''
-                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/{tx['id']}.html'">
+                <tr id="tx_{tx['id']}" class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/{tx['id']}.html'" style="display: {display_style}">
                   <td class="p-3">{formatted_date}</td>
                   <td class="p-3 {type_class}">{type_icon}{tx['type']}</td>
                   <td class="p-3 font-medium">{tx['whoOrBill']}</td>
                   <td class="p-3 text-gray-600">{tx.get('note', '-')}</td>
                   <td class="p-3 text-right font-medium {type_class}">{tx['amount']:,.0f}</td>
                 </tr>'''
+        
+        # Add tbody with id for JavaScript manipulation
+        transactions_html = f'<tbody id="transactionBody">{transactions_html}</tbody>'
+        
+        # Generate load more button if there are more than 10 transactions
+        load_more_button = ''
+        if total_transactions > 10:
+            load_more_button = f'''
+            <div id="loadMoreContainer" class="text-center mt-6">
+              <button onclick="loadMoreTransactions()" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center justify-center mx-auto">
+                <i class="fas fa-chevron-down mr-2"></i> Load Older Transactions
+              </button>
+              <p class="text-sm text-gray-500 mt-2" id="transactionsCount">Showing {shown_count} of {total_transactions} transactions</p>
+            </div>'''
         
         # Format numbers with commas
         total_credits_str = f"{total_credits:,.0f}"
@@ -251,7 +310,10 @@ jobs:
             total_debits=total_debits_str,
             balance=balance_str,
             people_summary=people_summary_html,
-            transactions=transactions_html
+            transactions=transactions_html,
+            load_more_button=load_more_button,
+            shown_count=shown_count,
+            total_count=total_transactions
         )
         
         # Write main dashboard
