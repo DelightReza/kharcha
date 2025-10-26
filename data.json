@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1761495942902_dbyn0",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Toti Repair",
+      "amount": 400,
+      "date": "2025-10-26T16:25:42.067Z"
+    },
+    {
       "id": "tx_1761489474828_hz936",
       "type": "credit",
       "whoOrBill": "Nizamuddin",
