@@ -20,13 +20,6 @@
       </p>
     </header>
 
-    <!-- Login Button (Top Right) -->
-    <div class="flex justify-end mb-6">
-      <button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center">
-        <i class="fas fa-lock mr-2"></i> Admin Login
-      </button>
-    </div>
-
     <!-- Balance Summary Cards -->
     <div class="grid md:grid-cols-3 gap-6 mb-8">
       <div class="bg-white rounded-lg shadow-md p-5 text-center">
@@ -87,15 +80,12 @@
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
     </div>
 
-    <!-- Admin Panel (Hidden by default) -->
-    <div id="adminPanel" class="hidden bg-white rounded-lg shadow-md p-6 mb-8">
+    <!-- Admin Panel -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold">Admin Panel</h2>
         <div class="flex items-center space-x-2">
           <span class="text-green-600"><i class="fas fa-circle text-xs"></i> Admin Mode</span>
-          <button id="logoutBtn" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded transition duration-200">
-            Logout
-          </button>
         </div>
       </div>
 
@@ -234,32 +224,8 @@
 
     <!-- Footer -->
     <footer class="mt-8 text-center text-sm text-gray-500">
-      <p>Kharcha — Private Admin Panel • Updated automatically from GitHub</p>
+      <p>Kharcha — Private Admin Panel</p>
     </footer>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Admin Login</h3>
-        <button id="closeLoginModal" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="mb-4">
-        <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-1">GitHub Username</label>
-        <input type="text" id="usernameInput" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="DelightReza">
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button id="cancelLogin" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200">
-          Cancel
-        </button>
-        <button id="confirmLogin" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200">
-          Login
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- Transaction Detail Modal -->
@@ -293,7 +259,6 @@
     const TRANSACTIONS_PER_PAGE = 10;
 
     // State
-    let isAdmin = false;
     let data = {
       people: {},
       transactions: []
@@ -302,14 +267,6 @@
     let currentPage = 1;
 
     // DOM Elements
-    const loginBtn = document.getElementById('loginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const closeLoginModal = document.getElementById('closeLoginModal');
-    const cancelLogin = document.getElementById('cancelLogin');
-    const confirmLogin = document.getElementById('confirmLogin');
-    const usernameInput = document.getElementById('usernameInput');
-    const adminPanel = document.getElementById('adminPanel');
-    const logoutBtn = document.getElementById('logoutBtn');
     const personSelect = document.getElementById('personSelect');
     const creditAmount = document.getElementById('creditAmount');
     const creditNote = document.getElementById('creditNote');
@@ -369,11 +326,6 @@
       loadDataFromGitHubPages();
 
       // Event listeners
-      loginBtn.addEventListener('click', showLoginModal);
-      closeLoginModal.addEventListener('click', hideLoginModal);
-      cancelLogin.addEventListener('click', hideLoginModal);
-      confirmLogin.addEventListener('click', handleLogin);
-      logoutBtn.addEventListener('click', handleLogout);
       addCreditBtn.addEventListener('click', () => addTransaction('credit'));
       addDebitBtn.addEventListener('click', () => addTransaction('debit'));
       setPATBtn.addEventListener('click', setPAT);
@@ -397,18 +349,9 @@
           hideTransactionModal();
         }
       });
-    }
 
-    // Show login modal
-    function showLoginModal() {
-      loginModal.classList.remove('hidden');
-      usernameInput.value = '';
-      usernameInput.focus();
-    }
-
-    // Hide login modal
-    function hideLoginModal() {
-      loginModal.classList.add('hidden');
+      // Show data preview immediately
+      updateDataPreview();
     }
 
     // Show transaction modal
@@ -446,31 +389,6 @@
     function loadMoreTransactions() {
       currentPage++;
       renderTransactions();
-    }
-
-    // Login handler
-    function handleLogin() {
-      const username = usernameInput.value.trim();
-      if (username.toLowerCase() === REPO_OWNER.toLowerCase()) {
-        isAdmin = true;
-        adminPanel.classList.remove('hidden');
-        loginBtn.innerHTML = '<i class="fas fa-user mr-2"></i> Admin';
-        loginBtn.classList.remove('bg-indigo-600');
-        loginBtn.classList.add('bg-green-600');
-        hideLoginModal();
-        updateDataPreview();
-      } else {
-        alert('Access denied. Only the repository owner can access the admin panel.');
-      }
-    }
-
-    // Logout handler
-    function handleLogout() {
-      isAdmin = false;
-      adminPanel.classList.add('hidden');
-      loginBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Admin Login';
-      loginBtn.classList.remove('bg-green-600');
-      loginBtn.classList.add('bg-indigo-600');
     }
 
     // Convert local date/time to UTC ISO string
@@ -543,9 +461,7 @@
 
     // Update data preview
     function updateDataPreview() {
-      if (isAdmin) {
-        dataPreview.textContent = JSON.stringify(data, null, 2);
-      }
+      dataPreview.textContent = JSON.stringify(data, null, 2);
     }
 
     // Convert to UTC+6 time
@@ -565,8 +481,6 @@
 
     // Add transaction
     function addTransaction(type) {
-      if (!isAdmin) return;
-
       let amount, whoOrBill, note, transactionDate;
       let button, processingMessage, successMessage;
 
@@ -818,10 +732,8 @@
       // Render transactions
       renderTransactions();
 
-      // Update data preview if admin is logged in
-      if (isAdmin) {
-        updateDataPreview();
-      }
+      // Update data preview
+      updateDataPreview();
     }
 
     // Render transactions with pagination
