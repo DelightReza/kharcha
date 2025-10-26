@@ -143,18 +143,17 @@ jobs:
 
             function loadMoreTransactions() {{
               currentPage++;
-              const startIndex = 0;
               const endIndex = currentPage * transactionsPerPage;
-              const shownTransactions = Math.min(endIndex, totalTransactions);
+              const shownCount = Math.min(endIndex, totalTransactions);
               
               // Update the showing count
               document.getElementById('transactionsSummary').textContent = 
-                `Showing ${{shownTransactions}} of ${{totalTransactions}} transactions`;
+                'Showing ' + shownCount + ' of ' + totalTransactions + ' transactions';
               
               // Show all transactions up to the current page
               const allRows = document.querySelectorAll('#transactionBody tr');
               allRows.forEach((row, index) => {{
-                if (index < shownTransactions) {{
+                if (index < shownCount) {{
                   row.style.display = 'table-row';
                 }} else {{
                   row.style.display = 'none';
@@ -162,7 +161,7 @@ jobs:
               }});
               
               // Hide load more button if no more transactions
-              if (shownTransactions >= totalTransactions) {{
+              if (shownCount >= totalTransactions) {{
                 document.getElementById('loadMoreContainer').classList.add('hidden');
               }}
             }}
