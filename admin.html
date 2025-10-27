@@ -265,6 +265,7 @@
     };
     let githubPAT = "";
     let currentPage = 1;
+    let patTimeout = null; // Add timeout reference for PAT auto-clear
 
     // DOM Elements
     const personSelect = document.getElementById('personSelect');
@@ -316,10 +317,26 @@
       creditDate.value = today;
       debitDate.value = today;
 
-      // Load saved PAT if exists
-      githubPAT = localStorage.getItem('kharcha_pat') || '';
-      if (githubPAT) {
-        updateCommitStatus('PAT loaded from storage');
+      // Load saved PAT if exists and check if it's still valid
+      const storedPAT = localStorage.getItem('kharcha_pat');
+      const storedPATTime = localStorage.getItem('kharcha_pat_time');
+      
+      if (storedPAT && storedPATTime) {
+        const timeDiff = Date.now() - parseInt(storedPATTime);
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+        
+        if (timeDiff < fiveMinutes) {
+          // PAT is still valid (less than 5 minutes old)
+          githubPAT = storedPAT;
+          const minutesRemaining = Math.ceil((fiveMinutes - timeDiff) / 1000 / 60);
+          updateCommitStatus(`🔑 PAT loaded (auto-clears in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''})`);
+          
+          // Set timeout to clear the remaining time
+          patTimeout = setTimeout(clearPAT, fiveMinutes - timeDiff);
+        } else {
+          // PAT is expired, clear it
+          clearPAT();
+        }
       }
 
       // Load data from GitHub Pages
@@ -352,6 +369,18 @@
 
       // Show data preview immediately
       updateDataPreview();
+    }
+
+    // Clear PAT function
+    function clearPAT() {
+      githubPAT = "";
+      localStorage.removeItem('kharcha_pat');
+      localStorage.removeItem('kharcha_pat_time');
+      if (patTimeout) {
+        clearTimeout(patTimeout);
+        patTimeout = null;
+      }
+      updateCommitStatus('🔒 PAT has been automatically cleared for security');
     }
 
     // Show transaction modal
@@ -790,13 +819,23 @@
       }
     }
 
-    // Set PAT
+    // Set PAT with automatic expiration
     function setPAT() {
-      const token = prompt("Enter your GitHub Personal Access Token (with 'repo' scope):");
+      const token = prompt("Enter your GitHub Personal Access Token (with 'repo' scope):\n\nNote: This will be automatically cleared after 5 minutes for security.");
       if (token) {
         githubPAT = token;
+        const now = Date.now();
         localStorage.setItem('kharcha_pat', token);
-        updateCommitStatus('✅ PAT saved successfully');
+        localStorage.setItem('kharcha_pat_time', now.toString());
+        updateCommitStatus('✅ PAT saved successfully. It will be automatically cleared in 5 minutes.');
+        
+        // Clear any existing timeout
+        if (patTimeout) {
+          clearTimeout(patTimeout);
+        }
+        
+        // Set new timeout for 5 minutes
+        patTimeout = setTimeout(clearPAT, 5 * 60 * 1000);
       }
     }
 
@@ -804,7 +843,7 @@
     function updateCommitStatus(message) {
       commitStatus.textContent = message;
       setTimeout(() => {
-        if (!commitStatus.textContent.includes('PAT')) {
+        if (!commitStatus.textContent.includes('PAT') && !commitStatus.textContent.includes('security') && !commitStatus.textContent.includes('auto-clears')) {
           commitStatus.textContent = '';
         }
       }, 5000);
@@ -813,7 +852,7 @@
     // Commit to GitHub
     async function commitToGitHub() {
       if (!githubPAT) {
-        updateCommitStatus('❌ Please set your PAT first');
+        updateCommitStatus('❌ Please set your PAT first (valid for 5 minutes)');
         return;
       }
 
