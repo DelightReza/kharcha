@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1761579008728_j5494",
+      "type": "debit",
+      "whoOrBill": "Electricity",
+      "note": "Test",
+      "amount": 10,
+      "date": "2025-10-27T15:30:07.907Z"
+    },
+    {
       "id": "tx_1761495942902_dbyn0",
       "type": "debit",
       "whoOrBill": "Other",
