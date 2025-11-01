@@ -2,14 +2,30 @@
   "people": {
     "Musawwar": 500,
     "Raza": 500,
-    "Salman": 0,
-    "Mujeeb": 0,
+    "Salman": 500,
+    "Mujeeb": 500,
     "Gulam": 330,
     "Rana": 0,
     "Naved": 500,
     "Nizamuddin": 500
   },
   "transactions": [
+    {
+      "id": "tx_1761987572538_6gejl",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "",
+      "amount": 500,
+      "date": "2025-11-01T08:59:31.735Z"
+    },
+    {
+      "id": "tx_1761987563638_ju1o7",
+      "type": "credit",
+      "whoOrBill": "Mujeeb",
+      "note": "",
+      "amount": 500,
+      "date": "2025-11-01T08:59:22.814Z"
+    },
     {
       "id": "tx_1761579008728_j5494",
       "type": "debit",
