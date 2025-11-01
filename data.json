@@ -11,6 +11,14 @@
   },
   "transactions": [
     {
+      "id": "tx_1761988310176_r0rbi",
+      "type": "debit",
+      "whoOrBill": "Electricity",
+      "note": "",
+      "amount": 2271.6,
+      "date": "2025-11-01T09:11:49.372Z"
+    },
+    {
       "id": "tx_1761987572538_6gejl",
       "type": "credit",
       "whoOrBill": "Salman",
