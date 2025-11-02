@@ -5,11 +5,19 @@
     "Salman": 500,
     "Mujeeb": 500,
     "Gulam": 330,
-    "Rana": 0,
+    "Rana": 500,
     "Naved": 500,
     "Nizamuddin": 500
   },
   "transactions": [
+    {
+      "id": "tx_1762092531795_w6hl8",
+      "type": "credit",
+      "whoOrBill": "Rana",
+      "note": "",
+      "amount": 500,
+      "date": "2025-11-02T14:08:50.987Z"
+    },
     {
       "id": "tx_1761988310176_r0rbi",
       "type": "debit",
