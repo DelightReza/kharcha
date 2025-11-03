@@ -80,6 +80,12 @@
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4" id="peopleSummary"></div>
     </div>
 
+    <!-- Bill Types Summary -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4">Bill Types Summary</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="billTypesSummary"></div>
+    </div>
+
     <!-- Admin Panel -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
       <div class="flex justify-between items-center mb-6">
@@ -146,12 +152,12 @@
             <div>
               <label class="block text-sm text-gray-600 mb-1">Bill Type</label>
               <select id="debitType" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                <option>Electricity</option>
-                <option>Water</option>
-                <option>Gas</option>
-                <option>Garbage</option>
-                <option>Internet</option>
-                <option>Other</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Water">Water</option>
+                <option value="Gas">Gas</option>
+                <option value="Garbage">Garbage</option>
+                <option value="Internet">Internet</option>
+                <option value="Other">Other</option>
               </select>
             </div>
             <div>
@@ -214,7 +220,9 @@
                 </div>
                 <div>
                   <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
-                  <input type="text" class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Name or bill">
+                  <select class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm">
+                    <!-- Options will be populated based on type -->
+                  </select>
                 </div>
                 <div>
                   <label class="block text-xs text-gray-600 mb-1">Amount</label>
@@ -312,11 +320,13 @@
     const REPO_NAME = 'kharcha';
     const DATA_FILE = 'data.json';
     const DEFAULT_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin'];
+    const BILL_TYPES = ['Electricity', 'Water', 'Gas', 'Garbage', 'Internet', 'Other'];
     const TRANSACTIONS_PER_PAGE = 10;
 
     // State
     let data = {
       people: {},
+      billTypes: {},
       transactions: []
     };
     let githubPAT = "";
@@ -339,6 +349,7 @@
     const totalDebitsEl = document.getElementById('totalDebits');
     const balanceEl = document.getElementById('balance');
     const peopleSummary = document.getElementById('peopleSummary');
+    const billTypesSummary = document.getElementById('billTypesSummary');
     const transactionBody = document.getElementById('transactionBody');
     const dataPreview = document.getElementById('dataPreview');
     const transactionModal = document.getElementById('transactionModal');
@@ -432,6 +443,27 @@
       updateDataPreview();
     }
 
+    // Update whoOrBill dropdown based on type
+    function updateWhoOrBillDropdown(selectElement, type) {
+      selectElement.innerHTML = '';
+      
+      if (type === 'credit') {
+        DEFAULT_PEOPLE.forEach(person => {
+          const option = document.createElement('option');
+          option.value = person;
+          option.textContent = person;
+          selectElement.appendChild(option);
+        });
+      } else {
+        BILL_TYPES.forEach(billType => {
+          const option = document.createElement('option');
+          option.value = billType;
+          option.textContent = billType;
+          selectElement.appendChild(option);
+        });
+      }
+    }
+
     // Add multiple transaction entry
     function addMultipleTransactionEntry() {
       const entry = document.createElement('div');
@@ -447,7 +479,9 @@
           </div>
           <div>
             <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
-            <input type="text" class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Name or bill">
+            <select class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm">
+              <!-- Options will be populated based on type -->
+            </select>
           </div>
           <div>
             <label class="block text-xs text-gray-600 mb-1">Amount</label>
@@ -466,6 +500,16 @@
       `;
       
       multipleTransactionsContainer.appendChild(entry);
+      
+      // Initialize the dropdown
+      const typeSelect = entry.querySelector('.multiple-type');
+      const whoOrBillSelect = entry.querySelector('.multiple-whoOrBill');
+      updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
+      
+      // Add event listener to type change
+      typeSelect.addEventListener('change', () => {
+        updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
+      });
       
       // Add event listener to remove button
       const removeBtn = entry.querySelector('.remove-multiple-entry');
@@ -497,12 +541,12 @@
       // Validate all entries
       entries.forEach((entry, index) => {
         const type = entry.querySelector('.multiple-type').value;
-        const whoOrBill = entry.querySelector('.multiple-whoOrBill').value.trim();
+        const whoOrBill = entry.querySelector('.multiple-whoOrBill').value;
         const amount = parseFloat(entry.querySelector('.multiple-amount').value);
         const note = entry.querySelector('.multiple-note').value.trim();
 
         if (!whoOrBill) {
-          showTransactionStatus(`❌ Entry ${index + 1}: Please enter Person/Bill name`, 'error');
+          showTransactionStatus(`❌ Entry ${index + 1}: Please select a Person/Bill`, 'error');
           hasError = true;
           return;
         }
@@ -543,6 +587,9 @@
           // Update people totals for credits
           if (transaction.type === 'credit') {
             data.people[transaction.whoOrBill] = (data.people[transaction.whoOrBill] || 0) + transaction.amount;
+          } else {
+            // Update bill types totals for debits
+            data.billTypes[transaction.whoOrBill] = (data.billTypes[transaction.whoOrBill] || 0) + transaction.amount;
           }
         });
 
@@ -630,7 +677,12 @@
         const pagesUrl = `https://${REPO_OWNER}.github.io/${REPO_NAME}/${DATA_FILE}`;
         const res = await fetch(pagesUrl);
         if (res.ok) {
-          data = await res.json();
+          const loadedData = await res.json();
+          // Ensure billTypes exists in loaded data
+          data = {
+            ...loadedData,
+            billTypes: loadedData.billTypes || {}
+          };
           console.log('✅ Data loaded from GitHub Pages');
           renderDashboard();
           return;
@@ -643,12 +695,20 @@
       try {
         const savedData = localStorage.getItem('kharcha_data');
         if (savedData) {
-          data = JSON.parse(savedData);
+          const parsedData = JSON.parse(savedData);
+          data = {
+            ...parsedData,
+            billTypes: parsedData.billTypes || {}
+          };
           console.log('⚠️ Using local data (GitHub Pages not available)');
         } else {
           data = {
             people: DEFAULT_PEOPLE.reduce((acc, person) => {
               acc[person] = 0;
+              return acc;
+            }, {}),
+            billTypes: BILL_TYPES.reduce((acc, billType) => {
+              acc[billType] = 0;
               return acc;
             }, {}),
             transactions: []
@@ -660,6 +720,10 @@
         data = {
           people: DEFAULT_PEOPLE.reduce((acc, person) => {
             acc[person] = 0;
+            return acc;
+          }, {}),
+          billTypes: BILL_TYPES.reduce((acc, billType) => {
+            acc[billType] = 0;
             return acc;
           }, {}),
           transactions: []
@@ -780,6 +844,8 @@
         
         if (type === 'credit') {
           data.people[whoOrBill] = (data.people[whoOrBill] || 0) + amount;
+        } else {
+          data.billTypes[whoOrBill] = (data.billTypes[whoOrBill] || 0) + amount;
         }
 
         // Save and render
@@ -947,6 +1013,20 @@
           <div class="text-lg font-semibold text-green-600 mt-1">${formatCurrency(amount)} SOM</div>
         `;
         peopleSummary.appendChild(personCard);
+      });
+
+      // Update bill types summary
+      billTypesSummary.innerHTML = '';
+      Object.entries(data.billTypes).forEach(([billType, amount]) => {
+        if (amount > 0) {
+          const billCard = document.createElement('div');
+          billCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
+          billCard.innerHTML = `
+            <div class="font-medium text-gray-800">${billType}</div>
+            <div class="text-lg font-semibold text-red-600 mt-1">${formatCurrency(amount)} SOM</div>
+          `;
+          billTypesSummary.appendChild(billCard);
+        }
       });
       
       // Render transactions
