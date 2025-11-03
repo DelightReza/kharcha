@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Kharcha — House Fund Tracker</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        </head>
+        <body class="bg-gray-50 text-gray-800 min-h-screen">
+          <div class="max-w-6xl mx-auto p-4">
+            <header class="text-center mb-8">
+              <h1 class="text-3xl font-bold text-indigo-700 mb-2">Kharcha — House Fund Tracker</h1>
+              <p class="text-gray-600">Track shared household expenses with transparency</p>
+              <p class="text-sm text-gray-500 mt-2">Last updated: 2025-11-03 23:27:10 UTC+6</p>
+            </header>
+
+            <!-- Balance Summary Cards -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-green-600">5,830.00</div>
+                <div class="text-sm text-gray-600">Total Credits</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-red-600">3,263.60</div>
+                <div class="text-sm text-gray-600">Total Debits</div>
+              </div>
+              <div class="bg-white rounded-lg shadow-md p-5 text-center">
+                <div class="text-2xl font-bold text-indigo-600">2,566.40</div>
+                <div class="text-sm text-gray-600">Current Balance</div>
+              </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h2 class="text-xl font-semibold">Transaction History</h2>
+                <div class="text-sm text-gray-600" id="transactionsSummary">Showing 10 of 20 transactions</div>
+              </div>
+
+              <div class="overflow-x-auto" style="max-height: 1000px; overflow-y: auto">
+                <table class="w-full text-sm">
+                  <thead class="text-left bg-gray-100 sticky top-0">
+                    <tr>
+                      <th class="p-3 font-medium">Date (UTC+6)</th>
+                      <th class="p-3 font-medium">Type</th>
+                      <th class="p-3 font-medium">Person / Bill</th>
+                      <th class="p-3 font-medium">Note</th>
+                      <th class="p-3 font-medium text-right">Amount (SOM)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionBody">
+                    
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Raza</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Salman</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Mujeeb</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Gulam</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Rana</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_multi_1762182050433_4suco.html'" style="display: table-row">
+                  <td class="p-3">2025-11-03 21:00</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Naved</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">250.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1762094858573_b4ezk.html'" style="display: table-row">
+                  <td class="p-3">2025-11-02 20:47</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Gulam</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1762092531795_w6hl8.html'" style="display: table-row">
+                  <td class="p-3">2025-11-02 20:08</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Rana</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761988310176_r0rbi.html'" style="display: table-row">
+                  <td class="p-3">2025-11-01 15:11</td>
+                  <td class="p-3 text-red-600"><i class="fas fa-arrow-up mr-1"></i>debit</td>
+                  <td class="p-3 font-medium">Electricity</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-red-600">2,271.60</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761987572538_6gejl.html'" style="display: table-row">
+                  <td class="p-3">2025-11-01 14:59</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Salman</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761987563638_ju1o7.html'" style="display: none">
+                  <td class="p-3">2025-11-01 14:59</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Mujeeb</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761579008728_j5494.html'" style="display: none">
+                  <td class="p-3">2025-10-27 21:30</td>
+                  <td class="p-3 text-red-600"><i class="fas fa-arrow-up mr-1"></i>debit</td>
+                  <td class="p-3 font-medium">Electricity</td>
+                  <td class="p-3 text-gray-600">Test</td>
+                  <td class="p-3 text-right font-medium text-red-600">10.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761495942902_dbyn0.html'" style="display: none">
+                  <td class="p-3">2025-10-26 22:25</td>
+                  <td class="p-3 text-red-600"><i class="fas fa-arrow-up mr-1"></i>debit</td>
+                  <td class="p-3 font-medium">Other</td>
+                  <td class="p-3 text-gray-600">Toti Repair</td>
+                  <td class="p-3 text-right font-medium text-red-600">400.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761489474828_hz936.html'" style="display: none">
+                  <td class="p-3">2025-10-26 20:37</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Nizamuddin</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1761141764453_sc2aq.html'" style="display: none">
+                  <td class="p-3">2025-10-22 20:02</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Naved</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1760800689994_eafn0.html'" style="display: none">
+                  <td class="p-3">2025-10-18 21:18</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Gulam</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">330.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1760768305497_ljjw2.html'" style="display: none">
+                  <td class="p-3">2025-10-18 12:18</td>
+                  <td class="p-3 text-red-600"><i class="fas fa-arrow-up mr-1"></i>debit</td>
+                  <td class="p-3 font-medium">Water</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-red-600">402.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1760766646713_s8dzj.html'" style="display: none">
+                  <td class="p-3">2025-10-18 11:50</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Raza</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1760698882474_sr9ky.html'" style="display: none">
+                  <td class="p-3">2025-10-17 17:01</td>
+                  <td class="p-3 text-red-600"><i class="fas fa-arrow-up mr-1"></i>debit</td>
+                  <td class="p-3 font-medium">Other</td>
+                  <td class="p-3 text-gray-600">Liquid detergent </td>
+                  <td class="p-3 text-right font-medium text-red-600">180.00</td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='transactions/tx_1760273481126_ndz4w.html'" style="display: none">
+                  <td class="p-3">2025-10-12 18:51</td>
+                  <td class="p-3 text-green-600"><i class="fas fa-arrow-down mr-1"></i>credit</td>
+                  <td class="p-3 font-medium">Musawwar</td>
+                  <td class="p-3 text-gray-600"></td>
+                  <td class="p-3 text-right font-medium text-green-600">500.00</td>
+                </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Load More Button -->
+              
+            <div id="loadMoreContainer" class="text-center mt-6">
+              <button onclick="loadMoreTransactions()" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center justify-center mx-auto">
+                <i class="fas fa-chevron-down mr-2"></i> Load Older Transactions
+              </button>
+            </div>
+            </div>
+
+            <!-- Amount per Person -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 class="text-xl font-semibold mb-4">Contributions Summary</h2>
+              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Musawwar</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">500.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Raza</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">750.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Salman</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">750.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Mujeeb</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">750.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Gulam</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">1,080.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Rana</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">750.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Naved</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">750.00 SOM</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center">
+                  <div class="font-medium text-gray-800">Nizamuddin</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">500.00 SOM</div>
+                </div>
+              </div>
+            </div>
+
+            <footer class="mt-8 text-center text-sm text-gray-500">
+              <p>Kharcha — House Fund Tracker</p>
+            </footer>
+          </div>
+
+          <script>
+            let currentPage = 1;
+            const transactionsPerPage = 10;
+            const totalTransactions = 20;
+
+            function loadMoreTransactions() {
+              currentPage++;
+              const endIndex = currentPage * transactionsPerPage;
+              const shownCount = Math.min(endIndex, totalTransactions);
+              
+              // Update the showing count
+              document.getElementById('transactionsSummary').textContent = 
+                'Showing ' + shownCount + ' of ' + totalTransactions + ' transactions';
+              
+              // Show all transactions up to the current page
+              const allRows = document.querySelectorAll('#transactionBody tr');
+              allRows.forEach((row, index) => {
+                if (index < shownCount) {
+                  row.style.display = 'table-row';
+                } else {
+                  row.style.display = 'none';
+                }
+              });
+              
+              // Hide load more button if no more transactions
+              if (shownCount >= totalTransactions) {
+                document.getElementById('loadMoreContainer').classList.add('hidden');
+              }
+            }
+          </script>
+        </body>
+        </html>
