@@ -9,6 +9,14 @@
     "Naved": 500,
     "Nizamuddin": 500
   },
+  "billTypes": {
+    "Electricity": 2281.6,
+    "Water": 402,
+    "Gas":0,
+    "Garbage":0,
+    "Internet":0
+    "Other": 580
+  },
   "transactions": [
     {
       "id": "tx_1762094858573_b4ezk",
