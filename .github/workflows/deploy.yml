@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -16,11 +16,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-commit:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -30,6 +33,20 @@ jobs:
     - name: Generate Public Dashboard and Transaction Pages
       run: |
         python3 generate_public.py
+
+    - name: Commit generated HTML files
+      run: |
+        git config --local user.email "delightreza@gmail.com"
+        git config --local user.name "MD Raza"
+        git add index.html transactions/ .data_hash
+        # Check if there are changes to commit
+        if ! git diff --staged --quiet; then
+          git commit -m "Update generated HTML pages [skip ci]"
+          git push
+          echo "✅ Generated HTML files committed to repository"
+        else
+          echo "✅ No changes to commit"
+        fi
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
@@ -44,7 +61,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-commit
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
