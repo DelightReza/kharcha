@@ -102,9 +102,9 @@ jobs:
                 <div class="text-sm text-gray-600" id="transactionsSummary">Showing {shown_count} of {total_count} transactions</div>
               </div>
 
-              <div class="overflow-x-auto">
+              <div class="overflow-x-auto" style="max-height: 1000px; overflow-y: auto">
                 <table class="w-full text-sm">
-                  <thead class="text-left bg-gray-100">
+                  <thead class="text-left bg-gray-100 sticky top-0">
                     <tr>
                       <th class="p-3 font-medium">Date (UTC+6)</th>
                       <th class="p-3 font-medium">Type</th>
@@ -248,7 +248,7 @@ jobs:
             people_summary_html += f'''
                 <div class="bg-gray-50 rounded-lg p-4 text-center">
                   <div class="font-medium text-gray-800">{person}</div>
-                  <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.0f} SOM</div>
+                  <div class="text-lg font-semibold text-green-600 mt-1">{amount:,.2f} SOM</div>
                 </div>'''
         
         # Show only first 10 transactions initially
@@ -274,7 +274,7 @@ jobs:
                   <td class="p-3 {type_class}">{type_icon}{tx['type']}</td>
                   <td class="p-3 font-medium">{tx['whoOrBill']}</td>
                   <td class="p-3 text-gray-600">{tx.get('note', '-')}</td>
-                  <td class="p-3 text-right font-medium {type_class}">{tx['amount']:,.0f}</td>
+                  <td class="p-3 text-right font-medium {type_class}">{tx['amount']:,.2f}</td>
                 </tr>'''
         
         # Generate load more button if there are more than 10 transactions
@@ -287,10 +287,10 @@ jobs:
               </button>
             </div>'''
         
-        # Format numbers with commas
-        total_credits_str = f"{total_credits:,.0f}"
-        total_debits_str = f"{total_debits:,.0f}"
-        balance_str = f"{balance:,.0f}"
+        # Format numbers with commas and two decimal places
+        total_credits_str = f"{total_credits:,.2f}"
+        total_debits_str = f"{total_debits:,.2f}"
+        balance_str = f"{balance:,.2f}"
         
         # Get current time in UTC+6 for last updated
         utc_now = datetime.datetime.now(timezone.utc)
@@ -327,10 +327,10 @@ jobs:
             
             if tx['type'] == 'credit':
                 balance_after = running_balance + tx['amount']
-                net_change = f"+{tx['amount']:,.0f}"
+                net_change = f"+{tx['amount']:,.2f}"
             else:
                 balance_after = running_balance - tx['amount']
-                net_change = f"-{tx['amount']:,.0f}"
+                net_change = f"-{tx['amount']:,.2f}"
             
             running_balance = balance_after
             
@@ -350,10 +350,10 @@ jobs:
                 type_icon=type_icon,
                 whoOrBill=tx['whoOrBill'],
                 note=tx.get('note', 'No note provided'),
-                amount=f"{tx['amount']:,.0f}",
+                amount=f"{tx['amount']:,.2f}",
                 date=formatted_date,
-                balance_before=f"{balance_before:,.0f}",
-                balance_after=f"{balance_after:,.0f}",
+                balance_before=f"{balance_before:,.2f}",
+                balance_after=f"{balance_after:,.2f}",
                 net_change=net_change
             )
             
