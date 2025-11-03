@@ -1,23 +1,77 @@
 {
   "people": {
     "Musawwar": 500,
-    "Raza": 500,
-    "Salman": 500,
-    "Mujeeb": 500,
-    "Gulam": 830,
-    "Rana": 500,
-    "Naved": 500,
+    "Raza": 750,
+    "Salman": 750,
+    "Mujeeb": 750,
+    "Gulam": 1080,
+    "Rana": 750,
+    "Naved": 750,
     "Nizamuddin": 500
   },
   "billTypes": {
     "Electricity": 2281.6,
     "Water": 402,
-    "Gas":0,
-    "Garbage":0,
-    "Internet":0,
+    "Gas": 0,
+    "Garbage": 0,
+    "Internet": 0,
     "Other": 580
   },
   "transactions": [
+    {
+      "id": "tx_multi_1762182050433_4suco_5",
+      "type": "credit",
+      "whoOrBill": "Naved",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
+    {
+      "id": "tx_multi_1762182050433_4suco_4",
+      "type": "credit",
+      "whoOrBill": "Rana",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
+    {
+      "id": "tx_multi_1762182050433_4suco_3",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
+    {
+      "id": "tx_multi_1762182050433_4suco_2",
+      "type": "credit",
+      "whoOrBill": "Mujeeb",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
+    {
+      "id": "tx_multi_1762182050433_4suco_1",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
+    {
+      "id": "tx_multi_1762182050433_4suco_0",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-03T15:00:50.435Z",
+      "parentId": "tx_multi_1762182050433_4suco"
+    },
     {
       "id": "tx_1762094858573_b4ezk",
       "type": "credit",
