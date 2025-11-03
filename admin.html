@@ -425,6 +425,9 @@
         }
       });
 
+      // Initialize multiple transactions with one entry
+      addMultipleTransactionEntry();
+
       // Show data preview immediately
       updateDataPreview();
     }
@@ -467,7 +470,13 @@
       // Add event listener to remove button
       const removeBtn = entry.querySelector('.remove-multiple-entry');
       removeBtn.addEventListener('click', () => {
-        entry.remove();
+        // Don't remove if it's the last entry
+        if (multipleTransactionsContainer.children.length > 1) {
+          entry.remove();
+        } else {
+          showTransactionStatus('❌ You need at least one transaction entry', 'error');
+          setTimeout(hideTransactionStatus, 3000);
+        }
       });
     }
 
@@ -493,12 +502,12 @@
         const note = entry.querySelector('.multiple-note').value.trim();
 
         if (!whoOrBill) {
-          showTransactionStatus(`❌ Entry ${index + 1}: Please enter Person/Bill`, 'error');
+          showTransactionStatus(`❌ Entry ${index + 1}: Please enter Person/Bill name`, 'error');
           hasError = true;
           return;
         }
 
-        if (!amount || amount <= 0) {
+        if (!amount || amount <= 0 || isNaN(amount)) {
           showTransactionStatus(`❌ Entry ${index + 1}: Please enter a valid amount`, 'error');
           hasError = true;
           return;
@@ -508,7 +517,7 @@
           id: `${baseTransactionId}_${index}`,
           type,
           whoOrBill,
-          note,
+          note: note || '',
           amount,
           date: transactionDate,
           parentId: baseTransactionId
@@ -548,9 +557,9 @@
         addMultipleTransactions.disabled = false;
         addMultipleTransactions.innerHTML = '<i class="fas fa-save mr-2"></i> Save Multiple Transactions';
 
-        // Clear multiple transactions form
+        // Clear multiple transactions form and add one empty entry
         multipleTransactionsContainer.innerHTML = '';
-        addMultipleTransactionEntry(); // Add one empty entry back
+        addMultipleTransactionEntry();
 
         // Hide success message after 3 seconds
         setTimeout(hideTransactionStatus, 3000);
@@ -703,7 +712,7 @@
         processingMessage = "🔄 Adding credit transaction...";
         successMessage = "✅ Credit added successfully!";
         
-        if (!amount || amount <= 0) {
+        if (!amount || amount <= 0 || isNaN(amount)) {
           showTransactionStatus('❌ Please enter a valid amount', 'error');
           setTimeout(hideTransactionStatus, 3000);
           return;
@@ -728,7 +737,7 @@
         processingMessage = "🔄 Adding debit transaction...";
         successMessage = "✅ Debit added successfully!";
         
-        if (!amount || amount <= 0) {
+        if (!amount || amount <= 0 || isNaN(amount)) {
           showTransactionStatus('❌ Please enter a valid amount', 'error');
           setTimeout(hideTransactionStatus, 3000);
           return;
@@ -761,7 +770,7 @@
           id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
           type,
           whoOrBill,
-          note,
+          note: note || '',
           amount,
           date: transactionDate
         };
