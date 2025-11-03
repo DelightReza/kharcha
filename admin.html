@@ -43,10 +43,10 @@
         <div class="text-sm text-gray-600" id="transactionsSummary"></div>
       </div>
 
-      <!-- Transactions Container -->
-      <div class="overflow-x-auto">
+      <!-- Transactions Container with Scroll -->
+      <div class="overflow-x-auto" style="max-height: 1000px; overflow-y: auto">
         <table class="w-full text-sm">
-          <thead class="text-left bg-gray-100">
+          <thead class="text-left bg-gray-100 sticky top-0">
             <tr>
               <th class="p-3 font-medium">Date (UTC+6)</th>
               <th class="p-3 font-medium">Type</th>
@@ -103,7 +103,7 @@
             </div>
             <div>
               <label class="block text-sm text-gray-600 mb-1">Amount (SOM)</label>
-              <input id="creditAmount" type="number" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g. 500">
+              <input id="creditAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="e.g. 500.00">
             </div>
             <div>
               <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
@@ -156,7 +156,7 @@
             </div>
             <div>
               <label class="block text-sm text-gray-600 mb-1">Amount (SOM)</label>
-              <input id="debitAmount" type="number" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="e.g. 250">
+              <input id="debitAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="e.g. 250.50">
             </div>
             <div>
               <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
@@ -189,6 +189,62 @@
             <button id="addDebitBtn" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-200 flex items-center justify-center">
               <i class="fas fa-minus-circle mr-2"></i> Add Debit
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multiple Transactions Section -->
+      <div class="border-t pt-6">
+        <h3 class="font-medium mb-3 text-purple-700"><i class="fas fa-layer-group mr-2"></i>Multiple Transactions</h3>
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-purple-800 mb-3">
+            <i class="fas fa-info-circle mr-1"></i>
+            Add multiple credits and debits in one transaction ID (useful for complex bills)
+          </p>
+          
+          <div class="space-y-4" id="multipleTransactionsContainer">
+            <div class="multiple-transaction-entry border-b border-purple-100 pb-4">
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Type</label>
+                  <select class="multiple-type w-full border border-gray-300 rounded-md p-2 text-sm">
+                    <option value="credit">Credit</option>
+                    <option value="debit">Debit</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
+                  <input type="text" class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Name or bill">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Amount</label>
+                  <input type="number" step="0.01" class="multiple-amount w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="0.00">
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Note</label>
+                  <input type="text" class="multiple-note w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Optional note">
+                </div>
+                <div class="flex items-end">
+                  <button type="button" class="remove-multiple-entry w-full bg-red-500 text-white py-2 px-3 rounded-md hover:bg-red-600 transition duration-200 text-sm">
+                    <i class="fas fa-times"></i> Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-3 mt-4">
+            <button id="addMultipleEntry" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-plus mr-2"></i> Add Another Entry
+            </button>
+            
+            <button id="addMultipleTransactions" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-save mr-2"></i> Save Multiple Transactions
+            </button>
+          </div>
+          
+          <div class="text-xs text-purple-600 mt-2">
+            <i class="fas fa-lightbulb mr-1"></i>All entries will be saved under the same transaction ID
           </div>
         </div>
       </div>
@@ -265,7 +321,7 @@
     };
     let githubPAT = "";
     let currentPage = 1;
-    let patTimeout = null; // Add timeout reference for PAT auto-clear
+    let patTimeout = null;
 
     // DOM Elements
     const personSelect = document.getElementById('personSelect');
@@ -294,6 +350,9 @@
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     const noTransactions = document.getElementById('noTransactions');
     const transactionsSummary = document.getElementById('transactionsSummary');
+    const multipleTransactionsContainer = document.getElementById('multipleTransactionsContainer');
+    const addMultipleEntry = document.getElementById('addMultipleEntry');
+    const addMultipleTransactions = document.getElementById('addMultipleTransactions');
 
     // Date and Time Elements
     const creditCustomDate = document.getElementById('creditCustomDate');
@@ -323,18 +382,15 @@
       
       if (storedPAT && storedPATTime) {
         const timeDiff = Date.now() - parseInt(storedPATTime);
-        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+        const fiveMinutes = 5 * 60 * 1000;
         
         if (timeDiff < fiveMinutes) {
-          // PAT is still valid (less than 5 minutes old)
           githubPAT = storedPAT;
           const minutesRemaining = Math.ceil((fiveMinutes - timeDiff) / 1000 / 60);
           updateCommitStatus(`🔑 PAT loaded (auto-clears in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''})`);
           
-          // Set timeout to clear the remaining time
           patTimeout = setTimeout(clearPAT, fiveMinutes - timeDiff);
         } else {
-          // PAT is expired, clear it
           clearPAT();
         }
       }
@@ -350,6 +406,8 @@
       closeTransactionModal.addEventListener('click', hideTransactionModal);
       closeTransactionModalBtn.addEventListener('click', hideTransactionModal);
       loadMoreBtn.addEventListener('click', loadMoreTransactions);
+      addMultipleEntry.addEventListener('click', addMultipleTransactionEntry);
+      addMultipleTransactions.addEventListener('click', saveMultipleTransactions);
 
       // Date and time toggle listeners
       creditCustomDate.addEventListener('change', () => {
@@ -369,6 +427,134 @@
 
       // Show data preview immediately
       updateDataPreview();
+    }
+
+    // Add multiple transaction entry
+    function addMultipleTransactionEntry() {
+      const entry = document.createElement('div');
+      entry.className = 'multiple-transaction-entry border-b border-purple-100 pb-4';
+      entry.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Type</label>
+            <select class="multiple-type w-full border border-gray-300 rounded-md p-2 text-sm">
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
+            <input type="text" class="multiple-whoOrBill w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Name or bill">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Amount</label>
+            <input type="number" step="0.01" class="multiple-amount w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="0.00">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600 mb-1">Note</label>
+            <input type="text" class="multiple-note w-full border border-gray-300 rounded-md p-2 text-sm" placeholder="Optional note">
+          </div>
+          <div class="flex items-end">
+            <button type="button" class="remove-multiple-entry w-full bg-red-500 text-white py-2 px-3 rounded-md hover:bg-red-600 transition duration-200 text-sm">
+              <i class="fas fa-times"></i> Remove
+            </button>
+          </div>
+        </div>
+      `;
+      
+      multipleTransactionsContainer.appendChild(entry);
+      
+      // Add event listener to remove button
+      const removeBtn = entry.querySelector('.remove-multiple-entry');
+      removeBtn.addEventListener('click', () => {
+        entry.remove();
+      });
+    }
+
+    // Save multiple transactions
+    function saveMultipleTransactions() {
+      const entries = multipleTransactionsContainer.querySelectorAll('.multiple-transaction-entry');
+      if (entries.length === 0) {
+        showTransactionStatus('❌ Please add at least one transaction entry', 'error');
+        setTimeout(hideTransactionStatus, 3000);
+        return;
+      }
+
+      let hasError = false;
+      const transactionEntries = [];
+      const baseTransactionId = 'tx_multi_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      const transactionDate = new Date().toISOString();
+
+      // Validate all entries
+      entries.forEach((entry, index) => {
+        const type = entry.querySelector('.multiple-type').value;
+        const whoOrBill = entry.querySelector('.multiple-whoOrBill').value.trim();
+        const amount = parseFloat(entry.querySelector('.multiple-amount').value);
+        const note = entry.querySelector('.multiple-note').value.trim();
+
+        if (!whoOrBill) {
+          showTransactionStatus(`❌ Entry ${index + 1}: Please enter Person/Bill`, 'error');
+          hasError = true;
+          return;
+        }
+
+        if (!amount || amount <= 0) {
+          showTransactionStatus(`❌ Entry ${index + 1}: Please enter a valid amount`, 'error');
+          hasError = true;
+          return;
+        }
+
+        transactionEntries.push({
+          id: `${baseTransactionId}_${index}`,
+          type,
+          whoOrBill,
+          note,
+          amount,
+          date: transactionDate,
+          parentId: baseTransactionId
+        });
+      });
+
+      if (hasError) {
+        setTimeout(hideTransactionStatus, 3000);
+        return;
+      }
+
+      // Show processing state
+      showTransactionStatus('🔄 Adding multiple transactions...', 'processing');
+      addMultipleTransactions.disabled = true;
+      addMultipleTransactions.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+      // Process after delay for better UX
+      setTimeout(() => {
+        // Add all transactions
+        transactionEntries.forEach(transaction => {
+          data.transactions.unshift(transaction);
+          
+          // Update people totals for credits
+          if (transaction.type === 'credit') {
+            data.people[transaction.whoOrBill] = (data.people[transaction.whoOrBill] || 0) + transaction.amount;
+          }
+        });
+
+        // Save and render
+        saveData();
+        renderDashboard();
+        
+        // Show success message
+        showTransactionStatus(`✅ ${transactionEntries.length} transactions added successfully!`, 'success');
+        
+        // Reset button state
+        addMultipleTransactions.disabled = false;
+        addMultipleTransactions.innerHTML = '<i class="fas fa-save mr-2"></i> Save Multiple Transactions';
+
+        // Clear multiple transactions form
+        multipleTransactionsContainer.innerHTML = '';
+        addMultipleTransactionEntry(); // Add one empty entry back
+
+        // Hide success message after 3 seconds
+        setTimeout(hideTransactionStatus, 3000);
+      }, 800);
     }
 
     // Clear PAT function
@@ -422,23 +608,16 @@
 
     // Convert local date/time to UTC ISO string
     function localToUTC(localDate, localTime) {
-      // Combine date and time (default to 12:00 if no time provided)
       const timePart = localTime || '12:00';
       const localDateTimeString = `${localDate}T${timePart}:00`;
-      
-      // Create date object (this will be interpreted as local time)
       const localDateObj = new Date(localDateTimeString);
-      
-      // Convert to UTC by subtracting the timezone offset
       const utcDateObj = new Date(localDateObj.getTime() - (localDateObj.getTimezoneOffset() * 60000));
-      
       return utcDateObj.toISOString();
     }
 
     // Load data from GitHub Pages (public access)
     async function loadDataFromGitHubPages() {
       try {
-        // Try to load from GitHub Pages
         const pagesUrl = `https://${REPO_OWNER}.github.io/${REPO_NAME}/${DATA_FILE}`;
         const res = await fetch(pagesUrl);
         if (res.ok) {
@@ -458,7 +637,6 @@
           data = JSON.parse(savedData);
           console.log('⚠️ Using local data (GitHub Pages not available)');
         } else {
-          // Initialize with default data
           data = {
             people: DEFAULT_PEOPLE.reduce((acc, person) => {
               acc[person] = 0;
@@ -496,7 +674,6 @@
     // Convert to UTC+6 time
     function toUTC6(dateString) {
       const date = new Date(dateString);
-      // Convert to UTC+6 by adding 6 hours
       const utc6Date = new Date(date.getTime() + (6 * 60 * 60 * 1000));
       return utc6Date.toLocaleString('en-GB', {
         year: 'numeric',
@@ -506,6 +683,11 @@
         minute: '2-digit',
         hour12: false
       }).replace(',', '');
+    }
+
+    // Format number with commas and two decimals
+    function formatCurrency(amount) {
+      return parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     // Add transaction
@@ -619,7 +801,7 @@
 
         // Hide success message after 3 seconds
         setTimeout(hideTransactionStatus, 3000);
-      }, 800); // 0.8 second processing delay for better UX
+      }, 800);
     }
 
     // Show transaction details
@@ -667,8 +849,8 @@
         '<i class="fas fa-arrow-down mr-1"></i>' : 
         '<i class="fas fa-arrow-up mr-1"></i>';
       const netChange = transaction.type === 'credit' ? 
-        `+${transaction.amount.toLocaleString()}` : 
-        `-${transaction.amount.toLocaleString()}`;
+        `+${formatCurrency(transaction.amount)}` : 
+        `-${formatCurrency(transaction.amount)}`;
       
       // Create transaction details HTML
       transactionDetails.innerHTML = `
@@ -700,7 +882,7 @@
         
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-          <div class="text-sm font-medium ${typeClass}">${transaction.amount.toLocaleString()} SOM</div>
+          <div class="text-sm font-medium ${typeClass}">${formatCurrency(transaction.amount)} SOM</div>
         </div>
         
         <div class="border-t pt-4">
@@ -708,11 +890,11 @@
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
               <div class="text-gray-600">Balance Before</div>
-              <div class="font-medium">${balanceBefore.toLocaleString()} SOM</div>
+              <div class="font-medium">${formatCurrency(balanceBefore)} SOM</div>
             </div>
             <div>
               <div class="text-gray-600">Balance After</div>
-              <div class="font-medium">${balanceAfter.toLocaleString()} SOM</div>
+              <div class="font-medium">${formatCurrency(balanceAfter)} SOM</div>
             </div>
             <div class="col-span-2 border-t pt-2 mt-2">
               <div class="text-gray-600 font-semibold">Net Change</div>
@@ -742,9 +924,9 @@
       const balance = totalCredits - totalDebits;
       
       // Update summary cards
-      totalCreditsEl.textContent = totalCredits.toLocaleString();
-      totalDebitsEl.textContent = totalDebits.toLocaleString();
-      balanceEl.textContent = balance.toLocaleString();
+      totalCreditsEl.textContent = formatCurrency(totalCredits);
+      totalDebitsEl.textContent = formatCurrency(totalDebits);
+      balanceEl.textContent = formatCurrency(balance);
       
       // Update people summary
       peopleSummary.innerHTML = '';
@@ -753,7 +935,7 @@
         personCard.className = 'bg-gray-50 rounded-lg p-4 text-center';
         personCard.innerHTML = `
           <div class="font-medium text-gray-800">${person}</div>
-          <div class="text-lg font-semibold text-green-600 mt-1">${amount.toLocaleString()} SOM</div>
+          <div class="text-lg font-semibold text-green-600 mt-1">${formatCurrency(amount)} SOM</div>
         `;
         peopleSummary.appendChild(personCard);
       });
@@ -804,7 +986,7 @@
             <td class="p-3 ${typeClass}">${typeIcon}${tx.type}</td>
             <td class="p-3 font-medium">${tx.whoOrBill}</td>
             <td class="p-3 text-gray-600">${tx.note || '-'}</td>
-            <td class="p-3 text-right font-medium ${typeClass}">${tx.amount.toLocaleString()}</td>
+            <td class="p-3 text-right font-medium ${typeClass}">${formatCurrency(tx.amount)}</td>
           </tr>
         `;
       });
@@ -872,7 +1054,6 @@
           const getData = await getRes.json();
           sha = getData.sha;
         } else if (getRes.status === 404) {
-          // File doesn't exist yet, we'll create it
           updateCommitStatus('📝 Creating new data file...');
         } else {
           throw new Error(`Failed to get file: ${getRes.status}`);
@@ -893,13 +1074,12 @@
           body: JSON.stringify({
             message: commitMessage,
             content: content,
-            sha: sha // Will be null if creating new file
+            sha: sha
           })
         });
 
         if (putRes.ok) {
           updateCommitStatus('✅ Data committed successfully! GitHub Action will deploy public dashboard and transaction pages shortly.');
-          // Clear local storage since we've synced to GitHub
           localStorage.removeItem('kharcha_data');
         } else {
           const errorData = await putRes.json();
