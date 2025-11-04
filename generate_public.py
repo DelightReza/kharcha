@@ -216,6 +216,7 @@ def main():
                   <span class="text-gray-600">Date (UTC+6):</span>
                   <span class="font-medium">{date}</span>
                 </div>
+                {owner_distribution_display}
               </div>
             </div>
 
@@ -461,6 +462,15 @@ def main():
             multiple_transaction_notice = ''
             multiple_transactions_section = ''
             parent_id_display = ''
+            owner_distribution_display = ''
+            
+            # Check if this is an owner distribution
+            if 'owner' in tx and 'parentId' in tx:
+                owner_distribution_display = f'''
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Distribution Source:</span>
+                  <span class="font-medium text-purple-600">Owner distribution of {tx["owner"]:,.2f} SOM</span>
+                </div>'''
             
             if 'parentId' in tx:
                 parent_id = tx['parentId']
@@ -564,7 +574,8 @@ def main():
                 net_change=net_change,
                 multiple_transaction_notice=multiple_transaction_notice,
                 multiple_transactions_section=multiple_transactions_section,
-                parent_id_display=parent_id_display
+                parent_id_display=parent_id_display,
+                owner_distribution_display=owner_distribution_display
             )
             
             # Write transaction detail page
