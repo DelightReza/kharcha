@@ -228,6 +228,38 @@
         </div>
       </div>
 
+      <!-- Owner Distribution Section -->
+      <div class="border-t pt-6">
+        <h3 class="font-medium mb-3 text-purple-700"><i class="fas fa-crown mr-2"></i>Owner's Money Distribution</h3>
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-purple-800 mb-3">
+            <i class="fas fa-info-circle mr-1"></i>
+            Add money from owner and automatically distribute equally among all 8 people
+          </p>
+          
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Owner's Amount (SOM)</label>
+              <input id="ownerAmount" type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="e.g. 4000.00">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Note (Optional)</label>
+              <input id="ownerNote" type="text" class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="e.g. Monthly contribution from owner">
+            </div>
+            
+            <!-- Distribution Preview -->
+            <div id="distributionPreview" class="hidden bg-white border border-purple-100 rounded-lg p-3">
+              <h4 class="font-medium text-purple-700 mb-2">Distribution Preview</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm" id="distributionDetails"></div>
+            </div>
+
+            <button id="addOwnerMoneyBtn" class="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-crown mr-2"></i> Distribute Owner's Money
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- GitHub Integration -->
       <div class="border-t pt-6">
         <h3 class="font-medium mb-3">GitHub Integration</h3>
@@ -291,6 +323,7 @@
     const REPO_NAME = 'kharcha';
     const DATA_FILE = 'data.json';
     const DEFAULT_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin'];
+    const ALL_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin'];
     const BILL_TYPES = ['Electricity', 'Water', 'Gas', 'Garbage', 'Internet', 'Other'];
     const TRANSACTIONS_PER_PAGE = 10;
 
@@ -335,6 +368,11 @@
     const multipleTransactionsContainer = document.getElementById('multipleTransactionsContainer');
     const addMultipleEntry = document.getElementById('addMultipleEntry');
     const addMultipleTransactions = document.getElementById('addMultipleTransactions');
+    const ownerAmount = document.getElementById('ownerAmount');
+    const ownerNote = document.getElementById('ownerNote');
+    const distributionPreview = document.getElementById('distributionPreview');
+    const distributionDetails = document.getElementById('distributionDetails');
+    const addOwnerMoneyBtn = document.getElementById('addOwnerMoneyBtn');
 
     // Date and Time Elements
     const creditCustomDate = document.getElementById('creditCustomDate');
@@ -390,6 +428,8 @@
       loadMoreBtn.addEventListener('click', loadMoreTransactions);
       addMultipleEntry.addEventListener('click', addMultipleTransactionEntry);
       addMultipleTransactions.addEventListener('click', saveMultipleTransactions);
+      ownerAmount.addEventListener('input', updateDistributionPreview);
+      addOwnerMoneyBtn.addEventListener('click', distributeOwnerMoney);
 
       // Date and time toggle listeners
       creditCustomDate.addEventListener('change', () => {
@@ -412,6 +452,96 @@
 
       // Show data preview immediately
       updateDataPreview();
+    }
+
+    // Update distribution preview as user types
+    function updateDistributionPreview() {
+      const amount = parseFloat(ownerAmount.value);
+      
+      if (!amount || amount <= 0 || isNaN(amount)) {
+        distributionPreview.classList.add('hidden');
+        return;
+      }
+      
+      const amountPerPerson = amount / ALL_PEOPLE.length;
+      
+      distributionDetails.innerHTML = ALL_PEOPLE.map(person => `
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600">${person}:</span>
+          <span class="font-medium text-green-600">${amountPerPerson.toFixed(2)}</span>
+        </div>
+      `).join('');
+      
+      distributionPreview.classList.remove('hidden');
+    }
+
+    // Distribute owner's money
+    function distributeOwnerMoney() {
+      const amount = parseFloat(ownerAmount.value);
+      const note = ownerNote.value.trim();
+      
+      if (!amount || amount <= 0 || isNaN(amount)) {
+        showTransactionStatus('❌ Please enter a valid amount', 'error');
+        setTimeout(hideTransactionStatus, 3000);
+        return;
+      }
+      
+      const amountPerPerson = amount / ALL_PEOPLE.length;
+      const transactionDate = new Date().toISOString();
+      const baseTransactionId = 'tx_owner_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      
+      // Show processing state
+      showTransactionStatus('🔄 Distributing owner\'s money...', 'processing');
+      addOwnerMoneyBtn.disabled = true;
+      addOwnerMoneyBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Distributing...';
+      
+      // Process after delay for better UX
+      setTimeout(() => {
+        try {
+          // Create transactions for each person
+          ALL_PEOPLE.forEach((person, index) => {
+            const transaction = {
+              id: `${baseTransactionId}_${index}`,
+              type: 'credit',
+              whoOrBill: person,
+              note: note || 'From owner distribution',
+              amount: amountPerPerson,
+              date: transactionDate,
+              parentId: baseTransactionId,
+              owner: amount // Store the original owner amount for reference
+            };
+            
+            // Add transaction to data
+            data.transactions.unshift(transaction);
+            
+            // Update person's total
+            data.people[person] = (data.people[person] || 0) + amountPerPerson;
+          });
+          
+          // Save and render
+          saveData();
+          renderDashboard();
+          
+          // Show success message
+          showTransactionStatus(`✅ Owner's ${amount.toFixed(2)} SOM distributed equally among ${ALL_PEOPLE.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
+          
+          // Reset form
+          ownerAmount.value = '';
+          ownerNote.value = '';
+          distributionPreview.classList.add('hidden');
+          
+        } catch (error) {
+          showTransactionStatus('❌ Error distributing owner\'s money', 'error');
+          console.error('Distribution error:', error);
+        }
+        
+        // Reset button state
+        addOwnerMoneyBtn.disabled = false;
+        addOwnerMoneyBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Distribute Owner\'s Money';
+        
+        // Hide status message after 5 seconds
+        setTimeout(hideTransactionStatus, 5000);
+      }, 800);
     }
 
     // Update whoOrBill dropdown based on type
