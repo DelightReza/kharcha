@@ -15,9 +15,17 @@
     "Gas": 0,
     "Garbage": 0,
     "Internet": 0,
-    "Other": 580
+    "Other": 855
   },
   "transactions": [
+    {
+      "id": "tx_1762586316983_sdmar",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Cleaning Ka Saman",
+      "amount": 275,
+      "date": "2025-11-08T07:18:36.166Z"
+    },
     {
       "id": "tx_multi_1762182050433_4suco_5",
       "type": "credit",
