@@ -53,6 +53,7 @@
               <th class="p-3 font-medium">Person / Bill</th>
               <th class="p-3 font-medium">Note</th>
               <th class="p-3 font-medium text-right">Amount (SOM)</th>
+              <th class="p-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody id="transactionBody"></tbody>
@@ -454,6 +455,65 @@
       updateDataPreview();
     }
 
+    // Delete transaction (permanent deletion)
+    function deleteTransaction(transactionId, parentId = null) {
+      if (!confirm('Are you sure you want to PERMANENTLY delete this transaction? This action cannot be undone.')) {
+        return;
+      }
+
+      // Show processing state
+      showTransactionStatus('🔄 Deleting transaction...', 'processing');
+
+      // Process after delay for better UX
+      setTimeout(() => {
+        try {
+          if (parentId) {
+            // Delete entire group if it's part of a multiple transaction group
+            const transactionsToDelete = data.transactions.filter(tx => tx.parentId === parentId);
+            
+            // Update people and bill types totals (subtract the amounts)
+            transactionsToDelete.forEach(tx => {
+              if (tx.type === 'credit') {
+                data.people[tx.whoOrBill] = (data.people[tx.whoOrBill] || 0) - tx.amount;
+              } else {
+                data.billTypes[tx.whoOrBill] = (data.billTypes[tx.whoOrBill] || 0) - tx.amount;
+              }
+            });
+            
+            // Remove transactions from data
+            data.transactions = data.transactions.filter(tx => tx.parentId !== parentId);
+          } else {
+            // Delete single transaction
+            const transaction = data.transactions.find(tx => tx.id === transactionId);
+            if (transaction) {
+              // Update people and bill types totals (subtract the amount)
+              if (transaction.type === 'credit') {
+                data.people[transaction.whoOrBill] = (data.people[transaction.whoOrBill] || 0) - transaction.amount;
+              } else {
+                data.billTypes[transaction.whoOrBill] = (data.billTypes[transaction.whoOrBill] || 0) - transaction.amount;
+              }
+              
+              // Remove transaction from data
+              data.transactions = data.transactions.filter(tx => tx.id !== transactionId);
+            }
+          }
+
+          // Save and render
+          saveData();
+          renderDashboard();
+          
+          // Show success message
+          showTransactionStatus('✅ Transaction permanently deleted!', 'success');
+
+          // Hide success message after 3 seconds
+          setTimeout(hideTransactionStatus, 3000);
+        } catch (error) {
+          showTransactionStatus('❌ Error deleting transaction', 'error');
+          console.error('Delete error:', error);
+        }
+      }, 800);
+    }
+
     // Update distribution preview as user types
     function updateDistributionPreview() {
       const amount = parseFloat(ownerAmount.value);
@@ -822,7 +882,7 @@
           people: DEFAULT_PEOPLE.reduce((acc, person) => {
             acc[person] = 0;
             return acc;
-          }, {}),
+            }, {}),
           billTypes: BILL_TYPES.reduce((acc, billType) => {
             acc[billType] = 0;
             return acc;
@@ -1028,12 +1088,26 @@
         `+${formatCurrency(transaction.amount)}` : 
         `-${formatCurrency(transaction.amount)}`;
       
+      // Check if this is an owner distribution
+      const ownerDistributionDisplay = transaction.owner ? 
+        `<div class="flex justify-between">
+          <span class="text-gray-600">Distribution Source:</span>
+          <span class="font-medium text-purple-600">Owner distribution of ${formatCurrency(transaction.owner)} SOM</span>
+        </div>` : '';
+      
       // Create transaction details HTML
       transactionDetails.innerHTML = `
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
           <div class="text-sm text-gray-900 bg-gray-50 p-2 rounded">${transaction.id}</div>
         </div>
+        
+        ${transaction.parentId ? `
+        <div class="flex justify-between">
+          <span class="text-gray-600">Group ID:</span>
+          <span class="font-medium text-blue-600">${transaction.parentId}</span>
+        </div>
+        ` : ''}
         
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -1061,6 +1135,8 @@
           <div class="text-sm font-medium ${typeClass}">${formatCurrency(transaction.amount)} SOM</div>
         </div>
         
+        ${ownerDistributionDisplay}
+        
         <div class="border-t pt-4">
           <h4 class="font-medium mb-3">Balance Impact</h4>
           <div class="grid grid-cols-2 gap-4 text-sm">
@@ -1076,6 +1152,22 @@
               <div class="text-gray-600 font-semibold">Net Change</div>
               <div class="font-medium ${typeClass} text-lg">${netChange} SOM</div>
             </div>
+          </div>
+        </div>
+        
+        <div class="border-t pt-4">
+          <h4 class="font-medium mb-3 text-red-700">Danger Zone</h4>
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p class="text-sm text-red-800 mb-3">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              PERMANENTLY deleting this transaction will remove it from all calculations and reports.
+              ${transaction.parentId ? 'This is part of a transaction group - deleting will remove the entire group.' : ''}
+            </p>
+            <button onclick="deleteTransaction('${transaction.id}', ${transaction.parentId ? `'${transaction.parentId}'` : 'null'});
+              hideTransactionModal();" 
+              class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-200 flex items-center justify-center">
+              <i class="fas fa-trash mr-2"></i> Permanently Delete${transaction.parentId ? ' Group' : ''}
+            </button>
           </div>
         </div>
       `;
@@ -1177,6 +1269,13 @@
             <td class="p-3 font-medium">${tx.whoOrBill}</td>
             <td class="p-3 text-gray-600">${tx.note || '-'}</td>
             <td class="p-3 text-right font-medium ${typeClass}">${formatCurrency(tx.amount)}</td>
+            <td class="p-3">
+              <div class="flex space-x-2">
+                <button onclick="event.stopPropagation(); deleteTransaction('${tx.id}', ${tx.parentId ? `'${tx.parentId}'` : 'null'})" class="text-red-600 hover:text-red-900" title="Permanently Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
           </tr>
         `;
       });
