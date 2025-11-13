@@ -1,13 +1,13 @@
 {
   "people": {
-    "Musawwar": 500,
+    "Musawwar": 750,
     "Raza": 750,
     "Salman": 750,
     "Mujeeb": 750,
     "Gulam": 1080,
     "Rana": 750,
     "Naved": 750,
-    "Nizamuddin": 500
+    "Nizamuddin": 750
   },
   "billTypes": {
     "Electricity": 2281.6,
@@ -18,6 +18,24 @@
     "Other": 855
   },
   "transactions": [
+    {
+      "id": "tx_multi_1763053865251_yo232_1",
+      "type": "credit",
+      "whoOrBill": "Nizamuddin",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-13T17:11:05.251Z",
+      "parentId": "tx_multi_1763053865251_yo232"
+    },
+    {
+      "id": "tx_multi_1763053865251_yo232_0",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "",
+      "amount": 250,
+      "date": "2025-11-13T17:11:05.251Z",
+      "parentId": "tx_multi_1763053865251_yo232"
+    },
     {
       "id": "tx_1762586316983_sdmar",
       "type": "debit",
