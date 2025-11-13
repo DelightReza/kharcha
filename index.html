@@ -120,7 +120,7 @@
                   </p>
                   <div class="mt-6">
                     <div class="bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm inline-flex items-center">
-                      <i class="fas fa-clock mr-2"></i> Last updated: 2025-11-14 00:00:14 UTC+6
+                      <i class="fas fa-clock mr-2"></i> Last updated: 2025-11-14 02:49:21 UTC+6
                     </div>
                   </div>
                 </div>
@@ -469,59 +469,292 @@
             </div>
             </div>
 
-            <!-- Enhanced Quick Stats -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-              <!-- People Summary -->
-              <div class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
-                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                  <i class="fas fa-users text-primary-600 mr-3 bg-primary-100 p-2 rounded-xl"></i>
-                  Contributions Summary
-                </h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Musawwar</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
+            <!-- Enhanced Personal Finance Summary -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 animate-fade-in">
+              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                <div>
+                  <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-user-circle text-primary-600 mr-3 bg-primary-100 p-2 rounded-xl"></i>
+                    Personal Finance Summary
+                  </h2>
+                  <p class="text-gray-600 text-sm mt-2">Detailed breakdown of credits, debits, and net balance for each person</p>
                 </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Raza</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Salman</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Mujeeb</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Gulam</div>
-                  <div class="text-lg font-bold text-green-600">1,080.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Rana</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Naved</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">Nizamuddin</div>
-                  <div class="text-lg font-bold text-green-600">750.00 SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>
+                <div class="bg-primary-50 text-primary-700 px-4 py-2 rounded-xl text-sm font-medium border border-primary-200">
+                  <i class="fas fa-users mr-1"></i> All People
                 </div>
               </div>
 
+              <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-sm">
+                  <thead class="text-left bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0">
+                    <tr>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200">Person</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Total Credits</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Total Debits</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Net Balance</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="personalFinanceBody" class="divide-y divide-gray-100">
+                    
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Raza</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Salman</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Mujeeb</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Gulam</td>
+                  <td class="p-4 text-right font-medium text-green-600">1,080.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">637.67</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Rana</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Naved</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Musawwar</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">Nizamuddin</td>
+                  <td class="p-4 text-right font-medium text-green-600">750.00</td>
+                  <td class="p-4 text-right font-medium text-red-600">442.32</td>
+                  <td class="p-4 text-right font-bold text-green-600">307.68</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      <i class="fas fa-smile mr-1"></i> In Credit
+                    </span>
+                  </td>
+                </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Detailed Breakdown Section -->
+              <div class="mt-8 border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <i class="fas fa-chart-bar text-primary-600 mr-3"></i>
+                  Detailed Per-Person Breakdown
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="personalBreakdown">
+                  
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Raza</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Salman</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Mujeeb</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Gulam</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">1,080.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">637.67</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Rana</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Naved</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Musawwar</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">Nizamuddin</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">750.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">442.32</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="text-green-600">307.68</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Quick Stats -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
               <!-- Bill Types Summary -->
               <div class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -547,7 +780,6 @@
                 </div>
                 </div>
               </div>
-            </div>
 
             <!-- Enhanced Footer -->
             <footer class="mt-12 text-center text-sm text-gray-500 py-8 border-t border-gray-200 bg-white/50 rounded-2xl">
