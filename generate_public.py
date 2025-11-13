@@ -8,7 +8,7 @@ import re
 import shutil
 
 # Template version - increment this when you change title generation
-template_version = "v2.1"
+template_version = "v2.3"
 
 def cleanup_orphaned_transaction_files(data):
     """Remove HTML files for transactions that no longer exist in data"""
@@ -93,6 +93,63 @@ def update_existing_transaction_titles(data):
     if updated_count > 0:
         print(f"✅ Updated titles for {updated_count} transaction files")
 
+def calculate_bill_distribution_with_exemptions(amount, exemptions, all_people):
+    """Calculate bill distribution with transaction-level exemptions"""
+    paying_people = [person for person in all_people if person not in exemptions]
+    
+    if not paying_people:
+        return {
+            'exempt_people': exemptions,
+            'paying_people': [],
+            'amount_per_person': 0,
+            'total_amount': amount
+        }
+    
+    amount_per_person = amount / len(paying_people)
+    
+    return {
+        'exempt_people': exemptions,
+        'paying_people': paying_people,
+        'amount_per_person': amount_per_person,
+        'total_amount': amount
+    }
+
+def calculate_personal_finance(data, all_people):
+    """Calculate personal finance breakdown for each person"""
+    personal_finance = {}
+    
+    # Initialize all people
+    for person in all_people:
+        personal_finance[person] = {
+            'credits': 0,
+            'debits': 0,
+            'net_balance': 0
+        }
+
+    # Calculate credits (direct from credit transactions)
+    for tx in data['transactions']:
+        if tx['type'] == 'credit':
+            if tx['whoOrBill'] in personal_finance:
+                personal_finance[tx['whoOrBill']]['credits'] += tx['amount']
+                personal_finance[tx['whoOrBill']]['net_balance'] += tx['amount']
+
+    # Calculate debits (considering transaction-level exemptions)
+    for tx in data['transactions']:
+        if tx['type'] == 'debit':
+            # Use transaction-level exemptions if they exist
+            exemptions = tx.get('exemptions', [])
+            paying_people = [person for person in all_people if person not in exemptions]
+            
+            if paying_people:
+                amount_per_person = tx['amount'] / len(paying_people)
+                
+                for person in paying_people:
+                    if person in personal_finance:
+                        personal_finance[person]['debits'] += amount_per_person
+                        personal_finance[person]['net_balance'] -= amount_per_person
+
+    return personal_finance
+
 def main():
     try:
         # Force complete regeneration if template version changed
@@ -143,6 +200,12 @@ def main():
         
         # Update titles in existing transaction files
         update_existing_transaction_titles(data)
+        
+        # Define all people (same as in admin panel)
+        ALL_PEOPLE = ['Raza', 'Salman', 'Mujeeb', 'Gulam', 'Rana', 'Naved', 'Musawwar', 'Nizamuddin']
+        
+        # Calculate personal finance breakdown
+        personal_finance = calculate_personal_finance(data, ALL_PEOPLE)
         
         # Calculate totals and running balances
         total_credits = 0
@@ -384,19 +447,52 @@ def main():
               {load_more_button}
             </div>
 
-            <!-- Enhanced Quick Stats -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-              <!-- People Summary -->
-              <div class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
-                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                  <i class="fas fa-users text-primary-600 mr-3 bg-primary-100 p-2 rounded-xl"></i>
-                  Contributions Summary
-                </h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {people_summary}
+            <!-- Enhanced Personal Finance Summary -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 animate-fade-in">
+              <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+                <div>
+                  <h2 class="text-xl lg:text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-user-circle text-primary-600 mr-3 bg-primary-100 p-2 rounded-xl"></i>
+                    Personal Finance Summary
+                  </h2>
+                  <p class="text-gray-600 text-sm mt-2">Detailed breakdown of credits, debits, and net balance for each person</p>
+                </div>
+                <div class="bg-primary-50 text-primary-700 px-4 py-2 rounded-xl text-sm font-medium border border-primary-200">
+                  <i class="fas fa-users mr-1"></i> All People
                 </div>
               </div>
 
+              <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-sm">
+                  <thead class="text-left bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0">
+                    <tr>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200">Person</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Total Credits</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Total Debits</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-right">Net Balance</th>
+                      <th class="p-4 font-semibold text-gray-700 border-b border-gray-200 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="personalFinanceBody" class="divide-y divide-gray-100">
+                    {personal_finance_table}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Detailed Breakdown Section -->
+              <div class="mt-8 border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                  <i class="fas fa-chart-bar text-primary-600 mr-3"></i>
+                  Detailed Per-Person Breakdown
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="personalBreakdown">
+                  {personal_finance_cards}
+                </div>
+              </div>
+            </div>
+
+            <!-- Enhanced Quick Stats -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
               <!-- Bill Types Summary -->
               <div class="bg-white rounded-2xl shadow-lg p-6 animate-fade-in">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -407,7 +503,6 @@ def main():
                   {bill_types_summary}
                 </div>
               </div>
-            </div>
 
             <!-- Enhanced Footer -->
             <footer class="mt-12 text-center text-sm text-gray-500 py-8 border-t border-gray-200 bg-white/50 rounded-2xl">
@@ -544,6 +639,8 @@ def main():
                 </div>
                 
                 {owner_distribution_display}
+                
+                {bill_exemption_display}
               </div>
             </div>
 
@@ -706,16 +803,55 @@ def main():
         </body>
         </html>'''
         
-        # Generate enhanced people summary HTML
-        people_summary_html = ''
-        for person, amount in data['people'].items():
-            people_summary_html += f'''
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center border border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-                  <div class="font-semibold text-gray-700 mb-2">{person}</div>
-                  <div class="text-lg font-bold text-green-600">{amount:,.2f} SOM</div>
-                  <div class="text-xs text-gray-500 mt-2">Total contributed</div>
-                </div>'''
+        # Generate personal finance table rows
+        personal_finance_table = ''
+        for person in ALL_PEOPLE:
+            finance = personal_finance[person]
+            status_class = 'text-green-600' if finance['net_balance'] >= 0 else 'text-red-600'
+            status_icon = 'fa-smile' if finance['net_balance'] >= 0 else 'fa-frown'
+            status_text = 'In Credit' if finance['net_balance'] >= 0 else 'In Debit'
+            
+            personal_finance_table += f'''
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="p-4 font-semibold text-gray-800">{person}</td>
+                  <td class="p-4 text-right font-medium text-green-600">{finance['credits']:,.2f}</td>
+                  <td class="p-4 text-right font-medium text-red-600">{finance['debits']:,.2f}</td>
+                  <td class="p-4 text-right font-bold {status_class}">{finance['net_balance']:,.2f}</td>
+                  <td class="p-4 text-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium { 'bg-green-100 text-green-800' if finance['net_balance'] >= 0 else 'bg-red-100 text-red-800' }">
+                      <i class="fas {status_icon} mr-1"></i> {status_text}
+                    </span>
+                  </td>
+                </tr>'''
         
+        # Generate personal finance cards
+        personal_finance_cards = ''
+        for person in ALL_PEOPLE:
+            finance = personal_finance[person]
+            status_class = 'from-green-50 to-emerald-50 border-green-200' if finance['net_balance'] >= 0 else 'from-red-50 to-orange-50 border-red-200'
+            text_class = 'text-green-600' if finance['net_balance'] >= 0 else 'text-red-600'
+            
+            personal_finance_cards += f'''
+                <div class="bg-gradient-to-br {status_class} rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200">
+                  <div class="font-bold text-gray-800 mb-3 text-lg">{person}</div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Credits:</span>
+                      <span class="font-medium text-green-600">{finance['credits']:,.2f}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Debits:</span>
+                      <span class="font-medium text-red-600">{finance['debits']:,.2f}</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                      <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-700">Net Balance:</span>
+                        <span class="{text_class}">{finance['net_balance']:,.2f}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>'''
+      
         # Generate enhanced bill types summary HTML
         bill_types_summary_html = ''
         for bill_type, amount in data['billTypes'].items():
@@ -771,14 +907,19 @@ def main():
                 # Link to individual transaction page
                 link_target = f'transactions/{tx["id"]}.html'
             
+            # Check if this is a debit with transaction-level exemptions
+            has_exemptions = tx.get('type') == 'debit' and 'exemptions' in tx and tx['exemptions']
+            
             # Create enhanced clickable row
             display_style = 'table-row' if i < shown_count else 'none'
+            exemption_icon = '<i class="fas fa-user-slash ml-1 text-xs text-orange-500" title="Has exemptions"></i>' if has_exemptions else ''
+            
             transactions_html += f'''
                 <tr class="transaction-row border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="window.location.href='{link_target}'" style="display: {display_style}">
                   <td class="p-4 font-medium text-gray-700">{formatted_date}</td>
                   <td class="p-4">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium { 'bg-green-100 text-green-800' if tx['type'] == 'credit' else 'bg-red-100 text-red-800' }">
-                      {type_icon}{tx['type']}
+                      {type_icon}{tx['type']}{exemption_icon}
                     </span>
                   </td>
                   <td class="p-4 font-semibold text-gray-800">{tx['whoOrBill']}</td>
@@ -812,7 +953,8 @@ def main():
             total_credits=total_credits_str,
             total_debits=total_debits_str,
             balance=balance_str,
-            people_summary=people_summary_html,
+            personal_finance_table=personal_finance_table,
+            personal_finance_cards=personal_finance_cards,
             bill_types_summary=bill_types_summary_html,
             transactions=transactions_html,
             load_more_button=load_more_button,
@@ -875,6 +1017,7 @@ def main():
             multiple_transactions_section = ''
             parent_id_display = ''
             owner_distribution_display = ''
+            bill_exemption_display = ''
             
             # Check if this is an owner distribution
             if 'owner' in tx and 'parentId' in tx:
@@ -883,6 +1026,30 @@ def main():
                   <div class="flex justify-between items-center">
                     <span class="text-sm font-medium text-gray-700">Distribution Source:</span>
                     <span class="font-medium text-purple-600">Owner distribution of {tx["owner"]:,.2f} SOM</span>
+                  </div>
+                </div>'''
+            
+            # Check if this is a debit with transaction-level exemptions
+            if tx['type'] == 'debit' and 'exemptions' in tx and tx['exemptions']:
+                distribution = calculate_bill_distribution_with_exemptions(
+                    tx['amount'], 
+                    tx['exemptions'],
+                    ALL_PEOPLE
+                )
+                
+                bill_exemption_display = f'''
+                <div class="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200">
+                  <h4 class="font-medium text-orange-700 mb-2 flex items-center">
+                    <i class="fas fa-user-slash mr-2 text-orange-600"></i>Bill Exemptions (This Transaction Only)
+                  </h4>
+                  <div class="text-sm text-gray-700 space-y-1">
+                    <div><span class="font-medium">Exempt people:</span> {', '.join(distribution['exempt_people'])}</div>
+                    <div><span class="font-medium">Paying people:</span> {', '.join(distribution['paying_people'])}</div>
+                    <div class="font-medium text-orange-600">Amount per person: {distribution['amount_per_person']:,.2f} SOM</div>
+                    <div class="text-xs text-orange-600 mt-2 flex items-center">
+                      <i class="fas fa-info-circle mr-1"></i>
+                      These exemptions apply only to this transaction
+                    </div>
                   </div>
                 </div>'''
             
@@ -997,7 +1164,8 @@ def main():
                 multiple_transaction_notice=multiple_transaction_notice,
                 multiple_transactions_section=multiple_transactions_section,
                 parent_id_display=parent_id_display,
-                owner_distribution_display=owner_distribution_display
+                owner_distribution_display=owner_distribution_display,
+                bill_exemption_display=bill_exemption_display
             )
             
             # Write transaction detail page
