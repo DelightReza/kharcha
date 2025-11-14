@@ -13,11 +13,19 @@
     "Electricity": 2281.6,
     "Water": 402,
     "Gas": 0,
-    "Garbage": 0,
+    "Garbage": 1321.4,
     "Internet": 0,
     "Other": 855
   },
   "transactions": [
+    {
+      "id": "tx_1763122539224_giijo",
+      "type": "debit",
+      "whoOrBill": "Garbage",
+      "note": "",
+      "amount": 1321.4,
+      "date": "2025-11-14T12:15:38.713Z"
+    },
     {
       "id": "tx_multi_1763053865251_yo232_1",
       "type": "credit",
