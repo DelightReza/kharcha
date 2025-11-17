@@ -1,0 +1,192 @@
+// js/admin-ui-helpers.js
+/**
+ * UI helper functions for forms and interactive elements
+ */
+
+// Extend UI object with additional methods
+Object.assign(UI, {
+  // Initialize form dropdowns
+  initializeDropdowns() {
+    DOM.personSelect.innerHTML = PEOPLE.DEFAULT.map(person => 
+      `<option value="${person}">👤 ${person}</option>`
+    ).join('');
+  },
+  
+  // Set default dates
+  setDefaultDates() {
+    const today = Utils.getTodayDate();
+    DOM.creditDate.value = today;
+    DOM.debitDate.value = today;
+  },
+  
+  // Update whoOrBill dropdown based on type
+  updateWhoOrBillDropdown(selectElement, type) {
+    selectElement.innerHTML = '';
+    
+    if (type === 'credit') {
+      PEOPLE.DEFAULT.forEach(person => {
+        const option = document.createElement('option');
+        option.value = person;
+        option.textContent = `👤 ${person}`;
+        selectElement.appendChild(option);
+      });
+    } else {
+      BILL_TYPES.forEach(billType => {
+        const option = document.createElement('option');
+        option.value = billType;
+        option.textContent = `${Utils.getBillIcon(billType)} ${billType}`;
+        selectElement.appendChild(option);
+      });
+    }
+  },
+  
+  // Add multiple transaction entry
+  addMultipleTransactionEntry() {
+    const entry = document.createElement('div');
+    entry.className = 'multiple-transaction-entry border-b border-purple-100 pb-4 mb-4';
+    entry.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Type</label>
+          <select class="multiple-type w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500">
+            <option value="credit">💰 Credit</option>
+            <option value="debit">💸 Debit</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
+          <select class="multiple-whoOrBill w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500">
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Amount</label>
+          <input type="number" step="0.01" class="multiple-amount w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500" placeholder="0.00">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Note</label>
+          <input type="text" class="multiple-note w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500" placeholder="Optional note">
+        </div>
+        <div class="flex items-end">
+          <button type="button" class="remove-multiple-entry w-full bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-all duration-200 text-sm shadow hover:shadow-md">
+            <i class="fas fa-times"></i> Remove
+          </button>
+        </div>
+      </div>
+    `;
+    
+    DOM.multipleTransactionsContainer.appendChild(entry);
+    
+    const typeSelect = entry.querySelector('.multiple-type');
+    const whoOrBillSelect = entry.querySelector('.multiple-whoOrBill');
+    this.updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
+    
+    typeSelect.addEventListener('change', () => {
+      this.updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
+    });
+    
+    const removeBtn = entry.querySelector('.remove-multiple-entry');
+    removeBtn.addEventListener('click', () => {
+      if (DOM.multipleTransactionsContainer.children.length > 1) {
+        entry.remove();
+      } else {
+        this.showTransactionStatus('❌ You need at least one transaction entry', 'error');
+        setTimeout(() => this.hideTransactionStatus(), 3000);
+      }
+    });
+  },
+  
+  // Initialize bill exemptions
+  initBillExemptions() {
+    DOM.exemptionCheckboxes.innerHTML = PEOPLE.ALL.map(person => `
+      <label class="flex items-center space-x-2 text-sm">
+        <input type="checkbox" value="${person}" class="rounded text-red-600 focus:ring-red-500 exemption-checkbox">
+        <span>${person}</span>
+      </label>
+    `).join('');
+
+    DOM.debitType.addEventListener('change', () => this.updateExemptionPreview());
+    
+    document.querySelectorAll('.exemption-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', () => this.updateExemptionPreview());
+    });
+    
+    DOM.enableExemptions.addEventListener('change', function() {
+      DOM.exemptionFields.classList.toggle('hidden', !this.checked);
+      if (this.checked) {
+        UI.updateExemptionPreview();
+      } else {
+        DOM.exemptionPreview.classList.add('hidden');
+      }
+    });
+
+    DOM.debitAmount.addEventListener('input', () => this.updateExemptionPreview());
+  },
+  
+  // Update exemption preview
+  updateExemptionPreview() {
+    const amount = parseFloat(DOM.debitAmount.value);
+    const exemptPeople = Array.from(document.querySelectorAll('.exemption-checkbox:checked'))
+      .map(cb => cb.value);
+    
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      DOM.exemptionPreview.classList.add('hidden');
+      return;
+    }
+    
+    const payingPeople = PEOPLE.ALL.filter(person => !exemptPeople.includes(person));
+    
+    if (payingPeople.length === 0) {
+      DOM.exemptionDetails.innerHTML = 
+        '<span class="text-red-600">⚠️ No one is paying this bill!</span>';
+      DOM.exemptionPreview.classList.remove('hidden');
+      return;
+    }
+    
+    const amountPerPerson = amount / payingPeople.length;
+    
+    DOM.exemptionDetails.innerHTML = `
+      <div class="mb-2">
+        <span class="font-medium">Exempt:</span> ${exemptPeople.length > 0 ? exemptPeople.join(', ') : 'None'}
+      </div>
+      <div class="mb-2">
+        <span class="font-medium">Paying (${payingPeople.length} people):</span> ${payingPeople.join(', ')}
+      </div>
+      <div class="font-medium text-red-600">
+        Amount per person: ${amountPerPerson.toFixed(2)} SOM
+      </div>
+      <div class="text-xs text-red-500 mt-2 flex items-center">
+        <i class="fas fa-info-circle mr-1"></i>
+        These exemptions apply only to this transaction
+      </div>
+    `;
+    
+    DOM.exemptionPreview.classList.remove('hidden');
+  },
+  
+  // Update distribution preview
+  updateDistributionPreview() {
+    const amount = parseFloat(DOM.ownerAmount.value);
+    
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      DOM.distributionPreview.classList.add('hidden');
+      return;
+    }
+    
+    const amountPerPerson = amount / PEOPLE.ALL.length;
+    
+    DOM.distributionDetails.innerHTML = PEOPLE.ALL.map(person => `
+      <div class="flex justify-between items-center bg-green-50 p-2 rounded-lg">
+        <span class="text-gray-600 text-xs">${person}:</span>
+        <span class="font-medium text-green-600 text-sm">${amountPerPerson.toFixed(2)}</span>
+      </div>
+    `).join('');
+    
+    DOM.distributionPreview.classList.remove('hidden');
+  },
+  
+  // Load more transactions
+  loadMoreTransactions() {
+    AppState.incrementPage();
+    this.renderTransactions();
+  }
+});
