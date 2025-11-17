@@ -58,7 +58,10 @@
       "whoOrBill": "Other",
       "note": "Cleaning Ka Saman",
       "amount": 275,
-      "date": "2025-11-08T07:18:36.166Z"
+      "date": "2025-11-08T19:18:00.000Z",
+      "exemptions": [
+        "Gulam"
+      ]
     },
     {
       "id": "tx_multi_1762182050433_4suco_5",
