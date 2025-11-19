@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- 1. Hero Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <!-- Money In -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl shadow-emerald-500/20 animate-slide-up" style="animation-delay: 0ms;">
+        <div class="absolute -right-6 -top-6 text-white/10">
+            <i class="fas fa-arrow-down text-9xl"></i>
+        </div>
+        <p class="text-emerald-100 text-sm font-medium mb-1">Total Collected</p>
+        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_credits) }}</h2>
+    </div>
+
+    <!-- Money Out -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 p-6 text-white shadow-xl shadow-rose-500/20 animate-slide-up" style="animation-delay: 100ms;">
+        <div class="absolute -right-6 -top-6 text-white/10">
+            <i class="fas fa-fire text-9xl"></i>
+        </div>
+        <p class="text-rose-100 text-sm font-medium mb-1">Total Spent</p>
+        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_debits) }}</h2>
+    </div>
+
+    <!-- Balance -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 p-6 text-white shadow-xl shadow-blue-500/20 animate-slide-up" style="animation-delay: 200ms;">
+        <div class="absolute -right-6 -top-6 text-white/10">
+            <i class="fas fa-wallet text-9xl"></i>
+        </div>
+        <p class="text-blue-100 text-sm font-medium mb-1">Current Balance</p>
+        <h2 class="text-4xl font-bold tracking-tight">{{ "{:,.0f}".format(balance) }}</h2>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- 2. Members List (Takes up 2 columns) -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-slate-800">Member Status</h3>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for person, data in personal_finance.items() %}
+            <div class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:border-blue-200 transition-all duration-300">
+                <div class="flex items-center gap-4">
+                    <!-- Avatar Circle -->
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold 
+                        {{ 'bg-emerald-100 text-emerald-700' if data.net_balance >= 0 else 'bg-rose-100 text-rose-700' }}">
+                        {{ person[0] }}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-700">{{ person }}</h4>
+                        <div class="text-xs text-slate-400">
+                            Given: <span class="text-slate-600 font-medium">{{ "{:,.0f}".format(data.credits) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold text-lg {{ 'text-emerald-600' if data.net_balance >= 0 else 'text-rose-500' }}">
+                        {{ "{:,.0f}".format(data.net_balance) }}
+                    </div>
+                    <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Net Balance</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Recent Transactions Table -->
+        <div class="glass-card rounded-3xl overflow-hidden mt-8">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800">Recent Activity</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <tbody id="transactions-body" class="divide-y divide-slate-50 max-h-96 overflow-y-auto">
+                        {% for tx in transactions[:10] %}
+                        <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="window.location.href='transactions/{{ tx.id }}.html'">
+                            <td class="p-4 pl-6">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center 
+                                    {{ 'bg-emerald-50 text-emerald-600' if tx.type == 'credit' else 'bg-rose-50 text-rose-600' }}">
+                                    <i class="fas {{ 'fa-arrow-down' if tx.type == 'credit' else 'fa-arrow-up' }}"></i>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-bold text-slate-700">{{ tx.whoOrBill }}</div>
+                                <div class="text-xs text-slate-400">{{ tx.display_date.split(' ')[0] }}</div>
+                            </td>
+                            <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
+                                {{ tx.note if tx.note else '-' }}
+                            </td>
+                            <td class="p-4 pr-6 text-right">
+                                <span class="font-bold {{ 'text-emerald-600' if tx.type == 'credit' else 'text-slate-800' }}">
+                                    {{ "+" if tx.type == 'credit' else "-" }}{{ "{:,.0f}".format(tx.amount) }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 bg-slate-50 text-center border-t border-slate-100">
+                <button id="load-more" class="text-xs font-bold text-slate-500 hover:text-brand-600 transition-colors uppercase tracking-wider">
+                    Load More ({{ transactions|length - 10 }} remaining)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Sidebar / Charts -->
+    <div class="space-y-6">
+        <!-- Spending Chart -->
+        <div class="glass-card rounded-3xl p-6">
+            <h3 class="font-bold text-slate-800 mb-6">Expenses</h3>
+            <div class="relative h-64 w-full">
+                <canvas id="billChart"></canvas>
+                <!-- Center Text in Donut -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div class="text-center">
+                        <span class="block text-xs text-slate-400">Total</span>
+                        <span class="block text-xl font-bold text-slate-800">{{ "{:,.0f}".format(total_debits) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Summary Card -->
+        <div class="glass-card rounded-3xl p-6 bg-gradient-to-b from-white to-slate-50">
+            <h3 class="font-bold text-slate-800 mb-4">Summary</h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between pb-3 border-b border-slate-100">
+                    <span class="text-slate-500">Active Members</span>
+                    <span class="font-medium text-slate-800">{{ personal_finance|length }}</span>
+                </div>
+                <div class="flex justify-between pb-3 border-b border-slate-100">
+                    <span class="text-slate-500">Transactions</span>
+                    <span class="font-medium text-slate-800">{{ transactions|length }}</span>
+                </div>
+                <div class="flex justify-between pt-1">
+                    <span class="text-slate-500">Health</span>
+                    <span class="font-bold text-emerald-600 flex items-center gap-1">
+                        <i class="fas fa-check-circle"></i> Good
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('billChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_labels|tojson }},
+            datasets: [{
+                data: {{ chart_data|tojson }},
+                backgroundColor: [
+                    '#ef4444', // Red
+                    '#3b82f6', // Blue
+                    '#f59e0b', // Orange
+                    '#10b981', // Emerald
+                    '#8b5cf6', // Purple
+                    '#64748b'  // Slate
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            cutout: '75%',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { family: 'Inter', size: 11 }
+                    }
+                }
+            }
+        }
+    });
+
+    // Load More Transactions Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const transactions = {{ transactions|tojson }};
+        const transactionsBody = document.getElementById('transactions-body');
+        const loadMoreButton = document.getElementById('load-more');
+        let displayedCount = 10;
+        
+        function updateLoadMoreButton() {
+            const remaining = transactions.length - displayedCount;
+            if (remaining <= 0) {
+                loadMoreButton.style.display = 'none';
+            } else {
+                loadMoreButton.textContent = `Load More (${remaining} remaining)`;
+            }
+        }
+        
+        loadMoreButton.addEventListener('click', function() {
+            const nextTransactions = transactions.slice(displayedCount, displayedCount + 10);
+            
+            nextTransactions.forEach(tx => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors cursor-pointer';
+                row.onclick = () => window.location.href = `transactions/${tx.id}.html`;
+                
+                // Format date for display (just the date part)
+                const displayDate = tx.display_date.split(' ')[0];
+                
+                row.innerHTML = `
+                    <td class="p-4 pl-6">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center 
+                            ${tx.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
+                            <i class="fas ${tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-slate-700">${tx.whoOrBill}</div>
+                        <div class="text-xs text-slate-400">${displayDate}</div>
+                    </td>
+                    <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
+                        ${tx.note ? tx.note : '-'}
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <span class="font-bold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-slate-800'}">
+                            ${tx.type === 'credit' ? '+' : '-'}${tx.amount.toLocaleString()}
+                        </span>
+                    </td>
+                `;
+                
+                transactionsBody.appendChild(row);
+            });
+            
+            displayedCount += 10;
+            updateLoadMoreButton();
+        });
+        
+        updateLoadMoreButton();
+    });
+</script>
+{% endblock %}

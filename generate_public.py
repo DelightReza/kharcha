@@ -1,135 +1,119 @@
 #!/usr/bin/env python3
-# generate_public.py
-"""Main script to generate public dashboard and transaction pages."""
-
 import json
-import sys
+import os
 import datetime
 from datetime import timezone, timedelta
+from jinja2 import Environment, FileSystemLoader
 
-from config import (
-    TEMPLATE_VERSION, ALL_PEOPLE, DATA_FILE, INDEX_FILE
-)
-from utils import (
-    cleanup_orphaned_transaction_files,
-    cleanup_all_generated_files,
-    calculate_data_hash,
-    read_existing_hash,
-    save_hash,
-    read_template_version,
-    save_template_version
-)
-from calculations import (
-    calculate_personal_finance,
-    calculate_totals_and_balances
-)
-from templates import DASHBOARD_TEMPLATE
-from html_builders import (
-    build_personal_finance_table,
-    build_personal_finance_cards,
-    build_bill_types_summary,
-    build_transactions_html,
-    build_no_transactions_message,
-    build_load_more_button
-)
-from transaction_generators import generate_transaction_pages
+# Configuration
+DATA_FILE = 'data.json'
+INDEX_FILE = 'index.html'
+TRANSACTIONS_DIR = 'transactions'
 
+def load_data():
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
+
+def format_utc6(iso_date):
+    """Helper to format date string to readable UTC+6"""
+    try:
+        utc_time = datetime.datetime.fromisoformat(iso_date.replace('Z', '+00:00'))
+        utc6_time = utc_time + timedelta(hours=6)
+        return utc6_time.strftime('%Y-%m-%d %H:%M')
+    except:
+        return iso_date
+
+def calculate_finance(data):
+    # Dynamic People List (Single Source of Truth)
+    all_people = set(data.get('people', {}).keys())
+    
+    # Initialize logic
+    finance = {p: {'credits': 0, 'debits': 0, 'net_balance': 0} for p in all_people}
+    total_credits = 0
+    total_debits = 0
+    
+    enriched_txs = []
+
+    for tx in data['transactions']:
+        tx['display_date'] = format_utc6(tx['date'])
+        enriched_txs.append(tx)
+
+        if tx['type'] == 'credit':
+            total_credits += tx['amount']
+            if tx['whoOrBill'] in finance:
+                finance[tx['whoOrBill']]['credits'] += tx['amount']
+                finance[tx['whoOrBill']]['net_balance'] += tx['amount']
+        
+        elif tx['type'] == 'debit':
+            total_debits += tx['amount']
+            
+            exemptions = tx.get('exemptions', [])
+            contributors = [p for p in all_people if p not in exemptions]
+            
+            if contributors:
+                split_amount = tx['amount'] / len(contributors)
+                for p in contributors:
+                    if p in finance:
+                        finance[p]['debits'] += split_amount
+                        finance[p]['net_balance'] -= split_amount
+
+    enriched_txs.sort(key=lambda x: x['date'], reverse=True)
+
+    return {
+        'finance': finance,
+        'totals': {
+            'credits': total_credits,
+            'debits': total_debits,
+            'balance': total_credits - total_debits
+        },
+        'transactions': enriched_txs
+    }
 
 def main():
-    """Main function to generate all HTML files."""
-    try:
-        # Check template version
-        current_template_version = read_template_version()
-        
-        if current_template_version != TEMPLATE_VERSION:
-            print(f"🔄 Template version changed from {current_template_version} to {TEMPLATE_VERSION}")
-            print("🔄 Forcing complete regeneration...")
-            cleanup_all_generated_files()
-            save_template_version(TEMPLATE_VERSION)
-        
-        # Read data
-        with open(DATA_FILE, 'r') as f:
-            data = json.load(f)
-        
-        # Calculate data hash
-        data_hash = calculate_data_hash(data, TEMPLATE_VERSION)
-        existing_hash = read_existing_hash()
-        
-        # Check if regeneration needed
-        if existing_hash == data_hash:
-            print("Data unchanged. No regeneration needed.")
-            return
-        
-        print("Data changed. Generating HTML files...")
-        
-        # Save new hash
-        save_hash(data_hash)
-        
-        # Cleanup orphaned files
-        cleanup_orphaned_transaction_files(data)
-        
-        # Calculate all financial data
-        personal_finance = calculate_personal_finance(data, ALL_PEOPLE)
-        totals = calculate_totals_and_balances(data)
-        
-        # Build HTML components
-        personal_finance_table = build_personal_finance_table(personal_finance, ALL_PEOPLE)
-        personal_finance_cards = build_personal_finance_cards(personal_finance, ALL_PEOPLE)
-        bill_types_summary = build_bill_types_summary(data.get('billTypes', {}))
-        
-        # Transaction display settings
-        total_count = len(totals['transactions_with_balance'])
-        shown_count = min(10, total_count)
-        
-        # Build transaction components
-        if total_count == 0:
-            transactions_html = ''
-            no_transactions_message = build_no_transactions_message()
-            load_more_button = ''
-        else:
-            transactions_html = build_transactions_html(
-                totals['transactions_with_balance'],
-                shown_count
-            )
-            no_transactions_message = ''
-            load_more_button = build_load_more_button() if total_count > 10 else ''
-        
-        # Get current time
-        utc_now = datetime.datetime.now(timezone.utc)
-        utc6_now = utc_now + timedelta(hours=6)
-        last_updated = utc6_now.strftime('%Y-%m-%d %H:%M:%S UTC+6')
-        
-        # Generate main dashboard
-        final_html = DASHBOARD_TEMPLATE.format(
-            last_updated=last_updated,
-            total_credits=f"{totals['total_credits']:,.2f}",
-            total_debits=f"{totals['total_debits']:,.2f}",
-            balance=f"{totals['balance']:,.2f}",
-            personal_finance_table=personal_finance_table,
-            personal_finance_cards=personal_finance_cards,
-            bill_types_summary=bill_types_summary,
-            transactions=transactions_html,
-            load_more_button=load_more_button,
-            no_transactions_message=no_transactions_message,
-            shown_count=shown_count,
-            total_count=total_count
-        )
-        
-        # Write main dashboard
-        with open(INDEX_FILE, 'w') as f:
-            f.write(final_html)
-        
-        # Generate transaction pages
-        generate_transaction_pages(data)
-        
-        print("✅ Enhanced public dashboard and transaction pages generated successfully!")
-        
-    except Exception as e:
-        print(f"❌ Error generating HTML files: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    # Setup Jinja2
+    env = Environment(loader=FileSystemLoader('templates'))
+    
+    # Load Data
+    data = load_data()
+    results = calculate_finance(data)
+    
+    # Prepare Chart Data
+    bill_types = data.get('billTypes', {})
+    chart_labels = list(bill_types.keys())
+    chart_data = list(bill_types.values())
+    
+    # Generate Dashboard
+    print("Generating Dashboard...")
+    template = env.get_template('dashboard.html')
+    
+    utc_now = datetime.datetime.now(timezone.utc) + timedelta(hours=6)
+    last_updated = utc_now.strftime('%Y-%m-%d %H:%M UTC+6')
 
+    output = template.render(
+        last_updated=last_updated,
+        total_credits=results['totals']['credits'],
+        total_debits=results['totals']['debits'],
+        balance=results['totals']['balance'],
+        personal_finance=results['finance'],
+        transactions=results['transactions'],
+        chart_labels=chart_labels,
+        chart_data=chart_data
+    )
+    
+    with open(INDEX_FILE, 'w') as f:
+        f.write(output)
+
+    # Generate Transaction Pages
+    print("Generating Transaction Pages...")
+    os.makedirs(TRANSACTIONS_DIR, exist_ok=True)
+    tx_template = env.get_template('transaction.html')
+    
+    for tx in results['transactions']:
+        tx_html = tx_template.render(tx=tx, last_updated=last_updated)
+        with open(f"{TRANSACTIONS_DIR}/{tx['id']}.html", 'w') as f:
+            f.write(tx_html)
+
+    print("✅ Build Complete.")
 
 if __name__ == "__main__":
     main()
