@@ -15,9 +15,17 @@
     "Gas": 0,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 855
+    "Other": 993
   },
   "transactions": [
+    {
+      "id": "tx_1763953455944_jf3zg",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Namak + Powder",
+      "amount": 138,
+      "date": "2025-11-23T10:04:00.000Z"
+    },
     {
       "id": "tx_1763358310132_sibg5",
       "type": "debit",
@@ -58,10 +66,7 @@
       "whoOrBill": "Other",
       "note": "Cleaning Ka Saman",
       "amount": 275,
-      "date": "2025-11-08T19:18:00.000Z",
-      "exemptions": [
-        "Gulam"
-      ]
+      "date": "2025-11-09T07:18:00.000Z"
     },
     {
       "id": "tx_multi_1762182050433_4suco_5",
