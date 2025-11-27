@@ -12,12 +12,23 @@
   "billTypes": {
     "Electricity": 2281.6,
     "Water": 402,
-    "Gas": 0,
+    "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
     "Other": 993
   },
   "transactions": [
+    {
+      "id": "tx_1764260971950_zc1yf",
+      "type": "debit",
+      "whoOrBill": "Gas",
+      "note": "",
+      "amount": 1313,
+      "date": "2025-11-27T16:29:31.433Z",
+      "exemptions": [
+        "Gulam"
+      ]
+    },
     {
       "id": "tx_1764260387659_5gwky",
       "type": "credit",
