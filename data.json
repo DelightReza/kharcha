@@ -1,7 +1,7 @@
 {
   "people": {
     "Musawwar": 1750,
-    "Raza": 750,
+    "Raza": 1750,
     "Salman": 750,
     "Mujeeb": 750,
     "Gulam": 1080,
@@ -18,6 +18,14 @@
     "Other": 993
   },
   "transactions": [
+    {
+      "id": "tx_1764410212643_1th0q",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "",
+      "amount": 1000,
+      "date": "2025-11-29T09:56:52.130Z"
+    },
     {
       "id": "tx_1764405530584_54xc1",
       "type": "credit",
