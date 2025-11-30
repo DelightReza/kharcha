@@ -15,7 +15,7 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 1133
+    "Other": 1113
   },
   "transactions": [
     {
@@ -23,9 +23,10 @@
       "type": "debit",
       "whoOrBill": "Other",
       "note": "Pakodi",
-      "amount": 140,
-      "date": "2025-11-30T17:16:53.744Z",
+      "amount": 120,
+      "date": "2025-11-30T05:16:00.000Z",
       "exemptions": [
+        "Raza",
         "Naved"
       ]
     },
