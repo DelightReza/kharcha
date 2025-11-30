@@ -15,9 +15,26 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 1113
+    "Other": 1163
   },
   "transactions": [
+    {
+      "id": "tx_1764523394896_09m5i",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Pakodi",
+      "amount": 50,
+      "date": "2025-11-30T17:23:14.386Z",
+      "exemptions": [
+        "Raza",
+        "Salman",
+        "Mujeeb",
+        "Gulam",
+        "Rana",
+        "Naved",
+        "Nizamuddin"
+      ]
+    },
     {
       "id": "tx_1764523014260_zrd92",
       "type": "debit",
