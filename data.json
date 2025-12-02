@@ -2,7 +2,7 @@
   "people": {
     "Musawwar": 1750,
     "Raza": 1750,
-    "Salman": 750,
+    "Salman": 1750,
     "Mujeeb": 1750,
     "Gulam": 1080,
     "Rana": 750,
@@ -18,6 +18,14 @@
     "Other": 1163
   },
   "transactions": [
+    {
+      "id": "tx_1764676971101_vy554",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "",
+      "amount": 1000,
+      "date": "2025-12-02T12:02:50.590Z"
+    },
     {
       "id": "tx_1764670729027_9ff04",
       "type": "credit",
