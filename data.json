@@ -10,7 +10,7 @@
     "Nizamuddin": 1750
   },
   "billTypes": {
-    "Electricity": 5623.6,
+    "Electricity": 6381.6,
     "Water": 402,
     "Gas": 1313,
     "Garbage": 1321.4,
@@ -18,6 +18,14 @@
     "Other": 2189
   },
   "transactions": [
+    {
+      "id": "tx_1764843118200_xo9oh",
+      "type": "debit",
+      "whoOrBill": "Electricity",
+      "note": "",
+      "amount": 758,
+      "date": "2025-12-04T10:11:57.688Z"
+    },
     {
       "id": "tx_1764842911202_n5nw8",
       "type": "debit",
