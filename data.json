@@ -15,9 +15,17 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 1289
+    "Other": 1529
   },
   "transactions": [
+    {
+      "id": "tx_1764842715189_w14w3",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "MCB",
+      "amount": 240,
+      "date": "2025-12-04T10:05:14.673Z"
+    },
     {
       "id": "tx_1764760842577_iwico",
       "type": "debit",
