@@ -40,61 +40,6 @@ Object.assign(UI, {
     }
   },
   
-  // Add multiple transaction entry
-  addMultipleTransactionEntry() {
-    const entry = document.createElement('div');
-    entry.className = 'multiple-transaction-entry border-b border-purple-100 pb-4 mb-4';
-    entry.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">Type</label>
-          <select class="multiple-type w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500">
-            <option value="credit">💰 Credit</option>
-            <option value="debit">💸 Debit</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">Person/Bill</label>
-          <select class="multiple-whoOrBill w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500">
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">Amount</label>
-          <input type="number" step="0.01" class="multiple-amount w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500" placeholder="0.00">
-        </div>
-        <div>
-          <label class="block text-xs text-gray-600 mb-1">Note</label>
-          <input type="text" class="multiple-note w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-purple-500" placeholder="Optional note">
-        </div>
-        <div class="flex items-end">
-          <button type="button" class="remove-multiple-entry w-full bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-all duration-200 text-sm shadow hover:shadow-md">
-            <i class="fas fa-times"></i> Remove
-          </button>
-        </div>
-      </div>
-    `;
-    
-    DOM.multipleTransactionsContainer.appendChild(entry);
-    
-    const typeSelect = entry.querySelector('.multiple-type');
-    const whoOrBillSelect = entry.querySelector('.multiple-whoOrBill');
-    this.updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
-    
-    typeSelect.addEventListener('change', () => {
-      this.updateWhoOrBillDropdown(whoOrBillSelect, typeSelect.value);
-    });
-    
-    const removeBtn = entry.querySelector('.remove-multiple-entry');
-    removeBtn.addEventListener('click', () => {
-      if (DOM.multipleTransactionsContainer.children.length > 1) {
-        entry.remove();
-      } else {
-        this.showTransactionStatus('❌ You need at least one transaction entry', 'error');
-        setTimeout(() => this.hideTransactionStatus(), 3000);
-      }
-    });
-  },
-  
   // Initialize bill exemptions
   initBillExemptions() {
     DOM.exemptionCheckboxes.innerHTML = PEOPLE.ALL.map(person => `
@@ -165,7 +110,7 @@ Object.assign(UI, {
   
   // Update distribution preview
   updateDistributionPreview() {
-    const amount = parseFloat(DOM.ownerAmount.value);
+    const amount = parseFloat(DOM.distributionAmount.value);
     
     if (!amount || amount <= 0 || isNaN(amount)) {
       DOM.distributionPreview.classList.add('hidden');

@@ -206,92 +206,10 @@ const TransactionManager = {
     }, 800);
   },
   
-  // Save multiple transactions
-  saveMultipleTransactions() {
-    const entries = DOM.multipleTransactionsContainer.querySelectorAll('.multiple-transaction-entry');
-    
-    if (entries.length === 0) {
-      UI.showTransactionStatus('❌ Please add at least one transaction entry', 'error');
-      setTimeout(() => UI.hideTransactionStatus(), 3000);
-      return;
-    }
-
-    let hasError = false;
-    const transactionEntries = [];
-    const baseTransactionId = Utils.generateTransactionId('tx_multi');
-    const transactionDate = new Date().toISOString();
-
-    // Validate all entries
-    entries.forEach((entry, index) => {
-      const type = entry.querySelector('.multiple-type').value;
-      const whoOrBill = entry.querySelector('.multiple-whoOrBill').value;
-      const amount = parseFloat(entry.querySelector('.multiple-amount').value);
-      const note = entry.querySelector('.multiple-note').value.trim();
-
-      if (!whoOrBill) {
-        UI.showTransactionStatus(`❌ Entry ${index + 1}: Please select a Person/Bill`, 'error');
-        hasError = true;
-        return;
-      }
-
-      if (!amount || amount <= 0 || isNaN(amount)) {
-        UI.showTransactionStatus(`❌ Entry ${index + 1}: Please enter a valid amount`, 'error');
-        hasError = true;
-        return;
-      }
-
-      transactionEntries.push({
-        id: `${baseTransactionId}_${index}`,
-        type,
-        whoOrBill,
-        note: note || '',
-        amount,
-        date: transactionDate,
-        parentId: baseTransactionId
-      });
-    });
-
-    if (hasError) {
-      setTimeout(() => UI.hideTransactionStatus(), 3000);
-      return;
-    }
-
-    UI.showTransactionStatus('🔄 Adding multiple transactions...', 'processing');
-    DOM.addMultipleTransactions.disabled = true;
-    DOM.addMultipleTransactions.innerHTML = '<div class="loading-spinner mr-2"></div> Saving...';
-
-    setTimeout(() => {
-      const data = AppState.getData();
-      
-      transactionEntries.forEach(transaction => {
-        data.transactions.unshift(transaction);
-        
-        if (transaction.type === 'credit') {
-          data.people[transaction.whoOrBill] = (data.people[transaction.whoOrBill] || 0) + transaction.amount;
-        } else {
-          data.billTypes[transaction.whoOrBill] = (data.billTypes[transaction.whoOrBill] || 0) + transaction.amount;
-        }
-      });
-
-      DataManager.saveData();
-      UI.renderDashboard();
-      
-      UI.showTransactionStatus(`✅ ${transactionEntries.length} transactions added successfully!`, 'success');
-      
-      DOM.addMultipleTransactions.disabled = false;
-      DOM.addMultipleTransactions.innerHTML = '<i class="fas fa-save mr-2"></i> Save Multiple Transactions';
-
-      DOM.multipleTransactionsContainer.innerHTML = '';
-      UI.addMultipleTransactionEntry();
-
-      setTimeout(() => UI.hideTransactionStatus(), 3000);
-    }, 800);
-  },
-  
-  // Distribute owner's money
-  distributeOwnerMoney() {
-    const amount = parseFloat(DOM.ownerAmount.value);
-    const note = DOM.ownerNote.value.trim();
+  // Distribute money (Renamed from distributeOwnerMoney)
+  distributeMoney() {
+    const amount = parseFloat(DOM.distributionAmount.value);
+    const note = DOM.distributionNote.value.trim();
     
     if (!amount || amount <= 0 || isNaN(amount)) {
       UI.showTransactionStatus('❌ Please enter a valid amount', 'error');
@@ -301,11 +219,11 @@ const TransactionManager = {
     
     const amountPerPerson = amount / PEOPLE.ALL.length;
     const transactionDate = new Date().toISOString();
-    const baseTransactionId = Utils.generateTransactionId('tx_owner');
+    const baseTransactionId = Utils.generateTransactionId('tx_dist');
     
-    UI.showTransactionStatus('🔄 Distributing owner\'s money...', 'processing');
-    DOM.addOwnerMoneyBtn.disabled = true;
-    DOM.addOwnerMoneyBtn.innerHTML = '<div class="loading-spinner mr-2"></div> Distributing...';
+    UI.showTransactionStatus('🔄 Distributing money...', 'processing');
+    DOM.addDistributionBtn.disabled = true;
+    DOM.addDistributionBtn.innerHTML = '<div class="loading-spinner mr-2"></div> Distributing...';
     
     setTimeout(() => {
       try {
@@ -316,11 +234,11 @@ const TransactionManager = {
             id: `${baseTransactionId}_${index}`,
             type: 'credit',
             whoOrBill: person,
-            note: note || 'From owner distribution',
+            note: note || 'From distribution',
             amount: amountPerPerson,
             date: transactionDate,
             parentId: baseTransactionId,
-            owner: amount
+            owner: amount // Keeping 'owner' key for backward compatibility/data structure
           };
           
           data.transactions.unshift(transaction);
@@ -330,19 +248,19 @@ const TransactionManager = {
         DataManager.saveData();
         UI.renderDashboard();
         
-        UI.showTransactionStatus(`✅ Owner's ${amount.toFixed(2)} SOM distributed equally among ${PEOPLE.ALL.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
+        UI.showTransactionStatus(`✅ ${amount.toFixed(2)} SOM distributed equally among ${PEOPLE.ALL.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
         
-        DOM.ownerAmount.value = '';
-        DOM.ownerNote.value = '';
+        DOM.distributionAmount.value = '';
+        DOM.distributionNote.value = '';
         DOM.distributionPreview.classList.add('hidden');
         
       } catch (error) {
-        UI.showTransactionStatus('❌ Error distributing owner\'s money', 'error');
+        UI.showTransactionStatus('❌ Error distributing money', 'error');
         console.error('Distribution error:', error);
       }
       
-      DOM.addOwnerMoneyBtn.disabled = false;
-      DOM.addOwnerMoneyBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Distribute Owner\'s Money';
+      DOM.addDistributionBtn.disabled = false;
+      DOM.addDistributionBtn.innerHTML = '<i class="fas fa-crown mr-2"></i> Distribute';
       
       setTimeout(() => UI.hideTransactionStatus(), 5000);
     }, 800);

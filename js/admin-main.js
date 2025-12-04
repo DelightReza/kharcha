@@ -25,9 +25,6 @@ const App = {
     // Initialize bill exemptions
     UI.initBillExemptions();
     
-    // Initialize multiple transactions with one entry
-    UI.addMultipleTransactionEntry();
-    
     // Initial render
     UI.renderDashboard();
   },
@@ -52,13 +49,9 @@ const App = {
     // Load more button
     DOM.loadMoreBtn.addEventListener('click', () => UI.loadMoreTransactions());
     
-    // Multiple transactions
-    DOM.addMultipleEntry.addEventListener('click', () => UI.addMultipleTransactionEntry());
-    DOM.addMultipleTransactions.addEventListener('click', () => TransactionManager.saveMultipleTransactions());
-    
-    // Owner distribution
-    DOM.ownerAmount.addEventListener('input', () => UI.updateDistributionPreview());
-    DOM.addOwnerMoneyBtn.addEventListener('click', () => TransactionManager.distributeOwnerMoney());
+    // Distribution
+    DOM.distributionAmount.addEventListener('input', () => UI.updateDistributionPreview());
+    DOM.addDistributionBtn.addEventListener('click', () => TransactionManager.distributeMoney());
     
     // Date/time toggles
     DOM.creditCustomDate.addEventListener('change', () => {

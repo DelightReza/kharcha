@@ -45,17 +45,12 @@ const DOM = {
   noTransactions: null,
   transactionsSummary: null,
   
-  // Multiple transactions
-  multipleTransactionsContainer: null,
-  addMultipleEntry: null,
-  addMultipleTransactions: null,
-  
-  // Owner distribution
-  ownerAmount: null,
-  ownerNote: null,
+  // Distribution elements (Renamed from Owner distribution)
+  distributionAmount: null,
+  distributionNote: null,
   distributionPreview: null,
   distributionDetails: null,
-  addOwnerMoneyBtn: null,
+  addDistributionBtn: null,
   
   // Personal finance
   personalFinanceBody: null,
@@ -121,17 +116,12 @@ const DOM = {
     this.noTransactions = document.getElementById('noTransactions');
     this.transactionsSummary = document.getElementById('transactionsSummary');
     
-    // Multiple transactions
-    this.multipleTransactionsContainer = document.getElementById('multipleTransactionsContainer');
-    this.addMultipleEntry = document.getElementById('addMultipleEntry');
-    this.addMultipleTransactions = document.getElementById('addMultipleTransactions');
-    
-    // Owner distribution
-    this.ownerAmount = document.getElementById('ownerAmount');
-    this.ownerNote = document.getElementById('ownerNote');
+    // Distribution elements
+    this.distributionAmount = document.getElementById('distributionAmount');
+    this.distributionNote = document.getElementById('distributionNote');
     this.distributionPreview = document.getElementById('distributionPreview');
     this.distributionDetails = document.getElementById('distributionDetails');
-    this.addOwnerMoneyBtn = document.getElementById('addOwnerMoneyBtn');
+    this.addDistributionBtn = document.getElementById('addDistributionBtn');
     
     // Personal finance
     this.personalFinanceBody = document.getElementById('personalFinanceBody');
