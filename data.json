@@ -15,9 +15,17 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 1529
+    "Other": 2189
   },
   "transactions": [
+    {
+      "id": "tx_1764842911202_n5nw8",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Toilet Sheet Cover",
+      "amount": 660,
+      "date": "2025-12-04T10:08:30.673Z"
+    },
     {
       "id": "tx_1764842715189_w14w3",
       "type": "debit",
