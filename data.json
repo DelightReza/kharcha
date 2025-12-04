@@ -1,13 +1,13 @@
 {
   "people": {
-    "Musawwar": 1750,
-    "Raza": 1750,
-    "Salman": 1750,
-    "Mujeeb": 1750,
-    "Gulam": 1080,
-    "Rana": 750,
-    "Naved": 1750,
-    "Nizamuddin": 1750
+    "Musawwar": 2000,
+    "Raza": 2000,
+    "Salman": 2000,
+    "Mujeeb": 2000,
+    "Gulam": 1330,
+    "Rana": 1000,
+    "Naved": 2000,
+    "Nizamuddin": 2000
   },
   "billTypes": {
     "Electricity": 6381.6,
@@ -18,6 +18,86 @@
     "Other": 2189
   },
   "transactions": [
+    {
+      "id": "tx_dist_1764848143420_mffno_7",
+      "type": "credit",
+      "whoOrBill": "Nizamuddin",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_6",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_5",
+      "type": "credit",
+      "whoOrBill": "Naved",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_4",
+      "type": "credit",
+      "whoOrBill": "Rana",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_3",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_2",
+      "type": "credit",
+      "whoOrBill": "Mujeeb",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_1",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
+    {
+      "id": "tx_dist_1764848143420_mffno_0",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2025-12-04T11:35:43.420Z",
+      "parentId": "tx_dist_1764848143420_mffno",
+      "owner": 2000
+    },
     {
       "id": "tx_1764843118200_xo9oh",
       "type": "debit",
