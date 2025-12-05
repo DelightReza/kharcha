@@ -26,7 +26,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_6",
@@ -36,7 +36,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_5",
@@ -46,7 +46,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_4",
@@ -56,7 +56,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_3",
@@ -66,7 +66,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_2",
@@ -76,7 +76,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_1",
@@ -86,7 +86,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_0",
@@ -96,7 +96,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "owner": 2000
+      "distributionTotal": 2000
     },
     {
       "id": "tx_1764843118200_xo9oh",
