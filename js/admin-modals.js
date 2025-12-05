@@ -17,10 +17,12 @@ const Modals = {
       `+${Utils.formatCurrency(transaction.amount)}` : 
       `-${Utils.formatCurrency(transaction.amount)}`;
     
-    const ownerDistributionDisplay = transaction.owner ? 
+    // Check for new key 'distributionTotal' or legacy key 'owner'
+    const distTotal = transaction.distributionTotal || transaction.owner;
+    const distributionDisplay = distTotal ? 
       `<div class="flex justify-between items-center bg-purple-50 p-3 rounded-lg border border-purple-200">
         <span class="text-gray-600 text-sm">Distribution Source:</span>
-        <span class="font-medium text-purple-600">Owner distribution of ${Utils.formatCurrency(transaction.owner)} SOM</span>
+        <span class="font-medium text-purple-600">Distribution of ${Utils.formatCurrency(distTotal)} SOM</span>
       </div>` : '';
     
     let exemptionDisplay = '';
@@ -78,7 +80,7 @@ const Modals = {
         <div class="text-2xl font-bold ${typeClass}">${Utils.formatCurrency(transaction.amount)} SOM</div>
       </div>
       
-      ${ownerDistributionDisplay}
+      ${distributionDisplay}
       ${exemptionDisplay}
       
       <div class="border-t border-gray-200 pt-6 mt-4">
