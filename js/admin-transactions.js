@@ -206,7 +206,7 @@ const TransactionManager = {
     }, 800);
   },
   
-  // Distribute money (Renamed from distributeOwnerMoney)
+  // Distribute money
   distributeMoney() {
     const amount = parseFloat(DOM.distributionAmount.value);
     const note = DOM.distributionNote.value.trim();
@@ -238,7 +238,7 @@ const TransactionManager = {
             amount: amountPerPerson,
             date: transactionDate,
             parentId: baseTransactionId,
-            owner: amount // Keeping 'owner' key for backward compatibility/data structure
+            distributionTotal: amount // Renamed from 'owner'
           };
           
           data.transactions.unshift(transaction);
