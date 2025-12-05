@@ -103,15 +103,48 @@ def main():
     with open(INDEX_FILE, 'w') as f:
         f.write(output)
 
-    # Generate Transaction Pages
-    print("Generating Transaction Pages...")
+    # Make sure directory exists
     os.makedirs(TRANSACTIONS_DIR, exist_ok=True)
+
+    # 1. Generate Individual Transaction Pages
+    print("Generating Individual Transaction Pages...")
     tx_template = env.get_template('transaction.html')
     
+    # Also collect groups while looping
+    grouped_transactions = {}
+
     for tx in results['transactions']:
+        # Generate single page
         tx_html = tx_template.render(tx=tx, last_updated=last_updated)
         with open(f"{TRANSACTIONS_DIR}/{tx['id']}.html", 'w') as f:
             f.write(tx_html)
+        
+        # Collect for groups
+        if 'parentId' in tx:
+            pid = tx['parentId']
+            if pid not in grouped_transactions:
+                grouped_transactions[pid] = []
+            grouped_transactions[pid].append(tx)
+
+    # 2. Generate Group Transaction Pages
+    print(f"Generating {len(grouped_transactions)} Group Pages...")
+    group_template = env.get_template('transaction_group.html')
+
+    for group_id, txs in grouped_transactions.items():
+        # Calculate group totals
+        g_credit = sum(t['amount'] for t in txs if t['type'] == 'credit')
+        g_debit = sum(t['amount'] for t in txs if t['type'] == 'debit')
+        
+        group_html = group_template.render(
+            group_id=group_id,
+            transactions=txs,
+            total_credit=g_credit,
+            total_debit=g_debit,
+            last_updated=last_updated
+        )
+        
+        with open(f"{TRANSACTIONS_DIR}/{group_id}.html", 'w') as f:
+            f.write(group_html)
 
     print("✅ Build Complete.")
 
