@@ -4,7 +4,7 @@
     "Raza": 2000,
     "Salman": 2000,
     "Mujeeb": 2000,
-    "Gulam": 1330,
+    "Gulam": 1400,
     "Rana": 1000,
     "Naved": 2000,
     "Nizamuddin": 2000
@@ -18,6 +18,14 @@
     "Other": 2189
   },
   "transactions": [
+    {
+      "id": "tx_1765124309348_kfuzy",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "",
+      "amount": 70,
+      "date": "2025-12-05T15:18:00.000Z"
+    },
     {
       "id": "tx_dist_1764848143420_mffno_7",
       "type": "credit",
