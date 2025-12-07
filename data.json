@@ -15,9 +15,17 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 2189
+    "Other": 2259
   },
   "transactions": [
+    {
+      "id": "tx_1765124354164_9j6mh",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Ranjan Chai",
+      "amount": 70,
+      "date": "2025-12-05T16:19:00.000Z"
+    },
     {
       "id": "tx_1765124309348_kfuzy",
       "type": "credit",
