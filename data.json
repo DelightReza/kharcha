@@ -15,9 +15,20 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 2259
+    "Other": 2479
   },
   "transactions": [
+    {
+      "id": "tx_1765203912422_puqbm",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Pakodi + Chai",
+      "amount": 220,
+      "date": "2025-12-08T14:25:11.912Z",
+      "exemptions": [
+        "Nizamuddin"
+      ]
+    },
     {
       "id": "tx_1765187710155_cfg5o",
       "type": "credit",
