@@ -15,9 +15,17 @@
     "Gas": 1313,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 2479
+    "Other": 2639
   },
   "transactions": [
+    {
+      "id": "tx_1765439162653_qzbg4",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Liquid Cleaning",
+      "amount": 160,
+      "date": "2025-12-11T07:46:02.137Z"
+    },
     {
       "id": "tx_1765203912422_puqbm",
       "type": "debit",
