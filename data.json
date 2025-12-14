@@ -15,9 +15,17 @@
     "Gas": 2431,
     "Garbage": 1321.4,
     "Internet": 510,
-    "Other": 2639
+    "Other": 2689
   },
   "transactions": [
+    {
+      "id": "tx_1765701346854_td06m",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Kooda Uthane Wala",
+      "amount": 50,
+      "date": "2025-12-14T08:35:46.344Z"
+    },
     {
       "id": "tx_1765530384772_xxs2g",
       "type": "debit",
