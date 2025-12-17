@@ -14,10 +14,18 @@
     "Water": 402,
     "Gas": 2431,
     "Garbage": 1321.4,
-    "Internet": 510,
+    "Internet": 1470,
     "Other": 2689
   },
   "transactions": [
+    {
+      "id": "tx_1765949464471_5ppky",
+      "type": "debit",
+      "whoOrBill": "Internet",
+      "note": "",
+      "amount": 960,
+      "date": "2025-12-17T05:31:03.964Z"
+    },
     {
       "id": "tx_1765701346854_td06m",
       "type": "debit",
