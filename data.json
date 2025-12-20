@@ -15,9 +15,17 @@
     "Gas": 2431,
     "Garbage": 1321.4,
     "Internet": 1470,
-    "Other": 2689
+    "Other": 2709
   },
   "transactions": [
+    {
+      "id": "tx_1766214958962_uuk55",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Lighter",
+      "amount": 20,
+      "date": "2025-12-20T07:15:58.452Z"
+    },
     {
       "id": "tx_1765949464471_5ppky",
       "type": "debit",
