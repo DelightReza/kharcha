@@ -1,6 +1,7 @@
 package com.delightreza.kharcha.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -30,6 +34,7 @@ import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
 import com.delightreza.kharcha.utils.DateUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -42,16 +47,18 @@ fun ProfileScreen(
 ) {
     var data by remember { mutableStateOf<KharchaData?>(null) }
     var balances by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
+    
+    // Admin Access State
+    var showAdminAccess by remember { mutableStateOf(false) } // Hidden by default
     var tokenInput by remember { mutableStateOf("") }
     var tokenStatus by remember { mutableStateOf("") }
     var isVerifying by remember { mutableStateOf(false) }
     var isTokenVisible by remember { mutableStateOf(false) }
     
-    // Hardcoded list of all people to calculate splits
     val allPeopleCount = 8 
-    
     val savedToken = dataStore.tokenFlow.collectAsState(initial = "")
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
         val result = repository.fetchData()
@@ -72,7 +79,7 @@ fun ProfileScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Header Card
+        // 1. Header Card (With Secret Long Press)
         item {
             val netBalance = balances[currentUser] ?: 0.0
             val given = data?.people?.get(currentUser) ?: 0.0
@@ -82,9 +89,33 @@ fun ProfileScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // SECRET GESTURE: Hold for 3 seconds to toggle Admin View
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                // FIXED: Used 'scope.launch' instead of just 'launch'
+                                val pressJob = scope.launch {
+                                    delay(3000) // Wait 3 seconds
+                                    showAdminAccess = !showAdminAccess // Toggle
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress) // Vibrate
+                                }
+                                try {
+                                    awaitRelease()
+                                } finally {
+                                    pressJob.cancel() // Cancel if finger lifted early
+                                }
+                            }
+                        )
+                    }
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
                         Text(text = currentUser.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold)
                     }
@@ -95,79 +126,81 @@ fun ProfileScreen(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Given", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "${given.toInt()}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            Text(text = "%.2f".format(given), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Spent", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "${spent.toInt()}", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold)
+                            Text(text = "%.2f".format(spent), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Net", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "${if(netBalance > 0) "+" else ""}${netBalance.toInt()}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold)
+                            Text(text = "${if(netBalance > 0) "+" else ""}${"%.2f".format(netBalance)}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        // 2. Admin Access Card
-        item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Admin Access", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = tokenInput,
-                        onValueChange = { tokenInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        visualTransformation = if (isTokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        label = { Text("GitHub Token") },
-                        placeholder = { Text("ghp_...") },
-                        trailingIcon = { IconButton(onClick = { isTokenVisible = !isTokenVisible }) { Icon(if (isTokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, "Toggle visibility") } },
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    if (tokenStatus.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = tokenStatus, color = if (tokenStatus.startsWith("Success")) Color(0xFF059669) else MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            isVerifying = true
-                            tokenStatus = "Verifying..."
-                            scope.launch {
-                                val isValid = repository.verifyToken(tokenInput)
-                                isVerifying = false
-                                if (isValid) {
-                                    dataStore.saveToken(tokenInput)
-                                    tokenStatus = "Success! Token Verified."
-                                } else {
-                                    tokenStatus = "Error: Invalid Token."
-                                    dataStore.saveToken("") 
+        // 2. Admin Access Card (Hidden by Default)
+        if (showAdminAccess) {
+            item {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Admin Access", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = tokenInput,
+                            onValueChange = { tokenInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            visualTransformation = if (isTokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            label = { Text("GitHub Token") },
+                            placeholder = { Text("ghp_...") },
+                            trailingIcon = { IconButton(onClick = { isTokenVisible = !isTokenVisible }) { Icon(if (isTokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, "Toggle visibility") } },
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        if (tokenStatus.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = tokenStatus, color = if (tokenStatus.startsWith("Success")) Color(0xFF059669) else MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                isVerifying = true
+                                tokenStatus = "Verifying..."
+                                scope.launch {
+                                    val isValid = repository.verifyToken(tokenInput)
+                                    isVerifying = false
+                                    if (isValid) {
+                                        dataStore.saveToken(tokenInput)
+                                        tokenStatus = "Success! Token Verified."
+                                    } else {
+                                        tokenStatus = "Error: Invalid Token."
+                                        dataStore.saveToken("") 
+                                    }
                                 }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isVerifying,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            if (isVerifying) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Verifying...")
+                            } else {
+                                Text("Verify & Save Token")
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isVerifying,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        if (isVerifying) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Verifying...")
-                        } else {
-                            Text("Verify & Save Token")
                         }
                     }
                 }
@@ -201,12 +234,10 @@ fun ProfileScreen(
         }
 
         if (data != null) {
-            // Updated Filter: Credit (Given) OR Debit (Not Exempt)
             val myTransactions = data!!.transactions.filter { tx ->
                 if (tx.type == "credit") {
                     tx.whoOrBill == currentUser
                 } else {
-                    // It's a debit. Am I involved?
                     val exemptions = tx.exemptions ?: emptyList()
                     !exemptions.contains(currentUser)
                 }
@@ -220,7 +251,6 @@ fun ProfileScreen(
                 }
             } else {
                 items(myTransactions.take(30)) { tx ->
-                    // Calculate individual share for this specific transaction
                     val exemptionsCount = tx.exemptions?.size ?: 0
                     val payingPeopleCount = allPeopleCount - exemptionsCount
                     val myShare = if (tx.type == "debit") tx.amount / payingPeopleCount else tx.amount
@@ -242,9 +272,7 @@ fun VerticalDivider() {
 fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     val isCredit = tx.type == "credit"
-    val color = if(isCredit) Color(0xFF059669) else Color(0xFFDC2626) // Green vs Red
-    
-    // Icon Logic: Money In (Up) vs Money Out (Down)
+    val color = if(isCredit) Color(0xFF059669) else Color(0xFFDC2626)
     val icon = if(isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
     
     Card(
@@ -257,42 +285,16 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
                 Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
-            
             Spacer(modifier = Modifier.width(16.dp))
-            
             Column(modifier = Modifier.weight(1f)) {
-                // Title: "Deposit" for credit, Bill Name for debit
-                Text(
-                    text = if(isCredit) "Deposit" else tx.whoOrBill,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                // Subtitle: Note or Date
-                Text(
-                    text = if(tx.note.isNotEmpty()) tx.note else localDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+                Text(text = if(isCredit) "Deposit" else tx.whoOrBill, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(text = if(tx.note.isNotEmpty()) tx.note else localDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
-            
-            // Amount: Show MY share, not total bill
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${if(isCredit) "+" else "-"}${myShare.toInt()}",
-                    color = color,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                // If it's a debit, show "My Share" text to indicate calculation
+                Text(text = "${if(isCredit) "+" else "-"}${"%.2f".format(myShare)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (!isCredit) {
                     Text("My Share", fontSize = 10.sp, color = Color.LightGray)
                 }
