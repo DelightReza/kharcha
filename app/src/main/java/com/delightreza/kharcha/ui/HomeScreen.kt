@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
+import com.delightreza.kharcha.utils.DateUtils // Added Import
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,17 +49,13 @@ fun HomeScreen(
     fun loadData(forceNetwork: Boolean) {
         scope.launch {
             if (forceNetwork) isRefreshing = true
-            
-            // Reset pagination on refresh
             if (forceNetwork) displayedCount = 20
 
-            // 1. Load Cache (Offline)
             if (isInitialLoad && !forceNetwork) {
                 val cached = repository.getCachedData()
                 if (cached != null) updateData(cached)
             }
 
-            // 2. Network Fetch (Online)
             val freshData = repository.fetchData()
             if (freshData != null) {
                 updateData(freshData)
@@ -172,7 +169,6 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                     
-                    // PAGINATION LOGIC
                     val visibleTransactions = data!!.transactions.take(displayedCount)
                     
                     items(visibleTransactions) { tx ->
@@ -187,9 +183,7 @@ fun HomeScreen(
                         if (displayedCount < data!!.transactions.size) {
                             val remaining = data!!.transactions.size - displayedCount
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 24.dp),
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 OutlinedButton(
@@ -200,7 +194,6 @@ fun HomeScreen(
                                 }
                             }
                         } else {
-                            // Extra space at bottom so FAB doesn't cover last item
                             Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
@@ -218,10 +211,13 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
         tx.whoOrBill
     }
 
+    // FIXED: Use DateUtils for Local Date
+    val localDate = DateUtils.formatToLocalDateOnly(tx.date)
+    
     val displaySubtitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) {
-        "Other • " + tx.date.split("T")[0]
+        "Other • $localDate"
     } else {
-        tx.date.split("T")[0]
+        localDate
     }
 
     ListItem(
@@ -244,6 +240,7 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
     )
 }
 
+// (StatCard and CompactMemberCard remain the same)
 @Composable
 fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
     Card(colors = CardDefaults.cardColors(containerColor = color), modifier = modifier.fillMaxHeight()) {

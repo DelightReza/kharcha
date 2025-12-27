@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
+import com.delightreza.kharcha.utils.DateUtils // Added Import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +27,7 @@ fun TransactionDetailScreen(navController: NavController, repository: Repository
     var transaction by remember { mutableStateOf<Transaction?>(null) }
     
     LaunchedEffect(transactionId) {
-        val data = repository.fetchData()
+        val data = repository.fetchData() // Or getCachedData() for speed
         transaction = data?.transactions?.find { it.id == transactionId }
     }
 
@@ -44,7 +45,6 @@ fun TransactionDetailScreen(navController: NavController, repository: Repository
             val tx = transaction!!
             Column(modifier = Modifier.padding(p).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 
-                // Big Receipt Card
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.padding(32.dp).fillMaxWidth(),
@@ -75,7 +75,10 @@ fun TransactionDetailScreen(navController: NavController, repository: Repository
                     
                     Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
                         DetailRow("Subject", tx.whoOrBill)
-                        DetailRow("Date", tx.date.replace("T", " ").take(16))
+                        
+                        // FIXED: Show Local Time here
+                        DetailRow("Date", DateUtils.formatToLocal(tx.date))
+                        
                         DetailRow("ID", tx.id)
                         
                         if (tx.note.isNotEmpty()) {

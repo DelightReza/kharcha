@@ -22,6 +22,7 @@ import com.delightreza.kharcha.data.AppDataStore
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
+import com.delightreza.kharcha.utils.DateUtils // Added Import
 import kotlinx.coroutines.launch
 
 @Composable
@@ -196,14 +197,16 @@ fun ProfileScreen(
     }
 }
 
-// Helper Composable for List Items
 @Composable
 fun TransactionRow(tx: Transaction) {
+    // FIXED: Use Local Date
+    val localDate = DateUtils.formatToLocalDateOnly(tx.date)
+
     ListItem(
         headlineContent = { Text(tx.whoOrBill, fontWeight = FontWeight.Medium) },
         supportingContent = { 
             Column {
-                Text(tx.date.split("T")[0], fontSize = 12.sp)
+                Text(localDate, fontSize = 12.sp)
                 if(tx.note.isNotEmpty()) Text(tx.note, fontSize = 11.sp, color = Color.Gray)
             }
         },
