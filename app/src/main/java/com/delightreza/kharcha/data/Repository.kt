@@ -15,17 +15,15 @@ import java.lang.reflect.Type
 class Repository(private val dataStore: AppDataStore? = null) {
     private val api: GitHubApi
     
-    // CUSTOM SERIALIZER: Enforces the exact field order you requested
+    // CUSTOM SERIALIZER: Enforces the exact field order
     private class TransactionSerializer : JsonSerializer<Transaction> {
         override fun serialize(src: Transaction, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val jsonObject = JsonObject()
-            // 1. Explicitly add properties in the desired order
             jsonObject.addProperty("id", src.id)
             jsonObject.addProperty("type", src.type)
             jsonObject.addProperty("whoOrBill", src.whoOrBill)
             jsonObject.addProperty("note", src.note)
             
-            // Format amount to remove trailing .0 if it's a whole number (optional, but looks cleaner)
             if (src.amount % 1.0 == 0.0) {
                 jsonObject.addProperty("amount", src.amount.toInt())
             } else {
@@ -34,7 +32,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
             
             jsonObject.addProperty("date", src.date)
 
-            // 2. Add optional fields at the end if they exist
             if (!src.exemptions.isNullOrEmpty()) {
                 jsonObject.add("exemptions", context.serialize(src.exemptions))
             }
@@ -49,7 +46,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
         }
     }
 
-    // Configure Gson with the custom serializer
     private val gson = GsonBuilder()
         .registerTypeAdapter(Transaction::class.java, TransactionSerializer())
         .setPrettyPrinting()
@@ -63,8 +59,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
             .build()
         api = retrofit.create(GitHubApi::class.java)
     }
-
-    // --- READ OPERATIONS ---
 
     suspend fun getCachedData(): KharchaData? = withContext(Dispatchers.IO) {
         if (dataStore == null) return@withContext null
@@ -82,7 +76,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
     suspend fun fetchData(): KharchaData? = withContext(Dispatchers.IO) {
         try {
             val data = api.getPublicData(System.currentTimeMillis())
-            // Save to cache
             if (dataStore != null) {
                 val json = gson.toJson(data)
                 dataStore.saveCache(json)
@@ -101,18 +94,13 @@ class Repository(private val dataStore: AppDataStore? = null) {
         } catch (e: Exception) { false }
     }
 
-    // --- WRITE OPERATIONS ---
-
     suspend fun addTransaction(token: String, newTx: Transaction): Boolean = withContext(Dispatchers.IO) {
         try {
             val authHeader = "token $token"
-            
-            // 1. Fetch fresh data & SHA explicitly from API
             val fileDetails = api.getFileDetails(authHeader)
             val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
             val currentData = gson.fromJson(currentJson, KharchaData::class.java)
 
-            // 2. Update Data
             currentData.transactions.add(0, newTx)
             
             if (newTx.type == "credit") {
@@ -123,27 +111,69 @@ class Repository(private val dataStore: AppDataStore? = null) {
                 currentData.billTypes[newTx.whoOrBill] = oldVal + newTx.amount
             }
 
-            // 3. Commit using the Custom Serializer (via gson instance)
-            val jsonContent = gson.toJson(currentData)
-            val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
-            
-            val request = UpdateFileRequest(
-                message = "Mobile App: Add ${newTx.type} - ${newTx.amount}",
-                content = encodedContent,
-                sha = fileDetails.sha
-            )
-
-            api.updateFile(authHeader, request)
-            
-            // Update cache immediately
-            if (dataStore != null) {
-                dataStore.saveCache(jsonContent)
-            }
-            
+            commitData(authHeader, currentData, fileDetails.sha, "Add ${newTx.type}")
             true
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    // NEW: Function to handle Distribution (Bulk Transactions)
+    suspend fun addDistribution(token: String, totalAmount: Double, note: String, date: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val authHeader = "token $token"
+            val fileDetails = api.getFileDetails(authHeader)
+            val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
+            val currentData = gson.fromJson(currentJson, KharchaData::class.java)
+
+            val people = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
+            val splitAmount = totalAmount / people.size
+            val parentId = "tx_dist_${System.currentTimeMillis()}"
+
+            // Create transactions for everyone
+            people.forEachIndexed { index, person ->
+                val tx = Transaction(
+                    id = "${parentId}_$index",
+                    type = "credit",
+                    whoOrBill = person,
+                    note = note,
+                    amount = splitAmount,
+                    date = date,
+                    parentId = parentId,
+                    distributionTotal = totalAmount
+                )
+                
+                // Add to list
+                currentData.transactions.add(0, tx)
+                
+                // Update totals
+                val oldVal = currentData.people[person] ?: 0.0
+                currentData.people[person] = oldVal + splitAmount
+            }
+
+            commitData(authHeader, currentData, fileDetails.sha, "Distribution of $totalAmount")
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private suspend fun commitData(authHeader: String, data: KharchaData, sha: String, msg: String) {
+        val jsonContent = gson.toJson(data)
+        val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
+        
+        val request = UpdateFileRequest(
+            message = "Mobile App: $msg",
+            content = encodedContent,
+            sha = sha
+        )
+
+        api.updateFile(authHeader, request)
+        
+        if (dataStore != null) {
+            dataStore.saveCache(jsonContent)
         }
     }
 
