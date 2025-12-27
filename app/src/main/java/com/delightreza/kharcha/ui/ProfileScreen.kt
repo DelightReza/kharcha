@@ -7,9 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Visibility
@@ -47,6 +47,9 @@ fun ProfileScreen(
     var isVerifying by remember { mutableStateOf(false) }
     var isTokenVisible by remember { mutableStateOf(false) }
     
+    // Hardcoded list of all people to calculate splits
+    val allPeopleCount = 8 
+    
     val savedToken = dataStore.tokenFlow.collectAsState(initial = "")
     val scope = rememberCoroutineScope()
 
@@ -69,10 +72,11 @@ fun ProfileScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Modern Header Card
+        // 1. Header Card
         item {
-            val balance = balances[currentUser] ?: 0.0
+            val netBalance = balances[currentUser] ?: 0.0
             val given = data?.people?.get(currentUser) ?: 0.0
+            val spent = given - netBalance
             
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -80,81 +84,28 @@ fun ProfileScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Avatar
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = currentUser.take(1),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
+                        Text(text = currentUser.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold)
                     }
-                    
                     Spacer(modifier = Modifier.height(12.dp))
-                    
-                    Text(
-                        text = currentUser,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
+                    Text(text = currentUser, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    // Stats Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Given Column
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Given",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                            )
-                            Text(
-                                text = "${given.toInt()}",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("Given", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
+                            Text(text = "${given.toInt()}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                         }
-                        
-                        // Vertical Divider
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(40.dp)
-                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f))
-                        )
-
-                        // Net Balance Column
+                        VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Net Balance",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                            )
-                            Text(
-                                text = "${if(balance > 0) "+" else ""}${balance.toInt()}",
-                                style = MaterialTheme.typography.titleLarge,
-                                // Light Green for positive, Light Red for negative (on dark bg)
-                                color = if (balance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF),
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("Spent", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
+                            Text(text = "${spent.toInt()}", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold)
+                        }
+                        VerticalDivider()
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                            Text("Net", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
+                            Text(text = "${if(netBalance > 0) "+" else ""}${netBalance.toInt()}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -174,9 +125,7 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text("Admin Access", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     }
-                    
                     Spacer(modifier = Modifier.height(16.dp))
-                    
                     OutlinedTextField(
                         value = tokenInput,
                         onValueChange = { tokenInput = it },
@@ -185,28 +134,14 @@ fun ProfileScreen(
                         visualTransformation = if (isTokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         label = { Text("GitHub Token") },
                         placeholder = { Text("ghp_...") },
-                        trailingIcon = {
-                            IconButton(onClick = { isTokenVisible = !isTokenVisible }) {
-                                Icon(
-                                    if (isTokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Toggle visibility"
-                                )
-                            }
-                        },
+                        trailingIcon = { IconButton(onClick = { isTokenVisible = !isTokenVisible }) { Icon(if (isTokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, "Toggle visibility") } },
                         shape = RoundedCornerShape(12.dp)
                     )
-                    
                     if (tokenStatus.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = tokenStatus,
-                            color = if (tokenStatus.startsWith("Success")) Color(0xFF059669) else MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Text(text = tokenStatus, color = if (tokenStatus.startsWith("Success")) Color(0xFF059669) else MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Button(
                         onClick = {
                             isVerifying = true
@@ -239,7 +174,7 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Switch User Button
+        // 3. Switch User
         item {
             OutlinedButton(
                 onClick = {
@@ -249,68 +184,79 @@ fun ProfileScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Logout, null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Switch User")
             }
         }
 
-        // 4. Personal History Title
+        // 4. Personal History
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text("Your Recent Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
 
-        // 5. Transaction List
         if (data != null) {
+            // Updated Filter: Credit (Given) OR Debit (Not Exempt)
             val myTransactions = data!!.transactions.filter { tx ->
-                tx.whoOrBill == currentUser || (tx.type == "credit" && tx.whoOrBill == currentUser)
+                if (tx.type == "credit") {
+                    tx.whoOrBill == currentUser
+                } else {
+                    // It's a debit. Am I involved?
+                    val exemptions = tx.exemptions ?: emptyList()
+                    !exemptions.contains(currentUser)
+                }
             }
             
             if (myTransactions.isEmpty()) {
                 item { 
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text("No transactions yet.", color = Color.Gray)
+                        Text("No recent activity.", color = Color.Gray)
                     }
                 }
             } else {
-                items(myTransactions.take(20)) { tx ->
-                    ProfileTransactionRow(tx)
+                items(myTransactions.take(30)) { tx ->
+                    // Calculate individual share for this specific transaction
+                    val exemptionsCount = tx.exemptions?.size ?: 0
+                    val payingPeopleCount = allPeopleCount - exemptionsCount
+                    val myShare = if (tx.type == "debit") tx.amount / payingPeopleCount else tx.amount
+
+                    ProfileTransactionRow(tx, myShare)
                 }
             }
         }
-        
-        // Bottom spacer for scrolling
         item { Spacer(modifier = Modifier.height(20.dp)) }
     }
 }
 
 @Composable
-fun ProfileTransactionRow(tx: Transaction) {
+fun VerticalDivider() {
+    Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)))
+}
+
+@Composable
+fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     val isCredit = tx.type == "credit"
-    val color = if(isCredit) Color(0xFF059669) else Color(0xFFDC2626) // Emerald vs Red
+    val color = if(isCredit) Color(0xFF059669) else Color(0xFFDC2626) // Green vs Red
+    
+    // Icon Logic: Money In (Up) vs Money Out (Down)
+    val icon = if(isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
     
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
-        // Adding a subtle border instead of shadow for a cleaner list look
         border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Bubble
             Box(
                 modifier = Modifier
                     .size(42.dp)
@@ -318,23 +264,19 @@ fun ProfileTransactionRow(tx: Transaction) {
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if(isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
             
             Spacer(modifier = Modifier.width(16.dp))
             
-            // Text Content
             Column(modifier = Modifier.weight(1f)) {
+                // Title: "Deposit" for credit, Bill Name for debit
                 Text(
-                    text = if(isCredit) "Deposit" else tx.whoOrBill, // Show "Deposit" for credits, Bill Name for debits
+                    text = if(isCredit) "Deposit" else tx.whoOrBill,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
+                // Subtitle: Note or Date
                 Text(
                     text = if(tx.note.isNotEmpty()) tx.note else localDate,
                     style = MaterialTheme.typography.bodySmall,
@@ -342,13 +284,19 @@ fun ProfileTransactionRow(tx: Transaction) {
                 )
             }
             
-            // Amount
-            Text(
-                text = "${if(isCredit) "+" else "-"}${tx.amount.toInt()}",
-                color = color,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            // Amount: Show MY share, not total bill
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "${if(isCredit) "+" else "-"}${myShare.toInt()}",
+                    color = color,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                // If it's a debit, show "My Share" text to indicate calculation
+                if (!isCredit) {
+                    Text("My Share", fontSize = 10.sp, color = Color.LightGray)
+                }
+            }
         }
     }
 }
