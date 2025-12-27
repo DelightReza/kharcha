@@ -14,13 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
-import com.delightreza.kharcha.utils.DateUtils // Added Import
+import com.delightreza.kharcha.utils.DateUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,10 +123,15 @@ fun HomeScreen(
                     }
                     
                     items(balances.toList().sortedByDescending { it.second }.chunked(2)) { rowItems ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // UPDATED: Used IntrinsicSize.Max to force equal height
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), 
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             rowItems.forEach { (name, net) ->
                                 val given = data!!.people[name] ?: 0.0
-                                CompactMemberCard(name, net, given, Modifier.weight(1f))
+                                // UPDATED: Passed fillMaxHeight to card
+                                CompactMemberCard(name, net, given, Modifier.weight(1f).fillMaxHeight())
                             }
                             if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                         }
@@ -178,7 +184,6 @@ fun HomeScreen(
                         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f))
                     }
                     
-                    // LOAD MORE BUTTON
                     item {
                         if (displayedCount < data!!.transactions.size) {
                             val remaining = data!!.transactions.size - displayedCount
@@ -211,7 +216,6 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
         tx.whoOrBill
     }
 
-    // FIXED: Use DateUtils for Local Date
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     
     val displaySubtitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) {
@@ -240,7 +244,6 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
     )
 }
 
-// (StatCard and CompactMemberCard remain the same)
 @Composable
 fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
     Card(colors = CardDefaults.cardColors(containerColor = color), modifier = modifier.fillMaxHeight()) {
@@ -254,12 +257,28 @@ fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
 @Composable
 fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifier) {
     Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = modifier) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            modifier = Modifier.padding(12.dp).fillMaxSize(),
+            // UPDATED: Center content vertically
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Left: Name & Given
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(name, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = name, 
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Text("Given: ${given.toInt()}", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 11.sp)
                 }
+                
+                // Right: Balance & Label
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${if(net>0) "+" else ""}${net.toInt()}", 
