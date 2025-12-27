@@ -2,16 +2,59 @@ package com.delightreza.kharcha.data
 
 import android.util.Base64
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.reflect.Type
 
 class Repository(private val dataStore: AppDataStore? = null) {
     private val api: GitHubApi
     
-    // FIXED: Use Pretty Printing to keep JSON formatted nicely
-    private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+    // CUSTOM SERIALIZER: Enforces the exact field order you requested
+    private class TransactionSerializer : JsonSerializer<Transaction> {
+        override fun serialize(src: Transaction, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+            val jsonObject = JsonObject()
+            // 1. Explicitly add properties in the desired order
+            jsonObject.addProperty("id", src.id)
+            jsonObject.addProperty("type", src.type)
+            jsonObject.addProperty("whoOrBill", src.whoOrBill)
+            jsonObject.addProperty("note", src.note)
+            
+            // Format amount to remove trailing .0 if it's a whole number (optional, but looks cleaner)
+            if (src.amount % 1.0 == 0.0) {
+                jsonObject.addProperty("amount", src.amount.toInt())
+            } else {
+                jsonObject.addProperty("amount", src.amount)
+            }
+            
+            jsonObject.addProperty("date", src.date)
+
+            // 2. Add optional fields at the end if they exist
+            if (!src.exemptions.isNullOrEmpty()) {
+                jsonObject.add("exemptions", context.serialize(src.exemptions))
+            }
+            if (src.parentId != null) {
+                jsonObject.addProperty("parentId", src.parentId)
+            }
+            if (src.distributionTotal != null) {
+                jsonObject.addProperty("distributionTotal", src.distributionTotal)
+            }
+
+            return jsonObject
+        }
+    }
+
+    // Configure Gson with the custom serializer
+    private val gson = GsonBuilder()
+        .registerTypeAdapter(Transaction::class.java, TransactionSerializer())
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        .create()
 
     init {
         val retrofit = Retrofit.Builder()
@@ -21,7 +64,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
         api = retrofit.create(GitHubApi::class.java)
     }
 
-    // ... (fetchData and getCachedData methods remain the same) ...
+    // --- READ OPERATIONS ---
 
     suspend fun getCachedData(): KharchaData? = withContext(Dispatchers.IO) {
         if (dataStore == null) return@withContext null
@@ -58,11 +101,13 @@ class Repository(private val dataStore: AppDataStore? = null) {
         } catch (e: Exception) { false }
     }
 
+    // --- WRITE OPERATIONS ---
+
     suspend fun addTransaction(token: String, newTx: Transaction): Boolean = withContext(Dispatchers.IO) {
         try {
             val authHeader = "token $token"
             
-            // 1. Fetch fresh data explicitly from API
+            // 1. Fetch fresh data & SHA explicitly from API
             val fileDetails = api.getFileDetails(authHeader)
             val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
             val currentData = gson.fromJson(currentJson, KharchaData::class.java)
@@ -70,7 +115,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
             // 2. Update Data
             currentData.transactions.add(0, newTx)
             
-            // Recalculate totals based on the new transaction
             if (newTx.type == "credit") {
                 val oldVal = currentData.people[newTx.whoOrBill] ?: 0.0
                 currentData.people[newTx.whoOrBill] = oldVal + newTx.amount
@@ -79,7 +123,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
                 currentData.billTypes[newTx.whoOrBill] = oldVal + newTx.amount
             }
 
-            // 3. Commit with Pretty Printing
+            // 3. Commit using the Custom Serializer (via gson instance)
             val jsonContent = gson.toJson(currentData)
             val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
             

@@ -2,10 +2,12 @@ package com.delightreza.kharcha.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -14,9 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
@@ -29,6 +33,7 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var isSubmitting by remember { mutableStateOf(false) }
+    var showConfirmation by remember { mutableStateOf(false) }
     
     // Form State
     var type by remember { mutableStateOf("debit") }
@@ -37,7 +42,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
     var note by remember { mutableStateOf("") }
     
     // Date & Time Logic
-    // We use a Calendar object to store the selection. Null means "Now".
     var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
     
     val allPeople = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
@@ -45,11 +49,10 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
     
     var exemptions by remember { mutableStateOf(setOf<String>()) }
 
-    // 2. Time Picker (Shown after Date Picker)
+    // Pickers
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay, minute ->
-            // Update the time part of the selected calendar
             selectedDateTime?.let { cal ->
                 val newCal = cal.clone() as Calendar
                 newCal.set(Calendar.HOUR_OF_DAY, hourOfDay)
@@ -59,19 +62,15 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
         },
         Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
         Calendar.getInstance().get(Calendar.MINUTE),
-        true // 24 hour view
+        true
     )
 
-    // 1. Date Picker (Shown on click)
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, day ->
-            // Set the date part
             val newCal = Calendar.getInstance()
             newCal.set(year, month, day)
             selectedDateTime = newCal
-            
-            // Immediately show Time Picker
             timePickerDialog.show()
         },
         Calendar.getInstance().get(Calendar.YEAR),
@@ -79,26 +78,80 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
         Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
     )
 
-    // Helper to format display text
     val dateDisplay = remember(selectedDateTime) {
-        if (selectedDateTime == null) {
-            "Today (Now)"
-        } else {
+        if (selectedDateTime == null) "Today (Now)"
+        else {
             val cal = selectedDateTime!!
             val y = cal.get(Calendar.YEAR)
             val m = cal.get(Calendar.MONTH) + 1
             val d = cal.get(Calendar.DAY_OF_MONTH)
             val h = cal.get(Calendar.HOUR_OF_DAY)
             val min = cal.get(Calendar.MINUTE)
-            
-            // Format: YYYY-MM-DD HH:mm
-            val mStr = if (m < 10) "0$m" else "$m"
-            val dStr = if (d < 10) "0$d" else "$d"
-            val hStr = if (h < 10) "0$h" else "$h"
-            val minStr = if (min < 10) "0$min" else "$min"
-            
-            "$y-$mStr-$dStr $hStr:$minStr"
+            "$y-${if (m < 10) "0$m" else "$m"}-${if (d < 10) "0$d" else "$d"} ${if (h < 10) "0$h" else "$h"}:${if (min < 10) "0$min" else "$min"}"
         }
+    }
+
+    // Colors
+    val themeColor = if (type == "credit") Color(0xFF059669) else Color(0xFFDC2626) // Green vs Red
+
+    // Save Logic
+    val handleSave = {
+        isSubmitting = true
+        scope.launch {
+            val finalDate = if (selectedDateTime == null) {
+                java.time.Instant.now().toString()
+            } else {
+                selectedDateTime!!.toInstant().toString()
+            }
+
+            val tx = Transaction(
+                id = "tx_${System.currentTimeMillis()}_app",
+                type = type,
+                whoOrBill = whoOrBill,
+                note = note,
+                amount = amount.toDouble(),
+                date = finalDate,
+                exemptions = if (type == "debit" && exemptions.isNotEmpty()) exemptions.toList() else null
+            )
+            
+            val success = repository.addTransaction(token, tx)
+            if (success) {
+                navController.popBackStack()
+            } else {
+                isSubmitting = false
+            }
+        }
+    }
+
+    // Confirmation Dialog
+    if (showConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showConfirmation = false },
+            title = { Text("Confirm Transaction") },
+            text = {
+                Column {
+                    Text("Are you sure you want to save this?")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Type: ${type.uppercase()}", fontWeight = FontWeight.Bold)
+                    Text("Amount: $amount SOM", fontWeight = FontWeight.Bold)
+                    Text("Subject: $whoOrBill")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { 
+                        showConfirmation = false
+                        handleSave() 
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = themeColor)
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showConfirmation = false }) { Text("Cancel") }
+            }
+        )
     }
 
     Scaffold(
@@ -112,69 +165,85 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
         if (isSubmitting) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = themeColor)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Saving to GitHub...")
+                    Text("Saving to GitHub...", color = Color.Gray)
                 }
             }
         } else {
             Column(modifier = Modifier.padding(p).padding(16.dp).verticalScroll(rememberScrollState())) {
-                // Type Switcher
+                
+                // 1. Type Switcher
                 Row(modifier = Modifier.fillMaxWidth()) {
                     FilterChip(
                         selected = type == "debit",
                         onClick = { type = "debit"; whoOrBill = ""; exemptions = emptySet() },
                         label = { Text("Debit (Bill)") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFEE2E2), selectedLabelColor = Color(0xFFDC2626))
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     FilterChip(
                         selected = type == "credit",
                         onClick = { type = "credit"; whoOrBill = "" },
                         label = { Text("Credit (Deposit)") },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
                     )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Subject Selection
-                Text("Select Subject:", style = MaterialTheme.typography.labelMedium)
+                // 2. Subject Selection
+                Text("Select Subject", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+                Spacer(modifier = Modifier.height(8.dp))
                 val options = if(type == "credit") allPeople else bills
                 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(options.size) { i ->
                         val item = options[i]
+                        val isSelected = whoOrBill == item
                         InputChip(
-                            selected = whoOrBill == item,
+                            selected = isSelected,
                             onClick = { whoOrBill = item },
-                            label = { Text(item) }
+                            label = { Text(item) },
+                            colors = InputChipDefaults.inputChipColors(
+                                selectedContainerColor = themeColor,
+                                selectedLabelColor = Color.White
+                            )
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // 3. Amount Input
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
                     label = { Text("Amount") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
-                    label = { Text("Note (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = themeColor,
+                        focusedLabelColor = themeColor
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Date Picker Input
+                // 4. Note Input
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { note = it },
+                    label = { Text("Note (Optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = themeColor, focusedLabelColor = themeColor)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 5. Date Picker
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = dateDisplay,
@@ -191,11 +260,10 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                             disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
-                    // Transparent clickable surface on top
                     Box(modifier = Modifier.matchParentSize().clickable { datePickerDialog.show() })
                 }
 
-                // Exemptions (Debit Only)
+                // 6. Exemptions (Debit Only)
                 if (type == "debit") {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("Exemptions (Who doesn't pay?)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -210,7 +278,11 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                                         exemptions = if (exemptions.contains(person)) exemptions - person else exemptions + person
                                     }
                                 ) {
-                                    Checkbox(checked = exemptions.contains(person), onCheckedChange = null)
+                                    Checkbox(
+                                        checked = exemptions.contains(person), 
+                                        onCheckedChange = null,
+                                        colors = CheckboxDefaults.colors(checkedColor = themeColor)
+                                    )
                                     Text(person, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
@@ -221,43 +293,44 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Button(
-                    onClick = {
-                        if (amount.isNotEmpty() && whoOrBill.isNotEmpty()) {
-                            isSubmitting = true
-                            scope.launch {
-                                // Final Date Logic
-                                val finalDate = if (selectedDateTime == null) {
-                                    java.time.Instant.now().toString()
-                                } else {
-                                    // Convert Calendar to Instant (UTC)
-                                    selectedDateTime!!.toInstant().toString()
-                                }
-
-                                val tx = Transaction(
-                                    id = "tx_${System.currentTimeMillis()}",
-                                    type = type,
-                                    whoOrBill = whoOrBill,
-                                    amount = amount.toDouble(),
-                                    note = note,
-                                    date = finalDate,
-                                    exemptions = if(type == "debit" && exemptions.isNotEmpty()) exemptions.toList() else null
-                                )
-                                
-                                val success = repository.addTransaction(token, tx)
-                                if (success) {
-                                    navController.popBackStack()
-                                } else {
-                                    isSubmitting = false
-                                }
-                            }
+                // 7. SUMMARY INFO & SAVE BUTTON
+                if (amount.isNotEmpty() && whoOrBill.isNotEmpty()) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = themeColor.copy(alpha = 0.1f)),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = if (type == "credit") "Receiving Credit" else "Recording Expense",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = "$amount SOM",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = themeColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Subject: $whoOrBill",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = amount.isNotEmpty() && whoOrBill.isNotEmpty()
-                ) {
-                    Text("Save to GitHub")
+                    }
                 }
+
+                Button(
+                    onClick = { showConfirmation = true },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    enabled = amount.isNotEmpty() && whoOrBill.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(containerColor = themeColor)
+                ) {
+                    Text("Save to GitHub", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
