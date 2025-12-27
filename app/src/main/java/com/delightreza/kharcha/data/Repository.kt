@@ -1,44 +1,76 @@
 package com.delightreza.kharcha.data
 
 import android.util.Base64
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class Repository {
+class Repository(private val dataStore: AppDataStore? = null) {
     private val api: GitHubApi
+    
+    // FIXED: Use Pretty Printing to keep JSON formatted nicely
+    private val gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
 
     init {
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.github.com/")
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         api = retrofit.create(GitHubApi::class.java)
     }
 
-    suspend fun fetchData(): KharchaData? = withContext(Dispatchers.IO) {
-        try {
-            api.getPublicData(System.currentTimeMillis())
-        } catch (e: Exception) { e.printStackTrace(); null }
+    // ... (fetchData and getCachedData methods remain the same) ...
+
+    suspend fun getCachedData(): KharchaData? = withContext(Dispatchers.IO) {
+        if (dataStore == null) return@withContext null
+        val json = dataStore.getCache()
+        if (!json.isNullOrEmpty()) {
+            try {
+                return@withContext gson.fromJson(json, KharchaData::class.java)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return@withContext null
     }
 
-    // --- NEW: Verification Logic ---
-    suspend fun verifyToken(token: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun fetchData(): KharchaData? = withContext(Dispatchers.IO) {
         try {
-            // Attempt to fetch file details with the token
-            // If token is invalid or has no access, this throws an exception (401/404)
-            api.getFileDetails("token $token")
-            true
+            val data = api.getPublicData(System.currentTimeMillis())
+            // Save to cache
+            if (dataStore != null) {
+                val json = gson.toJson(data)
+                dataStore.saveCache(json)
+            }
+            return@withContext data
         } catch (e: Exception) {
-            false
+            e.printStackTrace()
+            return@withContext null
         }
     }
 
-    suspend fun addTransaction(token: String, currentData: KharchaData, newTx: Transaction): Boolean = withContext(Dispatchers.IO) {
+    suspend fun verifyToken(token: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            api.getFileDetails("token $token")
+            true
+        } catch (e: Exception) { false }
+    }
+
+    suspend fun addTransaction(token: String, newTx: Transaction): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val authHeader = "token $token"
+            
+            // 1. Fetch fresh data explicitly from API
+            val fileDetails = api.getFileDetails(authHeader)
+            val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
+            val currentData = gson.fromJson(currentJson, KharchaData::class.java)
+
+            // 2. Update Data
             currentData.transactions.add(0, newTx)
+            
+            // Recalculate totals based on the new transaction
             if (newTx.type == "credit") {
                 val oldVal = currentData.people[newTx.whoOrBill] ?: 0.0
                 currentData.people[newTx.whoOrBill] = oldVal + newTx.amount
@@ -47,11 +79,9 @@ class Repository {
                 currentData.billTypes[newTx.whoOrBill] = oldVal + newTx.amount
             }
 
-            val authHeader = "token $token"
-            val fileDetails = api.getFileDetails(authHeader)
-            
-            val jsonString = Gson().toJson(currentData)
-            val encodedContent = Base64.encodeToString(jsonString.toByteArray(), Base64.NO_WRAP)
+            // 3. Commit with Pretty Printing
+            val jsonContent = gson.toJson(currentData)
+            val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
             
             val request = UpdateFileRequest(
                 message = "Mobile App: Add ${newTx.type} - ${newTx.amount}",
@@ -60,10 +90,39 @@ class Repository {
             )
 
             api.updateFile(authHeader, request)
+            
+            // Update cache immediately
+            if (dataStore != null) {
+                dataStore.saveCache(jsonContent)
+            }
+            
             true
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
+    }
+
+    fun calculateBalances(data: KharchaData): Map<String, Double> {
+        val peopleList = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
+        val balances = peopleList.associateWith { 0.0 }.toMutableMap()
+
+        data.transactions.forEach { tx ->
+            if (tx.type == "credit") {
+                val current = balances[tx.whoOrBill] ?: 0.0
+                balances[tx.whoOrBill] = current + tx.amount
+            } else {
+                val exemptions = tx.exemptions ?: emptyList()
+                val contributors = peopleList.filter { !exemptions.contains(it) }
+                if (contributors.isNotEmpty()) {
+                    val splitAmount = tx.amount / contributors.size
+                    contributors.forEach { person ->
+                        val current = balances[person] ?: 0.0
+                        balances[person] = current - splitAmount
+                    }
+                }
+            }
+        }
+        return balances
     }
 }

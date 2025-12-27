@@ -9,14 +9,28 @@ data class KharchaData(
 )
 
 data class Transaction(
+    // 1. ID
     val id: String,
+    
+    // 2. Type
     val type: String, // "credit" or "debit"
+    
+    // 3. Who/Bill
     val whoOrBill: String,
+    
+    // 4. Note
     val note: String,
+    
+    // 5. Amount
     val amount: Double,
+    
+    // 6. Date
     val date: String,
-    val exemptions: List<String>? = null, // Optional for credit
-    val parentId: String? = null
+    
+    // Optionals (will appear at the end if present)
+    val exemptions: List<String>? = null,
+    val parentId: String? = null,
+    val distributionTotal: Double? = null
 )
 
 // GitHub API Request/Response
