@@ -2,6 +2,7 @@ package com.delightreza.kharcha.ui
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,18 +31,17 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(navController: NavController, repository: Repository, token: String) {
+    // ... (State logic same as previous) ...
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var isSubmitting by remember { mutableStateOf(false) }
     var showConfirmation by remember { mutableStateOf(false) }
     
-    // Form State
-    var type by remember { mutableStateOf("debit") } // debit, credit, distribute
+    var type by remember { mutableStateOf("debit") }
     var amount by remember { mutableStateOf("") }
     var whoOrBill by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     
-    // Date & Time Logic
     var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
     
     val allPeople = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
@@ -48,7 +49,7 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
     
     var exemptions by remember { mutableStateOf(setOf<String>()) }
 
-    // Pickers
+    // Pickers (Same logic)
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hourOfDay, minute ->
@@ -90,14 +91,12 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
         }
     }
 
-    // Colors
     val themeColor = when(type) {
-        "credit" -> Color(0xFF059669) // Green
-        "distribute" -> Color(0xFF7C3AED) // Purple
-        else -> Color(0xFFDC2626) // Red
+        "credit" -> Color(0xFF059669)
+        "distribute" -> Color(0xFF7C3AED)
+        else -> Color(0xFFDC2626)
     }
 
-    // Save Logic
     val handleSave = {
         isSubmitting = true
         scope.launch {
@@ -108,10 +107,8 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
             }
 
             val success = if (type == "distribute") {
-                // Call Distribution Logic
                 repository.addDistribution(token, amount.toDouble(), note, finalDate)
             } else {
-                // Call Standard Logic
                 val tx = Transaction(
                     id = "tx_${System.currentTimeMillis()}_app",
                     type = type,
@@ -132,18 +129,17 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
         }
     }
 
-    // Confirmation Dialog
     if (showConfirmation) {
         AlertDialog(
             onDismissRequest = { showConfirmation = false },
-            title = { Text(if(type == "distribute") "Confirm Distribution" else "Confirm Transaction") },
+            title = { Text(if(type == "distribute") "Confirm Distribution" else "Confirm Transaction", textAlign = TextAlign.Center) },
             text = {
-                Column {
-                    Text(if(type == "distribute") "This will divide the amount equally among all members." else "Are you sure you want to save this?")
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Text(if(type == "distribute") "This will divide the amount equally among all members." else "Are you sure you want to save this?", textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Type: ${type.uppercase()}", fontWeight = FontWeight.Bold)
-                    Text("Amount: $amount SOM", fontWeight = FontWeight.Bold)
-                    if(type != "distribute") Text("Subject: $whoOrBill")
+                    Text("Type: ${type.uppercase()}", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text("Amount: $amount SOM", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    if(type != "distribute") Text("Subject: $whoOrBill", textAlign = TextAlign.Center)
                 }
             },
             confirmButton = {
@@ -171,32 +167,31 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = themeColor)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Saving to GitHub...", color = Color.Gray)
+                    Text("Saving to GitHub...", color = Color.Gray, textAlign = TextAlign.Center)
                 }
             }
         } else {
             Column(modifier = Modifier.padding(p).padding(16.dp).verticalScroll(rememberScrollState())) {
                 
-                // 1. Type Switcher
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = type == "debit",
                         onClick = { type = "debit"; whoOrBill = ""; exemptions = emptySet() },
-                        label = { Text("Debit") },
+                        label = { Text("Debit", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFEE2E2), selectedLabelColor = Color(0xFFDC2626))
                     )
                     FilterChip(
                         selected = type == "credit",
                         onClick = { type = "credit"; whoOrBill = "" },
-                        label = { Text("Credit") },
+                        label = { Text("Credit", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
                     )
                     FilterChip(
                         selected = type == "distribute",
                         onClick = { type = "distribute"; whoOrBill = "All"; },
-                        label = { Text("Distribute") },
+                        label = { Text("Distribute", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFEDE9FE), selectedLabelColor = Color(0xFF7C3AED))
                     )
@@ -204,7 +199,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 2. Subject Selection (Hidden for Distribute)
                 if (type != "distribute") {
                     Text("Select Subject", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -228,7 +222,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // 3. Amount Input
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
@@ -240,7 +233,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 4. Note Input
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
@@ -251,7 +243,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5. Date Picker
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = dateDisplay,
@@ -271,7 +262,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                     Box(modifier = Modifier.matchParentSize().clickable { datePickerDialog.show() })
                 }
 
-                // 6. Exemptions (Debit Only)
                 if (type == "debit") {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("Exemptions (Who doesn't pay?)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -301,7 +291,6 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 7. SUMMARY INFO
                 if (amount.isNotEmpty() && (whoOrBill.isNotEmpty() || type == "distribute")) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = themeColor.copy(alpha = 0.1f)),
@@ -316,19 +305,21 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                                     else -> "Recording Expense"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = Color.Gray
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 text = "$amount SOM",
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = themeColor,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
                             )
                             if (type == "distribute") {
                                 val split = (amount.toDoubleOrNull() ?: 0.0) / 8
-                                Text("Split: ${"%.2f".format(split)} per person", fontSize = 12.sp, color = themeColor)
+                                Text("Split: ${"%.2f".format(split)} per person", fontSize = 12.sp, color = themeColor, textAlign = TextAlign.Center)
                             } else {
-                                Text("Subject: $whoOrBill", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                                Text("Subject: $whoOrBill", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
                             }
                         }
                     }
@@ -340,7 +331,7 @@ fun AddTransactionScreen(navController: NavController, repository: Repository, t
                     enabled = amount.isNotEmpty() && (whoOrBill.isNotEmpty() || type == "distribute"),
                     colors = ButtonDefaults.buttonColors(containerColor = themeColor)
                 ) {
-                    Text("Save to GitHub", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Save to GitHub", fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                 }
                 
                 Spacer(modifier = Modifier.height(32.dp))

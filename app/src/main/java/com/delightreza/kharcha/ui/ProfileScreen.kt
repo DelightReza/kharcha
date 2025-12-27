@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.delightreza.kharcha.data.AppDataStore
@@ -49,7 +50,7 @@ fun ProfileScreen(
     var balances by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     
     // Admin Access State
-    var showAdminAccess by remember { mutableStateOf(false) } // Hidden by default
+    var showAdminAccess by remember { mutableStateOf(false) }
     var tokenInput by remember { mutableStateOf("") }
     var tokenStatus by remember { mutableStateOf("") }
     var isVerifying by remember { mutableStateOf(false) }
@@ -91,59 +92,60 @@ fun ProfileScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    // SECRET GESTURE: Hold for 3 seconds to toggle Admin View
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
-                                // FIXED: Used 'scope.launch' instead of just 'launch'
                                 val pressJob = scope.launch {
-                                    delay(3000) // Wait 3 seconds
-                                    showAdminAccess = !showAdminAccess // Toggle
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress) // Vibrate
+                                    delay(3000)
+                                    showAdminAccess = !showAdminAccess
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
                                 try {
                                     awaitRelease()
                                 } finally {
-                                    pressJob.cancel() // Cancel if finger lifted early
+                                    pressJob.cancel()
                                 }
                             }
                         )
                     }
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
-                        Text(text = currentUser.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                        Text(text = currentUser.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = currentUser, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                    Text(text = currentUser, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    // Stats Row - Equal Heights
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                            Text("Given", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "%.2f".format(given), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            Text("Given", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
+                            Text(text = "%.2f".format(given), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                            Text("Spent", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "%.2f".format(spent), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold)
+                            Text("Spent", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
+                            Text(text = "%.2f".format(spent), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                            Text("Net", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
-                            Text(text = "${if(netBalance > 0) "+" else ""}${"%.2f".format(netBalance)}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold)
+                            Text("Net", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
+                            Text(text = "${if(netBalance > 0) "+" else ""}${"%.2f".format(netBalance)}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                     }
                 }
             }
         }
 
-        // 2. Admin Access Card (Hidden by Default)
+        // 2. Admin Access Card
         if (showAdminAccess) {
             item {
                 Card(
@@ -197,9 +199,9 @@ fun ProfileScreen(
                             if (isVerifying) {
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Verifying...")
+                                Text("Verifying...", textAlign = TextAlign.Center)
                             } else {
-                                Text("Verify & Save Token")
+                                Text("Verify & Save Token", textAlign = TextAlign.Center)
                             }
                         }
                     }
@@ -223,7 +225,7 @@ fun ProfileScreen(
             ) {
                 Icon(Icons.Default.Logout, null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Switch User")
+                Text("Switch User", textAlign = TextAlign.Center)
             }
         }
 
@@ -246,7 +248,7 @@ fun ProfileScreen(
             if (myTransactions.isEmpty()) {
                 item { 
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text("No recent activity.", color = Color.Gray)
+                        Text("No recent activity.", color = Color.Gray, textAlign = TextAlign.Center)
                     }
                 }
             } else {
@@ -265,7 +267,7 @@ fun ProfileScreen(
 
 @Composable
 fun VerticalDivider() {
-    Box(modifier = Modifier.width(1.dp).height(40.dp).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)))
+    Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)))
 }
 
 @Composable
@@ -294,9 +296,9 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
                 Text(text = if(tx.note.isNotEmpty()) tx.note else localDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = "${if(isCredit) "+" else "-"}${"%.2f".format(myShare)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(text = "${if(isCredit) "+" else "-"}${"%.2f".format(myShare)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
                 if (!isCredit) {
-                    Text("My Share", fontSize = 10.sp, color = Color.LightGray)
+                    Text("My Share", fontSize = 10.sp, color = Color.LightGray, textAlign = TextAlign.End)
                 }
             }
         }

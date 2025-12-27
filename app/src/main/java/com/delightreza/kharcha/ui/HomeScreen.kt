@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +37,6 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     var isInitialLoad by remember { mutableStateOf(true) }
     
-    // Pagination State
     var displayedCount by remember { mutableIntStateOf(20) }
     
     val scope = rememberCoroutineScope()
@@ -102,16 +102,32 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Current Balance", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                Text("${currentBalance.toInt()}", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Current Balance", 
+                                    color = Color.White.copy(alpha = 0.9f), 
+                                    fontSize = 14.sp, 
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    "${currentBalance.toInt()}", 
+                                    color = Color.White, 
+                                    fontSize = 32.sp, 
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                         
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Row(modifier = Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            StatCard("Total Collected", totalCredits, Color(0xFF10B981), Modifier.weight(1f))
-                            StatCard("Total Spent", totalDebits, Color(0xFFEF4444), Modifier.weight(1f))
+                        // Equal Height Row
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), 
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            StatCard("Total Collected", totalCredits, Color(0xFF10B981), Modifier.weight(1f).fillMaxHeight())
+                            StatCard("Total Spent", totalDebits, Color(0xFFEF4444), Modifier.weight(1f).fillMaxHeight())
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
@@ -123,14 +139,13 @@ fun HomeScreen(
                     }
                     
                     items(balances.toList().sortedByDescending { it.second }.chunked(2)) { rowItems ->
-                        // UPDATED: Used IntrinsicSize.Max to force equal height
+                        // Equal Height Row for Members
                         Row(
                             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), 
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             rowItems.forEach { (name, net) ->
                                 val given = data!!.people[name] ?: 0.0
-                                // UPDATED: Passed fillMaxHeight to card
                                 CompactMemberCard(name, net, given, Modifier.weight(1f).fillMaxHeight())
                             }
                             if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
@@ -150,7 +165,8 @@ fun HomeScreen(
                                     if (amount > 0) {
                                         Row(
                                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(type, color = Color.Gray)
                                             Text("${amount.toInt()}", fontWeight = FontWeight.Bold)
@@ -195,7 +211,7 @@ fun HomeScreen(
                                     onClick = { displayedCount += 20 },
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
                                 ) {
-                                    Text("Load Older Transactions ($remaining)")
+                                    Text("Load Older Transactions ($remaining)", textAlign = TextAlign.Center)
                                 }
                             }
                         } else {
@@ -217,7 +233,6 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
     }
 
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
-    
     val displaySubtitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) {
         "Other • $localDate"
     } else {
@@ -246,10 +261,26 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
 
 @Composable
 fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
-    Card(colors = CardDefaults.cardColors(containerColor = color), modifier = modifier.fillMaxHeight()) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("${amount.toInt()}", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    Card(colors = CardDefaults.cardColors(containerColor = color), modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp), 
+            verticalArrangement = Arrangement.Center, 
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                title, 
+                color = Color.White.copy(alpha = 0.8f), 
+                fontSize = 12.sp, 
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                "${amount.toInt()}", 
+                color = Color.White, 
+                fontSize = 20.sp, 
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -259,7 +290,6 @@ fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifi
     Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = modifier) {
         Column(
             modifier = Modifier.padding(12.dp).fillMaxSize(),
-            // UPDATED: Center content vertically
             verticalArrangement = Arrangement.Center
         ) {
             Row(
@@ -267,7 +297,6 @@ fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifi
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Left: Name & Given
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = name, 
@@ -277,16 +306,15 @@ fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifi
                     )
                     Text("Given: ${given.toInt()}", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 11.sp)
                 }
-                
-                // Right: Balance & Label
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "${if(net>0) "+" else ""}${net.toInt()}", 
                         color = if (net >= 0) Color(0xFF059669) else Color(0xFFE11D48), 
                         fontWeight = FontWeight.Bold, 
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.End
                     )
-                    Text("Net", fontSize = 10.sp, color = Color.Gray)
+                    Text("Net", fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.End)
                 }
             }
         }
