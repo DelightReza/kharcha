@@ -1,6 +1,7 @@
 package com.delightreza.kharcha.data
 
 import android.util.Base64
+import com.delightreza.kharcha.utils.Constants
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -15,7 +16,6 @@ import java.lang.reflect.Type
 class Repository(private val dataStore: AppDataStore? = null) {
     private val api: GitHubApi
     
-    // CUSTOM SERIALIZER: Enforces the exact field order
     private class TransactionSerializer : JsonSerializer<Transaction> {
         override fun serialize(src: Transaction, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val jsonObject = JsonObject()
@@ -96,20 +96,10 @@ class Repository(private val dataStore: AppDataStore? = null) {
 
     suspend fun addTransaction(token: String, newTx: Transaction): Boolean = withContext(Dispatchers.IO) {
         try {
-            val authHeader = "token $token"
-            val fileDetails = api.getFileDetails(authHeader)
-            val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
-            val currentData = gson.fromJson(currentJson, KharchaData::class.java)
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
 
             currentData.transactions.add(0, newTx)
-            
-            if (newTx.type == "credit") {
-                val oldVal = currentData.people[newTx.whoOrBill] ?: 0.0
-                currentData.people[newTx.whoOrBill] = oldVal + newTx.amount
-            } else {
-                val oldVal = currentData.billTypes[newTx.whoOrBill] ?: 0.0
-                currentData.billTypes[newTx.whoOrBill] = oldVal + newTx.amount
-            }
+            updateTotals(currentData, newTx, add = true)
 
             commitData(authHeader, currentData, fileDetails.sha, "Add ${newTx.type}")
             true
@@ -119,19 +109,14 @@ class Repository(private val dataStore: AppDataStore? = null) {
         }
     }
 
-    // NEW: Function to handle Distribution (Bulk Transactions)
     suspend fun addDistribution(token: String, totalAmount: Double, note: String, date: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val authHeader = "token $token"
-            val fileDetails = api.getFileDetails(authHeader)
-            val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
-            val currentData = gson.fromJson(currentJson, KharchaData::class.java)
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
 
-            val people = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
+            val people = Constants.MEMBERS
             val splitAmount = totalAmount / people.size
             val parentId = "tx_dist_${System.currentTimeMillis()}"
 
-            // Create transactions for everyone
             people.forEachIndexed { index, person ->
                 val tx = Transaction(
                     id = "${parentId}_$index",
@@ -143,13 +128,8 @@ class Repository(private val dataStore: AppDataStore? = null) {
                     parentId = parentId,
                     distributionTotal = totalAmount
                 )
-                
-                // Add to list
                 currentData.transactions.add(0, tx)
-                
-                // Update totals
-                val oldVal = currentData.people[person] ?: 0.0
-                currentData.people[person] = oldVal + splitAmount
+                updateTotals(currentData, tx, add = true)
             }
 
             commitData(authHeader, currentData, fileDetails.sha, "Distribution of $totalAmount")
@@ -160,12 +140,85 @@ class Repository(private val dataStore: AppDataStore? = null) {
         }
     }
 
+    suspend fun deleteTransaction(token: String, transactionId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
+            
+            // Find target. If it has a parentId, we must delete ALL with that parentId (Distribution)
+            val targetTx = currentData.transactions.find { it.id == transactionId } ?: return@withContext false
+            
+            val toDelete = if (targetTx.parentId != null) {
+                currentData.transactions.filter { it.parentId == targetTx.parentId }
+            } else {
+                listOf(targetTx)
+            }
+
+            toDelete.forEach { tx ->
+                updateTotals(currentData, tx, add = false) // Reverse impact
+                currentData.transactions.remove(tx)
+            }
+
+            commitData(authHeader, currentData, fileDetails.sha, "Delete transaction ${targetTx.id}")
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun editTransaction(token: String, updatedTx: Transaction): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
+
+            val index = currentData.transactions.indexOfFirst { it.id == updatedTx.id }
+            if (index == -1) return@withContext false
+            val oldTx = currentData.transactions[index]
+
+            // 1. Revert Old
+            updateTotals(currentData, oldTx, add = false)
+            
+            // 2. Apply New
+            updateTotals(currentData, updatedTx, add = true)
+            
+            // 3. Swap in list
+            currentData.transactions[index] = updatedTx
+
+            commitData(authHeader, currentData, fileDetails.sha, "Edit transaction ${updatedTx.id}")
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // Helper to avoid repetition
+    private suspend fun getLatestData(token: String): Triple<String, GitHubFileResponse, KharchaData> {
+        val authHeader = "token $token"
+        val fileDetails = api.getFileDetails(authHeader)
+        val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
+        val currentData = gson.fromJson(currentJson, KharchaData::class.java)
+        return Triple(authHeader, fileDetails, currentData)
+    }
+
+    private fun updateTotals(data: KharchaData, tx: Transaction, add: Boolean) {
+        val multiplier = if (add) 1.0 else -1.0
+        val amount = tx.amount * multiplier
+
+        if (tx.type == "credit") {
+            val oldVal = data.people[tx.whoOrBill] ?: 0.0
+            data.people[tx.whoOrBill] = oldVal + amount
+        } else {
+            val oldVal = data.billTypes[tx.whoOrBill] ?: 0.0
+            data.billTypes[tx.whoOrBill] = oldVal + amount
+        }
+    }
+
     private suspend fun commitData(authHeader: String, data: KharchaData, sha: String, msg: String) {
         val jsonContent = gson.toJson(data)
         val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
         
         val request = UpdateFileRequest(
-            message = "Mobile App: $msg",
+            message = "App: $msg",
             content = encodedContent,
             sha = sha
         )
@@ -178,7 +231,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
     }
 
     fun calculateBalances(data: KharchaData): Map<String, Double> {
-        val peopleList = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
+        val peopleList = Constants.MEMBERS
         val balances = peopleList.associateWith { 0.0 }.toMutableMap()
 
         data.transactions.forEach { tx ->

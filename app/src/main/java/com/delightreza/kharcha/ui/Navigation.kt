@@ -24,40 +24,27 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val dataStore = remember { AppDataStore(context) }
-    // Pass DataStore to Repository for caching
     val repository = remember { Repository(dataStore) }
     val scope = rememberCoroutineScope()
     
-    // TRICK: Use a specific string "__LOADING__" as the initial value.
-    // This lets us distinguish between "Loading..." and "User is not set (null)"
     val userState = dataStore.userFlow.collectAsState(initial = "__LOADING__")
     val tokenState = dataStore.tokenFlow.collectAsState(initial = null)
 
-    // 1. SHOW LOADING SCREEN (Fixes White Screen)
     if (userState.value == "__LOADING__") {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    // 2. DETERMINE START DESTINATION
-    // If value is null/empty (after loading), go to Onboarding. Otherwise, Main.
     val startDest = if (userState.value.isNullOrEmpty()) "onboarding" else "main"
 
-    NavHost(
-        navController = navController, 
-        startDestination = startDest
-    ) {
+    NavHost(navController = navController, startDestination = startDest) {
         composable("onboarding") {
             UserSelectionScreen(
                 onUserSelected = { user ->
                     scope.launch {
                         dataStore.saveUser(user)
-                        // Navigate to main and clear backstack so they can't go back to onboarding
                         navController.navigate("main") {
                             popUpTo("onboarding") { inclusive = true }
                         }
@@ -76,13 +63,19 @@ fun AppNavigation() {
             )
         }
 
-        composable("add_transaction") {
+        // UPDATED: Accepts optional txId for Editing
+        composable(
+            "add_transaction?txId={txId}",
+            arguments = listOf(navArgument("txId") { nullable = true; type = NavType.StringType })
+        ) { backStackEntry ->
             val token = tokenState.value
+            val txId = backStackEntry.arguments?.getString("txId")
+
             if (token.isNullOrBlank()) {
                 AlertDialog(
                     onDismissRequest = { navController.popBackStack() },
                     title = { Text("Admin Access Required") },
-                    text = { Text("You need a GitHub Token to add transactions. Go to Profile tab to add one.") },
+                    text = { Text("You need a GitHub Token to add/edit transactions. Go to Profile tab to add one.") },
                     confirmButton = {
                         TextButton(onClick = { navController.popBackStack() }) { Text("OK") }
                     }
@@ -91,7 +84,8 @@ fun AppNavigation() {
                 AddTransactionScreen(
                     navController = navController,
                     repository = repository,
-                    token = token
+                    token = token,
+                    transactionIdToEdit = txId // Pass the ID
                 )
             }
         }
@@ -104,7 +98,9 @@ fun AppNavigation() {
             TransactionDetailScreen(
                 navController = navController,
                 repository = repository,
-                transactionId = txId
+                transactionId = txId,
+                hasToken = !tokenState.value.isNullOrBlank(), // Check for Edit/Delete permission
+                token = tokenState.value
             )
         }
     }

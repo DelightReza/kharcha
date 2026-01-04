@@ -16,10 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.delightreza.kharcha.utils.Constants
 
 @Composable
 fun UserSelectionScreen(onUserSelected: (String) -> Unit) {
-    val people = listOf("Raza", "Salman", "Mujeeb", "Gulam", "Rana", "Naved", "Musawwar", "Nizamuddin")
+    // UPDATED: Use Constants
+    val people = Constants.MEMBERS
 
     Column(
         modifier = Modifier

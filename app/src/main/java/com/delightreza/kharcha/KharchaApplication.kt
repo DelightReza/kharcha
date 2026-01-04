@@ -20,13 +20,14 @@ class KharchaApplication : Application() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(4, TimeUnit.HOURS)
+        // CHANGED: Interval set to 1 Hour
+        val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
             .setConstraints(constraints)
             .build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "KharchaSyncWork",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.KEEP, // Keeps the existing work if valid, prevents duplicates
             syncRequest
         )
     }

@@ -8,13 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +28,7 @@ import com.delightreza.kharcha.data.AppDataStore
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
+import com.delightreza.kharcha.utils.Constants
 import com.delightreza.kharcha.utils.DateUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +51,9 @@ fun ProfileScreen(
     var isVerifying by remember { mutableStateOf(false) }
     var isTokenVisible by remember { mutableStateOf(false) }
     
-    val allPeopleCount = 8 
+    // UPDATED: Use Constants
+    val allPeopleCount = Constants.MEMBERS.size 
+    
     val savedToken = dataStore.tokenFlow.collectAsState(initial = "")
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
