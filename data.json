@@ -4,7 +4,7 @@
     "Water": 402.0,
     "Gas": 2431.0,
     "Garbage": 1321.4,
-    "Internet": 1470.0,
+    "Internet": 2460.0,
     "Other": 8440.0
   },
   "people": {
@@ -18,6 +18,14 @@
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1768551059573_app",
+      "type": "debit",
+      "whoOrBill": "Internet",
+      "note": "",
+      "amount": 990,
+      "date": "2026-01-16T08:10:59.573528Z"
+    },
     {
       "id": "tx_1768551020253_app",
       "type": "credit",
