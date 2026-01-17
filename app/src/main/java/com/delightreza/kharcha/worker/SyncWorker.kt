@@ -15,7 +15,9 @@ import com.delightreza.kharcha.R
 import com.delightreza.kharcha.data.AppDataStore
 import com.delightreza.kharcha.data.Repository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 class SyncWorker(
     context: Context,
@@ -32,15 +34,14 @@ class SyncWorker(
             val oldCount = oldData?.transactions?.size ?: 0
 
             // 2. Fetch fresh data from API (This also updates the cache)
-            val newData = repository.fetchData()
-            val newCount = newData?.transactions?.size ?: 0
+            val newData = repository.fetchData() ?: return@withContext ListenableWorker.Result.retry()
+            val newCount = newData.transactions.size
 
-            // 3. Compare and Notify
-            if (newData != null && newCount > oldCount) {
+            // --- PART A: NEW TRANSACTION NOTIFICATION ---
+            if (newCount > oldCount) {
                 val diff = newCount - oldCount
                 val latestTx = newData.transactions.firstOrNull()
                 
-                // Logic: If 1 new item, show details. If multiple, show count.
                 val (title, contentText) = if (diff == 1 && latestTx != null) {
                     val symbol = if (latestTx.type == "credit") "+" else "-"
                     "New Transaction" to "${latestTx.whoOrBill}: $symbol${latestTx.amount.toInt()}"
@@ -48,7 +49,39 @@ class SyncWorker(
                     "Kharcha Update" to "$diff new transactions added."
                 }
 
-                sendNotification(title, contentText)
+                sendNotification(1001, title, contentText)
+            }
+
+            // --- PART B: DEBT NAGGING (Every Hour) ---
+            // Get the user currently logged into THIS device
+            val currentUser = dataStore.userFlow.firstOrNull()
+
+            if (!currentUser.isNullOrEmpty()) {
+                val balances = repository.calculateBalances(newData)
+                val myBalance = balances[currentUser] ?: 0.0
+
+                // If currently in negative, SEND NAG!
+                if (myBalance < 0) {
+                    val debt = abs(myBalance).toInt()
+                    
+                    // Random list of annoying messages
+                    val naggingMessages = listOf(
+                        "🚨 EMERGENCY: You owe $debt SOM! Pay up or wash dishes for a month! 🍽️",
+                        "Hello? It's your conscience. You owe $debt SOM. Fix it. 📞",
+                        "Friendly reminder: You are the reason we can't have nice things. Owe: $debt SOM. 🌚",
+                        "Stop ignoring this! You are in negative -$debt SOM. 📉",
+                        "Money doesn't grow on trees, but your debt does! Pay $debt SOM now! 🌳",
+                        "Knock knock. Who's there? A debt of $debt SOM. 🚪",
+                        "Wallet looking heavy? Lighten it by paying your $debt SOM debt! 💸"
+                    )
+
+                    // Fixed ID (999) ensures this specific notification stays updated
+                    sendNotification(
+                        999, 
+                        "⚠️ Debt Alert!", 
+                        naggingMessages.random() // Pick a random annoyance
+                    )
+                }
             }
 
             ListenableWorker.Result.success()
@@ -59,7 +92,7 @@ class SyncWorker(
         }
     }
 
-    private fun sendNotification(title: String, message: String) {
+    private fun sendNotification(notificationId: Int, title: String, message: String) {
         val channelId = "kharcha_sync_channel"
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -70,7 +103,7 @@ class SyncWorker(
                 "Transaction Updates", 
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notifies when new transactions are added"
+                description = "Notifies regarding account status and transactions"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -91,11 +124,12 @@ class SyncWorker(
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message)) // Allows long nagging text to show fully
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent) // Open app on click
             .setAutoCancel(true) // Remove notification on click
             .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        notificationManager.notify(notificationId, notification)
     }
 }
