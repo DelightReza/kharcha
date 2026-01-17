@@ -113,9 +113,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
         try {
             val (authHeader, fileDetails, currentData) = getLatestData(token)
 
-            // UPDATED: Get people list directly from the data keys
             val people = currentData.people.keys.toList().sorted()
-            
             if (people.isEmpty()) return@withContext false
 
             val splitAmount = totalAmount / people.size
@@ -137,6 +135,90 @@ class Repository(private val dataStore: AppDataStore? = null) {
             }
 
             commitData(authHeader, currentData, fileDetails.sha, "Distribution of $totalAmount")
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // New Function: Offline Settlement
+    suspend fun addSettlement(token: String, payer: String, receiver: String, amount: Double, note: String, date: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
+            val parentId = "tx_set_${System.currentTimeMillis()}"
+
+            // 1. Payer paid cash -> Balance goes UP (+Credit)
+            val payerTx = Transaction(
+                id = "${parentId}_payer",
+                type = "credit",
+                whoOrBill = payer,
+                note = if(note.isNotEmpty()) "Settlement: $note" else "Settlement to $receiver",
+                amount = amount,
+                date = date,
+                parentId = parentId
+            )
+
+            // 2. Receiver got cash -> Balance goes DOWN (-Credit)
+            val receiverTx = Transaction(
+                id = "${parentId}_rcvr",
+                type = "credit",
+                whoOrBill = receiver,
+                note = if(note.isNotEmpty()) "Settlement: $note" else "Settlement from $payer",
+                amount = -amount,
+                date = date,
+                parentId = parentId
+            )
+
+            // Add both
+            currentData.transactions.add(0, payerTx)
+            currentData.transactions.add(0, receiverTx)
+            updateTotals(currentData, payerTx, add = true)
+            updateTotals(currentData, receiverTx, add = true)
+
+            commitData(authHeader, currentData, fileDetails.sha, "Settlement: $payer -> $receiver ($amount)")
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // New Function: Balance Transfer
+    suspend fun addTransfer(token: String, sender: String, recipient: String, amount: Double, note: String, date: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val (authHeader, fileDetails, currentData) = getLatestData(token)
+            val parentId = "tx_trf_${System.currentTimeMillis()}"
+
+            // 1. Sender gives fund -> Balance goes DOWN (-Credit)
+            val senderTx = Transaction(
+                id = "${parentId}_send",
+                type = "credit",
+                whoOrBill = sender,
+                note = if(note.isNotEmpty()) "Transfer: $note" else "Transfer to $recipient",
+                amount = -amount,
+                date = date,
+                parentId = parentId
+            )
+
+            // 2. Recipient gets fund -> Balance goes UP (+Credit)
+            val recipientTx = Transaction(
+                id = "${parentId}_rcpt",
+                type = "credit",
+                whoOrBill = recipient,
+                note = if(note.isNotEmpty()) "Transfer: $note" else "Transfer from $sender",
+                amount = amount,
+                date = date,
+                parentId = parentId
+            )
+
+            // Add both
+            currentData.transactions.add(0, senderTx)
+            currentData.transactions.add(0, recipientTx)
+            updateTotals(currentData, senderTx, add = true)
+            updateTotals(currentData, recipientTx, add = true)
+
+            commitData(authHeader, currentData, fileDetails.sha, "Transfer: $sender -> $recipient ($amount)")
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -203,7 +285,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
         val amount = tx.amount * multiplier
 
         if (tx.type == "credit") {
-            // Ensure key exists
             if (!data.people.containsKey(tx.whoOrBill)) {
                 data.people[tx.whoOrBill] = 0.0
             }
@@ -236,7 +317,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
     }
 
     fun calculateBalances(data: KharchaData): Map<String, Double> {
-        // UPDATED: Get people list from data keys + defaults if empty
         val peopleKeys = data.people.keys
         val peopleList = if (peopleKeys.isNotEmpty()) peopleKeys.toList() else Constants.DEFAULT_MEMBERS
         
@@ -244,9 +324,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
 
         data.transactions.forEach { tx ->
             if (tx.type == "credit") {
-                // Ensure person exists in map (for new people added via other clients)
                 if (!balances.containsKey(tx.whoOrBill)) balances[tx.whoOrBill] = 0.0
-                
                 val current = balances[tx.whoOrBill] ?: 0.0
                 balances[tx.whoOrBill] = current + tx.amount
             } else {

@@ -11,12 +11,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,9 +47,18 @@ fun AddTransactionScreen(
     var isLoadingData by remember { mutableStateOf(true) }
     var showConfirmation by remember { mutableStateOf(false) }
     
+    // Transaction Mode: "debit", "credit", "distribute", "settlement", "transfer"
     var type by remember { mutableStateOf("debit") }
+    
     var amount by remember { mutableStateOf("") }
+    
+    // Primary Subject (Who paid credit/bill)
     var whoOrBill by remember { mutableStateOf("") }
+    
+    // For Settlement/Transfer (Two Subjects)
+    var fromSubject by remember { mutableStateOf("") }
+    var toSubject by remember { mutableStateOf("") }
+    
     var note by remember { mutableStateOf("") }
     var exemptions by remember { mutableStateOf(setOf<String>()) }
     var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
@@ -68,7 +79,7 @@ fun AddTransactionScreen(
             if (data.people.isNotEmpty()) allPeople = data.people.keys.toList().sorted()
             if (data.billTypes.isNotEmpty()) billTypes = data.billTypes.keys.toList().sorted()
             
-            // If editing, load fields after data is ready
+            // If editing, load fields
             if (transactionIdToEdit != null) {
                 val tx = data.transactions.find { it.id == transactionIdToEdit }
                 if (tx != null) {
@@ -133,6 +144,8 @@ fun AddTransactionScreen(
     val themeColor = when(type) {
         "credit" -> Color(0xFF059669)
         "distribute" -> Color(0xFF7C3AED)
+        "settlement" -> Color(0xFF059669) // Emerald for Offline Payment
+        "transfer" -> Color(0xFF2563EB)   // Blue for Transfer
         else -> Color(0xFFDC2626)
     }
 
@@ -147,26 +160,40 @@ fun AddTransactionScreen(
                 Instant.now().toString()
             }
 
-            val success: Boolean
+            var success = false
             
-            if (type == "distribute") {
-                success = repository.addDistribution(token, amount.toDouble(), note, finalDate)
-            } else {
-                val tx = Transaction(
-                    id = if (transactionIdToEdit != null) originalId else "tx_${System.currentTimeMillis()}_app",
-                    type = type,
-                    whoOrBill = whoOrBill,
-                    note = note,
-                    amount = amount.toDouble(),
-                    date = finalDate,
-                    exemptions = if (type == "debit" && exemptions.isNotEmpty()) exemptions.toList() else null
-                )
-                
-                success = if (transactionIdToEdit != null) {
-                    repository.editTransaction(token, tx)
-                } else {
-                    repository.addTransaction(token, tx)
+            try {
+                when (type) {
+                    "distribute" -> {
+                        success = repository.addDistribution(token, amount.toDouble(), note, finalDate)
+                    }
+                    "settlement" -> {
+                        success = repository.addSettlement(token, fromSubject, toSubject, amount.toDouble(), note, finalDate)
+                    }
+                    "transfer" -> {
+                        success = repository.addTransfer(token, fromSubject, toSubject, amount.toDouble(), note, finalDate)
+                    }
+                    else -> {
+                        // Debit / Credit
+                        val tx = Transaction(
+                            id = if (transactionIdToEdit != null) originalId else "tx_${System.currentTimeMillis()}_app",
+                            type = type,
+                            whoOrBill = whoOrBill,
+                            note = note,
+                            amount = amount.toDouble(),
+                            date = finalDate,
+                            exemptions = if (type == "debit" && exemptions.isNotEmpty()) exemptions.toList() else null
+                        )
+                        
+                        success = if (transactionIdToEdit != null) {
+                            repository.editTransaction(token, tx)
+                        } else {
+                            repository.addTransaction(token, tx)
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
             
             if (success) {
@@ -194,51 +221,118 @@ fun AddTransactionScreen(
                 }
             }
         } else {
+            // --- UPDATED CONFIRMATION DIALOG ---
             if (showConfirmation) {
                 AlertDialog(
                     onDismissRequest = { showConfirmation = false },
                     title = { Text("Confirm ${if(transactionIdToEdit!=null) "Update" else "Save"}") },
-                    text = { Text("Are you sure you want to commit this change?") },
+                    text = {
+                        Column {
+                            // Amount Display
+                            Text(
+                                text = "$amount SOM",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = themeColor
+                            )
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            // Details Display Logic
+                            val detailText = when (type) {
+                                "distribute" -> "Distribute equally to all"
+                                "settlement" -> "$fromSubject ➔ $toSubject (Cash)"
+                                "transfer" -> "$fromSubject ➔ $toSubject (Fund)"
+                                else -> "${type.replaceFirstChar { it.uppercase() }}: $whoOrBill"
+                            }
+                            
+                            Text(text = detailText, style = MaterialTheme.typography.titleMedium)
+                            
+                            // Note Display
+                            if (note.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "\"$note\"", 
+                                    style = MaterialTheme.typography.bodyMedium, 
+                                    fontStyle = FontStyle.Italic, 
+                                    color = Color.Gray
+                                )
+                            }
+                            
+                            // Exemptions Display
+                            if (type == "debit" && exemptions.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Exempt: ${exemptions.joinToString(", ")}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFC2410C)
+                                )
+                            }
+                        }
+                    },
                     confirmButton = {
                         Button(
                             onClick = { showConfirmation = false; handleSave() },
                             colors = ButtonDefaults.buttonColors(containerColor = themeColor)
-                        ) { Text("Yes") }
+                        ) { Text("Confirm") }
                     },
                     dismissButton = { OutlinedButton(onClick = { showConfirmation = false }) { Text("Cancel") } }
                 )
             }
 
             Column(modifier = Modifier.padding(p).padding(16.dp).verticalScroll(rememberScrollState())) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = type == "debit",
-                        onClick = { type = "debit"; whoOrBill = ""; exemptions = emptySet() },
-                        label = { Text("Debit", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                        modifier = Modifier.weight(1f),
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFEE2E2), selectedLabelColor = Color(0xFFDC2626))
-                    )
-                    FilterChip(
-                        selected = type == "credit",
-                        onClick = { type = "credit"; whoOrBill = "" },
-                        label = { Text("Credit", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                        modifier = Modifier.weight(1f),
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
-                    )
-                    if (transactionIdToEdit == null) {
+                
+                // TYPE SELECTION ROW
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), 
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    item {
                         FilterChip(
-                            selected = type == "distribute",
-                            onClick = { type = "distribute"; whoOrBill = "All"; },
-                            label = { Text("Distribute", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
-                            modifier = Modifier.weight(1f),
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFEDE9FE), selectedLabelColor = Color(0xFF7C3AED))
+                            selected = type == "debit",
+                            onClick = { type = "debit"; whoOrBill = ""; exemptions = emptySet() },
+                            label = { Text("Debit") },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFFEE2E2), selectedLabelColor = Color(0xFFDC2626))
                         )
+                    }
+                    item {
+                        FilterChip(
+                            selected = type == "credit",
+                            onClick = { type = "credit"; whoOrBill = "" },
+                            label = { Text("Credit") },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
+                        )
+                    }
+                    if (transactionIdToEdit == null) {
+                        item {
+                            FilterChip(
+                                selected = type == "distribute",
+                                onClick = { type = "distribute"; whoOrBill = "All" },
+                                label = { Text("Distribute") },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFEDE9FE), selectedLabelColor = Color(0xFF7C3AED))
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = type == "settlement",
+                                onClick = { type = "settlement"; fromSubject = ""; toSubject = "" },
+                                label = { Text("Settlement (Cash)") },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = type == "transfer",
+                                onClick = { type = "transfer"; fromSubject = ""; toSubject = "" },
+                                label = { Text("Transfer (Fund)") },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFDBEAFE), selectedLabelColor = Color(0xFF2563EB))
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (type != "distribute") {
+                // --- 1. SINGLE SUBJECT MODE (Debit / Credit) ---
+                if (type == "debit" || type == "credit") {
                     Text("Select Subject", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
                     val options = if(type == "credit") allPeople else billTypes
@@ -258,6 +352,47 @@ fun AddTransactionScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
+                // --- 2. DUAL SUBJECT MODE (Settlement / Transfer) ---
+                if (type == "settlement" || type == "transfer") {
+                    val fromLabel = if(type == "settlement") "Paid By (Gave Cash)" else "Sender (Giving Fund)"
+                    val toLabel = if(type == "settlement") "Received By (Got Cash)" else "Recipient (Getting Fund)"
+
+                    Text("From Account", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(allPeople.size) { i ->
+                            val person = allPeople[i]
+                            InputChip(
+                                selected = fromSubject == person,
+                                onClick = { fromSubject = person },
+                                label = { Text(person) },
+                                colors = InputChipDefaults.inputChipColors(selectedContainerColor = themeColor, selectedLabelColor = Color.White)
+                            )
+                        }
+                    }
+                    Text(fromLabel, style = MaterialTheme.typography.bodySmall, color = themeColor)
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text("To Account", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(allPeople.size) { i ->
+                            val person = allPeople[i]
+                            InputChip(
+                                selected = toSubject == person,
+                                onClick = { toSubject = person },
+                                label = { Text(person) },
+                                colors = InputChipDefaults.inputChipColors(selectedContainerColor = themeColor, selectedLabelColor = Color.White)
+                            )
+                        }
+                    }
+                    Text(toLabel, style = MaterialTheme.typography.bodySmall, color = themeColor)
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // AMOUNT INPUT
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
@@ -269,6 +404,7 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // NOTE INPUT
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
@@ -279,6 +415,7 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // DATE INPUT
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = dateDisplay,
@@ -298,6 +435,7 @@ fun AddTransactionScreen(
                     Box(modifier = Modifier.matchParentSize().clickable { datePickerDialog.show() })
                 }
 
+                // EXEMPTIONS (Only for Debit)
                 if (type == "debit") {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("Exemptions (Who doesn't pay?)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -327,10 +465,18 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // Validation Logic
+                val isValid = when(type) {
+                    "debit", "credit" -> amount.isNotEmpty() && whoOrBill.isNotEmpty()
+                    "distribute" -> amount.isNotEmpty()
+                    "settlement", "transfer" -> amount.isNotEmpty() && fromSubject.isNotEmpty() && toSubject.isNotEmpty() && fromSubject != toSubject
+                    else -> false
+                }
+
                 Button(
                     onClick = { showConfirmation = true },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
-                    enabled = amount.isNotEmpty() && (whoOrBill.isNotEmpty() || type == "distribute"),
+                    enabled = isValid,
                     colors = ButtonDefaults.buttonColors(containerColor = themeColor)
                 ) {
                     Text(if(transactionIdToEdit != null) "Update Transaction" else "Save to GitHub", fontSize = 16.sp, fontWeight = FontWeight.Bold)
