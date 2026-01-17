@@ -51,9 +51,6 @@ fun ProfileScreen(
     var isVerifying by remember { mutableStateOf(false) }
     var isTokenVisible by remember { mutableStateOf(false) }
     
-    // UPDATED: Use Constants
-    val allPeopleCount = Constants.MEMBERS.size 
-    
     val savedToken = dataStore.tokenFlow.collectAsState(initial = "")
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -233,6 +230,9 @@ fun ProfileScreen(
         }
 
         if (data != null) {
+            // UPDATED: Calculate using dynamic list size
+            val currentMemberCount = data!!.people.size
+            
             val myTransactions = data!!.transactions.filter { tx ->
                 if (tx.type == "credit") {
                     tx.whoOrBill == currentUser
@@ -251,8 +251,9 @@ fun ProfileScreen(
             } else {
                 items(myTransactions.take(30)) { tx ->
                     val exemptionsCount = tx.exemptions?.size ?: 0
-                    val payingPeopleCount = allPeopleCount - exemptionsCount
-                    val myShare = if (tx.type == "debit") tx.amount / payingPeopleCount else tx.amount
+                    val payingPeopleCount = currentMemberCount - exemptionsCount
+                    // Avoid division by zero
+                    val myShare = if (tx.type == "debit" && payingPeopleCount > 0) tx.amount / payingPeopleCount else tx.amount
 
                     ProfileTransactionRow(tx, myShare)
                 }

@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,12 +16,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.utils.Constants
 
 @Composable
-fun UserSelectionScreen(onUserSelected: (String) -> Unit) {
-    // UPDATED: Use Constants
-    val people = Constants.MEMBERS
+fun UserSelectionScreen(
+    repository: Repository, 
+    onUserSelected: (String) -> Unit
+) {
+    var peopleList by remember { mutableStateOf(Constants.DEFAULT_MEMBERS) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        // Try cache first
+        val cached = repository.getCachedData()
+        if (cached != null && cached.people.isNotEmpty()) {
+            peopleList = cached.people.keys.toList().sorted()
+            isLoading = false
+        } else {
+            // Try fetch
+            val fetched = repository.fetchData()
+            if (fetched != null && fetched.people.isNotEmpty()) {
+                peopleList = fetched.people.keys.toList().sorted()
+            }
+            isLoading = false
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -35,13 +55,17 @@ fun UserSelectionScreen(onUserSelected: (String) -> Unit) {
         
         Spacer(modifier = Modifier.height(32.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(people) { person ->
-                UserCard(person) { onUserSelected(person) }
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(peopleList) { person ->
+                    UserCard(person) { onUserSelected(person) }
+                }
             }
         }
     }

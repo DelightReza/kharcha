@@ -113,7 +113,11 @@ class Repository(private val dataStore: AppDataStore? = null) {
         try {
             val (authHeader, fileDetails, currentData) = getLatestData(token)
 
-            val people = Constants.MEMBERS
+            // UPDATED: Get people list directly from the data keys
+            val people = currentData.people.keys.toList().sorted()
+            
+            if (people.isEmpty()) return@withContext false
+
             val splitAmount = totalAmount / people.size
             val parentId = "tx_dist_${System.currentTimeMillis()}"
 
@@ -144,7 +148,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
         try {
             val (authHeader, fileDetails, currentData) = getLatestData(token)
             
-            // Find target. If it has a parentId, we must delete ALL with that parentId (Distribution)
             val targetTx = currentData.transactions.find { it.id == transactionId } ?: return@withContext false
             
             val toDelete = if (targetTx.parentId != null) {
@@ -154,7 +157,7 @@ class Repository(private val dataStore: AppDataStore? = null) {
             }
 
             toDelete.forEach { tx ->
-                updateTotals(currentData, tx, add = false) // Reverse impact
+                updateTotals(currentData, tx, add = false) 
                 currentData.transactions.remove(tx)
             }
 
@@ -174,13 +177,9 @@ class Repository(private val dataStore: AppDataStore? = null) {
             if (index == -1) return@withContext false
             val oldTx = currentData.transactions[index]
 
-            // 1. Revert Old
             updateTotals(currentData, oldTx, add = false)
-            
-            // 2. Apply New
             updateTotals(currentData, updatedTx, add = true)
             
-            // 3. Swap in list
             currentData.transactions[index] = updatedTx
 
             commitData(authHeader, currentData, fileDetails.sha, "Edit transaction ${updatedTx.id}")
@@ -191,7 +190,6 @@ class Repository(private val dataStore: AppDataStore? = null) {
         }
     }
 
-    // Helper to avoid repetition
     private suspend fun getLatestData(token: String): Triple<String, GitHubFileResponse, KharchaData> {
         val authHeader = "token $token"
         val fileDetails = api.getFileDetails(authHeader)
@@ -205,9 +203,16 @@ class Repository(private val dataStore: AppDataStore? = null) {
         val amount = tx.amount * multiplier
 
         if (tx.type == "credit") {
+            // Ensure key exists
+            if (!data.people.containsKey(tx.whoOrBill)) {
+                data.people[tx.whoOrBill] = 0.0
+            }
             val oldVal = data.people[tx.whoOrBill] ?: 0.0
             data.people[tx.whoOrBill] = oldVal + amount
         } else {
+            if (!data.billTypes.containsKey(tx.whoOrBill)) {
+                data.billTypes[tx.whoOrBill] = 0.0
+            }
             val oldVal = data.billTypes[tx.whoOrBill] ?: 0.0
             data.billTypes[tx.whoOrBill] = oldVal + amount
         }
@@ -231,19 +236,27 @@ class Repository(private val dataStore: AppDataStore? = null) {
     }
 
     fun calculateBalances(data: KharchaData): Map<String, Double> {
-        val peopleList = Constants.MEMBERS
+        // UPDATED: Get people list from data keys + defaults if empty
+        val peopleKeys = data.people.keys
+        val peopleList = if (peopleKeys.isNotEmpty()) peopleKeys.toList() else Constants.DEFAULT_MEMBERS
+        
         val balances = peopleList.associateWith { 0.0 }.toMutableMap()
 
         data.transactions.forEach { tx ->
             if (tx.type == "credit") {
+                // Ensure person exists in map (for new people added via other clients)
+                if (!balances.containsKey(tx.whoOrBill)) balances[tx.whoOrBill] = 0.0
+                
                 val current = balances[tx.whoOrBill] ?: 0.0
                 balances[tx.whoOrBill] = current + tx.amount
             } else {
                 val exemptions = tx.exemptions ?: emptyList()
                 val contributors = peopleList.filter { !exemptions.contains(it) }
+                
                 if (contributors.isNotEmpty()) {
                     val splitAmount = tx.amount / contributors.size
                     contributors.forEach { person ->
+                        if (!balances.containsKey(person)) balances[person] = 0.0
                         val current = balances[person] ?: 0.0
                         balances[person] = current - splitAmount
                     }

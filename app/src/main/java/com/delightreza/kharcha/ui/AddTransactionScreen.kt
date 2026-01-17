@@ -42,7 +42,7 @@ fun AddTransactionScreen(
     
     // State
     var isSubmitting by remember { mutableStateOf(false) }
-    var isLoadingData by remember { mutableStateOf(transactionIdToEdit != null) }
+    var isLoadingData by remember { mutableStateOf(true) }
     var showConfirmation by remember { mutableStateOf(false) }
     
     var type by remember { mutableStateOf("debit") }
@@ -52,31 +52,38 @@ fun AddTransactionScreen(
     var exemptions by remember { mutableStateOf(setOf<String>()) }
     var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
     
-    // Keeps original ID if editing, otherwise generate new one
+    // Dynamic Lists
+    var allPeople by remember { mutableStateOf(Constants.DEFAULT_MEMBERS) }
+    var billTypes by remember { mutableStateOf(Constants.DEFAULT_BILL_TYPES) }
+    
+    // Keeps original ID if editing
     var originalId by remember { mutableStateOf("") }
     var originalDate by remember { mutableStateOf("") }
 
-    // Load Data if Editing
-    LaunchedEffect(transactionIdToEdit) {
-        if (transactionIdToEdit != null) {
-            val data = repository.getCachedData() // Fast load
-            val tx = data?.transactions?.find { it.id == transactionIdToEdit }
+    // Load Data
+    LaunchedEffect(Unit) {
+        val data = repository.getCachedData() ?: repository.fetchData()
+        
+        if (data != null) {
+            if (data.people.isNotEmpty()) allPeople = data.people.keys.toList().sorted()
+            if (data.billTypes.isNotEmpty()) billTypes = data.billTypes.keys.toList().sorted()
             
-            if (tx != null) {
-                originalId = tx.id
-                originalDate = tx.date
-                type = tx.type
-                amount = if(tx.amount % 1.0 == 0.0) tx.amount.toInt().toString() else tx.amount.toString()
-                whoOrBill = tx.whoOrBill
-                note = tx.note
-                exemptions = tx.exemptions?.toSet() ?: emptySet()
+            // If editing, load fields after data is ready
+            if (transactionIdToEdit != null) {
+                val tx = data.transactions.find { it.id == transactionIdToEdit }
+                if (tx != null) {
+                    originalId = tx.id
+                    originalDate = tx.date
+                    type = tx.type
+                    amount = if(tx.amount % 1.0 == 0.0) tx.amount.toInt().toString() else tx.amount.toString()
+                    whoOrBill = tx.whoOrBill
+                    note = tx.note
+                    exemptions = tx.exemptions?.toSet() ?: emptySet()
+                }
             }
-            isLoadingData = false
         }
+        isLoadingData = false
     }
-
-    val allPeople = Constants.MEMBERS
-    val bills = Constants.BILL_TYPES
 
     // ... Time/Date Picker Logic ...
     val timePickerDialog = TimePickerDialog(
@@ -132,20 +139,17 @@ fun AddTransactionScreen(
     val handleSave = {
         isSubmitting = true
         scope.launch {
-            // Determine final date
             val finalDate = if (selectedDateTime != null) {
                 selectedDateTime!!.toInstant().toString()
             } else if (transactionIdToEdit != null) {
-                originalDate // Keep original
+                originalDate
             } else {
-                Instant.now().toString() // New date
+                Instant.now().toString()
             }
 
             val success: Boolean
             
             if (type == "distribute") {
-                // Distribution cannot be "edited" easily, so we treat it as new always for now 
-                // (or you can block editing distributions in the UI logic)
                 success = repository.addDistribution(token, amount.toDouble(), note, finalDate)
             } else {
                 val tx = Transaction(
@@ -166,8 +170,6 @@ fun AddTransactionScreen(
             }
             
             if (success) {
-                // If we edited, pop back twice (to skip detail view which might show old data) or just pop once
-                // Popping once is safer, the detail view will refresh
                 navController.popBackStack()
             } else {
                 isSubmitting = false
@@ -192,7 +194,6 @@ fun AddTransactionScreen(
                 }
             }
         } else {
-            // Confirmation Dialog
             if (showConfirmation) {
                 AlertDialog(
                     onDismissRequest = { showConfirmation = false },
@@ -209,7 +210,6 @@ fun AddTransactionScreen(
             }
 
             Column(modifier = Modifier.padding(p).padding(16.dp).verticalScroll(rememberScrollState())) {
-                // ... (Tabs: Debit/Credit/Distribute) ...
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = type == "debit",
@@ -225,7 +225,6 @@ fun AddTransactionScreen(
                         modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFFD1FAE5), selectedLabelColor = Color(0xFF059669))
                     )
-                    // Disable Distribute in Edit Mode to keep logic simple
                     if (transactionIdToEdit == null) {
                         FilterChip(
                             selected = type == "distribute",
@@ -239,11 +238,10 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Subject Selection
                 if (type != "distribute") {
                     Text("Select Subject", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
-                    val options = if(type == "credit") allPeople else bills
+                    val options = if(type == "credit") allPeople else billTypes
                     
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(options.size) { i ->
@@ -260,7 +258,6 @@ fun AddTransactionScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Amount
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { amount = it },
@@ -272,7 +269,6 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Note
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
@@ -283,7 +279,6 @@ fun AddTransactionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Date
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = dateDisplay,
@@ -303,7 +298,6 @@ fun AddTransactionScreen(
                     Box(modifier = Modifier.matchParentSize().clickable { datePickerDialog.show() })
                 }
 
-                // Exemptions
                 if (type == "debit") {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("Exemptions (Who doesn't pay?)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)

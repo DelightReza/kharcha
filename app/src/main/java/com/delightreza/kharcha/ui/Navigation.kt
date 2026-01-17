@@ -42,6 +42,7 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = startDest) {
         composable("onboarding") {
             UserSelectionScreen(
+                repository = repository, // Pass repository
                 onUserSelected = { user ->
                     scope.launch {
                         dataStore.saveUser(user)
@@ -63,7 +64,6 @@ fun AppNavigation() {
             )
         }
 
-        // UPDATED: Accepts optional txId for Editing
         composable(
             "add_transaction?txId={txId}",
             arguments = listOf(navArgument("txId") { nullable = true; type = NavType.StringType })
@@ -85,7 +85,7 @@ fun AppNavigation() {
                     navController = navController,
                     repository = repository,
                     token = token,
-                    transactionIdToEdit = txId // Pass the ID
+                    transactionIdToEdit = txId 
                 )
             }
         }
@@ -99,7 +99,7 @@ fun AppNavigation() {
                 navController = navController,
                 repository = repository,
                 transactionId = txId,
-                hasToken = !tokenState.value.isNullOrBlank(), // Check for Edit/Delete permission
+                hasToken = !tokenState.value.isNullOrBlank(), 
                 token = tokenState.value
             )
         }
