@@ -24,8 +24,8 @@ def format_utc6(iso_date):
         return iso_date
 
 def calculate_finance(data):
-    # Dynamic People List (Single Source of Truth)
-    all_people = set(data.get('people', {}).keys())
+    # Dynamic People List (Single Source of Truth) - Sorted for consistency
+    all_people = sorted(list(data.get('people', {}).keys()))
     
     # Initialize logic
     finance = {p: {'credits': 0, 'debits': 0, 'net_balance': 0} for p in all_people}
@@ -69,6 +69,18 @@ def calculate_finance(data):
         'transactions': enriched_txs
     }
 
+def smart_write(filepath, content):
+    """Only write the file if content has changed to preserve timestamps/git history."""
+    if os.path.exists(filepath):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            existing_content = f.read()
+        if existing_content == content:
+            return False # Skipped
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(content)
+    return True # Written
+
 def main():
     # Setup Jinja2
     env = Environment(loader=FileSystemLoader('templates'))
@@ -82,15 +94,16 @@ def main():
     chart_labels = list(bill_types.keys())
     chart_data = list(bill_types.values())
     
-    # Generate Dashboard
-    print("Generating Dashboard...")
+    # Current time for the Dashboard only
+    utc_now = datetime.datetime.now(timezone.utc) + timedelta(hours=6)
+    dashboard_time = utc_now.strftime('%Y-%m-%d %H:%M UTC+6')
+
+    # --- 1. Generate Dashboard (Always update this) ---
+    print(f"Generating Dashboard ({dashboard_time})...")
     template = env.get_template('dashboard.html')
     
-    utc_now = datetime.datetime.now(timezone.utc) + timedelta(hours=6)
-    last_updated = utc_now.strftime('%Y-%m-%d %H:%M UTC+6')
-
     output = template.render(
-        last_updated=last_updated,
+        last_updated=dashboard_time,
         total_credits=results['totals']['credits'],
         total_debits=results['totals']['debits'],
         balance=results['totals']['balance'],
@@ -100,24 +113,32 @@ def main():
         chart_data=chart_data
     )
     
-    with open(INDEX_FILE, 'w') as f:
+    with open(INDEX_FILE, 'w', encoding='utf-8') as f:
         f.write(output)
 
     # Make sure directory exists
     os.makedirs(TRANSACTIONS_DIR, exist_ok=True)
 
-    # 1. Generate Individual Transaction Pages
+    # --- 2. Generate Individual Transaction Pages ---
     print("Generating Individual Transaction Pages...")
     tx_template = env.get_template('transaction.html')
     
-    # Also collect groups while looping
     grouped_transactions = {}
+    skipped_count = 0
+    written_count = 0
 
     for tx in results['transactions']:
-        # Generate single page
-        tx_html = tx_template.render(tx=tx, last_updated=last_updated)
-        with open(f"{TRANSACTIONS_DIR}/{tx['id']}.html", 'w') as f:
-            f.write(tx_html)
+        # KEY CHANGE: Use the transaction's own date as the "Last Updated" in the header
+        # This ensures the HTML content is identical unless the transaction data actually changes.
+        tx_header_time = f"{tx['display_date']} UTC+6"
+
+        tx_html = tx_template.render(tx=tx, last_updated=tx_header_time)
+        file_path = f"{TRANSACTIONS_DIR}/{tx['id']}.html"
+        
+        if smart_write(file_path, tx_html):
+            written_count += 1
+        else:
+            skipped_count += 1
         
         # Collect for groups
         if 'parentId' in tx:
@@ -126,26 +147,38 @@ def main():
                 grouped_transactions[pid] = []
             grouped_transactions[pid].append(tx)
 
-    # 2. Generate Group Transaction Pages
-    print(f"Generating {len(grouped_transactions)} Group Pages...")
+    print(f"   - Transactions: {written_count} updated, {skipped_count} skipped.")
+
+    # --- 3. Generate Group Transaction Pages ---
+    print("Generating Group Pages...")
     group_template = env.get_template('transaction_group.html')
+    
+    g_written = 0
+    g_skipped = 0
 
     for group_id, txs in grouped_transactions.items():
         # Calculate group totals
         g_credit = sum(t['amount'] for t in txs if t['type'] == 'credit')
         g_debit = sum(t['amount'] for t in txs if t['type'] == 'debit')
         
+        # Use the first transaction's date for the group header time
+        group_header_time = f"{txs[0]['display_date']} UTC+6"
+
         group_html = group_template.render(
             group_id=group_id,
             transactions=txs,
             total_credit=g_credit,
             total_debit=g_debit,
-            last_updated=last_updated
+            last_updated=group_header_time
         )
         
-        with open(f"{TRANSACTIONS_DIR}/{group_id}.html", 'w') as f:
-            f.write(group_html)
+        file_path = f"{TRANSACTIONS_DIR}/{group_id}.html"
+        if smart_write(file_path, group_html):
+            g_written += 1
+        else:
+            g_skipped += 1
 
+    print(f"   - Groups: {g_written} updated, {g_skipped} skipped.")
     print("✅ Build Complete.")
 
 if __name__ == "__main__":
