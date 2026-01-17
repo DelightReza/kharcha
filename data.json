@@ -11,13 +11,21 @@
     "Musawwar": 2670.0,
     "Raza": 3250.0,
     "Salman": 3250.0,
-    "Mujeeb": 2250.0,
+    "Mujeeb": 3100.0,
     "Gulam": 2650.0,
     "Rana": 2250.0,
     "Naved": 2250.0,
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1768644136590_app",
+      "type": "credit",
+      "whoOrBill": "Mujeeb",
+      "note": "",
+      "amount": 850,
+      "date": "2026-01-17T10:02:16.589049Z"
+    },
     {
       "id": "tx_1768551059573_app",
       "type": "debit",
