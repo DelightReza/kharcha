@@ -66,13 +66,130 @@ class SyncWorker(
                     
                     // Random list of annoying messages
                     val naggingMessages = listOf(
+                        // Classical
                         "🚨 EMERGENCY: You owe $debt SOM! Pay up or wash dishes for a month! 🍽️",
                         "Hello? It's your conscience. You owe $debt SOM. Fix it. 📞",
                         "Friendly reminder: You are the reason we can't have nice things. Owe: $debt SOM. 🌚",
-                        "Stop ignoring this! You are in negative -$debt SOM. 📉",
+                        "Stop ignoring this! You are in the red: -$debt SOM. 📉",
                         "Money doesn't grow on trees, but your debt does! Pay $debt SOM now! 🌳",
                         "Knock knock. Who's there? A debt of $debt SOM. 🚪",
-                        "Wallet looking heavy? Lighten it by paying your $debt SOM debt! 💸"
+                        "Wallet looking heavy? Lighten it by paying your $debt SOM debt! 💸",
+            
+                        // Pop Culture / Gen Z
+                        "I am once again asking for your financial support. Specifically: $debt SOM. 🧤",
+                        "Winter is coming... and so is the bill for $debt SOM. ❄️",
+                        "You owe $debt SOM. This is not the way. 👽",
+                        "Emotional Damage: You still owe $debt SOM. 💔",
+                        "Tell me you're broke without telling me you're broke. Balance: -$debt SOM. 💀",
+                        "It's a beautiful day to pay your $debt SOM debt. ☀️",
+                        "Swiper no swiping! But you... you need to be paying $debt SOM. 🦊",
+                        "Are you waiting for a letter from Hogwarts to pay this $debt SOM? 🦉",
+                        "Simulating financial responsibility... Error. Debt: $debt SOM. 🤖",
+            
+                        // Aggressive / Panic
+                        "⚠️ CODE RED: $debt SOM MISSING. DEPLOYING SEARCH PARTY. 🚁",
+                        "Your kneecaps look lovely today. Would be a shame if you didn't pay $debt SOM. 🔨",
+                        "I told your mom you owe $debt SOM. She's disappointed. 👵",
+                        "FBI OPEN UP! Just kidding, but seriously, pay the $debt SOM. 👮",
+                        "Every second you wait, the $debt SOM gets sadder. 😢",
+                        "I'm not saying aliens will abduct you, but they prefer people with 0 debt. Current: $debt SOM. 🛸",
+                        "RUN! (To the bank to pay your $debt SOM). 🏃",
+            
+                        // Passive Aggressive
+                        "I guess we're just pretending this $debt SOM doesn't exist? Cool. ☕",
+                        "Your credit score is watching you read this and do nothing about the $debt SOM. 👀",
+                        "Seen at 10:00 AM. Still hasn't paid $debt SOM. Typical. ✔️✔️",
+                        "Oh, you're buying coffee? Must be nice having $debt SOM debt. ☕",
+                        "I love how relaxed you are about owing $debt SOM. Inspiring, really. 🧘",
+                        "Don't worry, I'll just sit here and wait for my $debt SOM. In the dark. Alone. 🕯️",
+            
+                        // Tech / Glitch
+                        "404 Error: Payment of $debt SOM not found. Please refresh wallet. 💻",
+                        "System Update: You still owe $debt SOM. Do not turn off your conscience. 🔋",
+                        "Syncing... Syncing... Failed. Reason: Negative balance of $debt SOM. 📡",
+                        "Warning: Low Balance. You are -$debt SOM in the hole. Recharge immediately. 🔋",
+                        "Ctrl+Alt+Delete this debt of $debt SOM immediately. ⌨️",
+            
+                        // Short & Punchy
+                        "Pay. $debt SOM. Now. 😡",
+                        "Bruh. $debt SOM? Really? 😑",
+                        "Yikes. -$debt SOM. 😬",
+                        "Fix this: $debt SOM. 🛠️",
+                        "Account status: Broke ($debt SOM). 📉",
+                        "Debt: $debt SOM. Dignity: 0. 📉",
+            
+                        // Guilt Trips
+                        "Think of the children! (Or just the people you owe $debt SOM to). 👶",
+                        "Every time you ignore this, a puppy cries. You owe $debt SOM. 🐶",
+                        "To owe is human. To pay is divine. Be divine. Pay $debt SOM. ✨",
+                        "Do it for your ancestors. Pay the $debt SOM. 🏛️",
+            
+                        // The "Helpful" Assistant
+                        "Suggestion: Sell a kidney? You owe $debt SOM. (Legal disclaimer: Don't). 🏥",
+                        "Tip: Walking is free. Not paying your $debt SOM debt is not. 🚶",
+                        "Did you know? $debt SOM is enough to buy... well, your freedom from this notification. 🌈",
+                        "Math lesson: You - $debt SOM = Sadness. You + Payment = Happiness. 🧮",
+            
+                        // Random / Absurdist
+                        "The spirits say... you owe $debt SOM. 🔮",
+                        "A bird pooped on my car today. It's a sign you need to pay $debt SOM. 🐦",
+                        "If I had a SOM for every time you ignored this, I'd have... well, $debt SOM. 💰",
+                        "Banana. Monkey. Pay your $debt SOM. 🍌",
+                        "You have won a free iPhone! Just kidding, pay your $debt SOM. 📱",
+            
+                        // Local / Cultural (General)
+                        "No Plov for you until you pay $debt SOM! 🥘",
+                        "Even the tea is getting cold waiting for your $debt SOM. ☕",
+                        "Don't be that guy. Pay the $debt SOM. 🤦",
+            
+                        // More fillers to hit the "100" feel
+                        "Tic Toc. The clock is ticking on $debt SOM. ⏰",
+                        "Mission Impossible: Pay $debt SOM. 🕵️",
+                        "Loading financial stability... Stuck at -$debt SOM. ⏳",
+                        "Printer out of ink. Can't print money. Pay $debt SOM. 🖨️",
+                        "Alert! Alert! $debt SOM deficit detected! 🚨",
+                        "This is your final warning (until the next hour). Pay $debt SOM. ⚠️",
+                        "Look at your wallet. Now look at me. Pay $debt SOM. 🐴",
+                        "Keep calm and pay $debt SOM. 👑",
+                        "Eat. Sleep. Pay $debt SOM. Repeat. 🔁",
+                        "Just do it. Pay $debt SOM. ✔️",
+                        "May the funds be with you. You need $debt SOM. ⚔️",
+                        "Houston, we have a problem. It's a $debt SOM debt. 🚀",
+                        "Are you okay? You seem to be allergic to paying $debt SOM. 🤧",
+                        "Ghosting your friends is bad. Ghosting your $debt SOM debt is worse. 👻",
+                        "Swipe right on payment. Swipe left on debt ($debt SOM). 📱",
+                        "Be a hero. Save the economy. Pay $debt SOM. 🦸",
+                        "Legend says he still owes $debt SOM to this day... 📜",
+                        "Don't make me use ALL CAPS TO ASK FOR $debt SOM. 🅰️",
+                        "Error 503: Service Unavailable until $debt SOM is paid. 🛑",
+                        "Searching for money... 0 results found. Debt: $debt SOM. 🔍",
+                        "I bet you think this notification is annoying. So is owing $debt SOM. 🤡",
+                        "Reality check: You are poor. Specifically, -$debt SOM poor. 📉",
+                        "Achievement Locked: 'Debt Free'. Pay $debt SOM to unlock. 🏆",
+                        "Insert coin to continue. (Insert $debt SOM). 🕹️",
+                        "Game Over. Insert $debt SOM to try again. 👾",
+                        "Your free trial of 'Ignoring Debt' has expired. Owe: $debt SOM. ⏳",
+                        "Roses are red, violets are blue, you owe $debt SOM, and that is true. 🌹",
+                        "Violets are blue, roses are red, pay $debt SOM or you're dead (financially). 🥀",
+                        "Haiku for you: \nWallet is empty. \nDebt is very high today. \nPay $debt SOM now. 🎋",
+                        "Knock knock. It's the debt collector. ($debt SOM). 👊",
+                        "Who needs enemies when you have a debt of $debt SOM? 🤷",
+                        "Feeling lonely? Your debt of $debt SOM is always with you. 🫂",
+                        "Money talks. Yours is saying 'Goodbye' ($debt SOM). 👋",
+                        "I'm watching you. Always. Pay $debt SOM. 👁️",
+                        "Is it me you're looking for? No, it's $debt SOM. 🎤",
+                        "Never gonna give you up... never gonna let you ignore $debt SOM. 🕺",
+                        "Identify theft is not a joke, Jim! Neither is $debt SOM! 👓",
+                        "That's what she said: 'Pay $debt SOM!' 🏢",
+                        "Bears. Beets. Battlestar Galactica. Pay $debt SOM. 🐻",
+                        "How you doin'? (Broke, apparently. -$debt SOM). 🍕",
+                        "Pivot! Pivot! Pivot your money to this debt of $debt SOM! 🛋️",
+                        "Smelly Cat, Smelly Cat, why aren't you paying $debt SOM? 🐈",
+                        "Could you BE any more in debt? ($debt SOM). 👔",
+                        "Live long and prosper (after you pay $debt SOM). 🖖",
+                        "The force is weak with this wallet. (-$debt SOM). 🌑",
+                        "Chewbacca noise! (Translation: Pay $debt SOM). 🦍",
+                        "Why so serious? It's just $debt SOM. 🃏"
                     )
 
                     // Fixed ID (999) ensures this specific notification stays updated
