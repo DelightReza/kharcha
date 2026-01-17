@@ -144,12 +144,14 @@ const Modals = {
     let exemptionSection = '';
     
     if (transaction.type === 'credit') {
-      PEOPLE.DEFAULT.forEach(person => {
+      const people = AppState.getPeopleList();
+      people.forEach(person => {
         const selected = person === transaction.whoOrBill ? 'selected' : '';
         whoOrBillOptions += `<option value="${person}" ${selected}>👤 ${person}</option>`;
       });
     } else {
-      BILL_TYPES.forEach(billType => {
+      const billTypes = AppState.getBillTypesList();
+      billTypes.forEach(billType => {
         const selected = billType === transaction.whoOrBill ? 'selected' : '';
         const icon = Utils.getBillIcon(billType);
         whoOrBillOptions += `<option value="${billType}" ${selected}>${icon} ${billType}</option>`;
@@ -157,7 +159,9 @@ const Modals = {
       
       // Exemption section for debit transactions
       const exemptions = transaction.exemptions || [];
-      const exemptionCheckboxes = PEOPLE.ALL.map(person => `
+      const allPeople = AppState.getPeopleList();
+      
+      const exemptionCheckboxes = allPeople.map(person => `
         <label class="flex items-center space-x-2 text-sm">
           <input type="checkbox" value="${person}" class="rounded text-red-600 focus:ring-red-500 edit-exemption-checkbox" ${exemptions.includes(person) ? 'checked' : ''}>
           <span>${person}</span>
@@ -315,7 +319,8 @@ const Modals = {
       return '<span class="text-gray-400">Enter amount to see distribution</span>';
     }
     
-    const payingPeople = PEOPLE.ALL.filter(person => !exemptions.includes(person));
+    const allPeople = AppState.getPeopleList();
+    const payingPeople = allPeople.filter(person => !exemptions.includes(person));
     
     if (payingPeople.length === 0) {
       return '<span class="text-red-600">⚠️ No one is paying this bill!</span>';

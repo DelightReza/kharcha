@@ -217,7 +217,8 @@ const TransactionManager = {
       return;
     }
     
-    const amountPerPerson = amount / PEOPLE.ALL.length;
+    const allPeople = AppState.getPeopleList();
+    const amountPerPerson = amount / allPeople.length;
     const transactionDate = new Date().toISOString();
     const baseTransactionId = Utils.generateTransactionId('tx_dist');
     
@@ -229,7 +230,7 @@ const TransactionManager = {
       try {
         const data = AppState.getData();
         
-        PEOPLE.ALL.forEach((person, index) => {
+        allPeople.forEach((person, index) => {
           const transaction = {
             id: `${baseTransactionId}_${index}`,
             type: 'credit',
@@ -248,7 +249,7 @@ const TransactionManager = {
         DataManager.saveData();
         UI.renderDashboard();
         
-        UI.showTransactionStatus(`✅ ${amount.toFixed(2)} SOM distributed equally among ${PEOPLE.ALL.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
+        UI.showTransactionStatus(`✅ ${amount.toFixed(2)} SOM distributed equally among ${allPeople.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
         
         DOM.distributionAmount.value = '';
         DOM.distributionNote.value = '';

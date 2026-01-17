@@ -8,9 +8,10 @@ const Calculations = {
   calculatePersonalFinance() {
     const data = AppState.getData();
     const personalFinance = {};
+    const allPeople = AppState.getPeopleList();
     
     // Initialize all people
-    PEOPLE.ALL.forEach(person => {
+    allPeople.forEach(person => {
       personalFinance[person] = {
         credits: 0,
         debits: 0,
@@ -21,6 +22,11 @@ const Calculations = {
     // Calculate credits (direct from credit transactions)
     data.transactions.forEach(tx => {
       if (tx.type === 'credit') {
+        // Ensure person exists in our list (handle legacy data gracefully)
+        if (!personalFinance[tx.whoOrBill]) {
+             personalFinance[tx.whoOrBill] = { credits: 0, debits: 0, netBalance: 0 };
+        }
+        
         if (personalFinance[tx.whoOrBill]) {
           personalFinance[tx.whoOrBill].credits += tx.amount;
           personalFinance[tx.whoOrBill].netBalance += tx.amount;
@@ -32,7 +38,7 @@ const Calculations = {
     data.transactions.forEach(tx => {
       if (tx.type === 'debit') {
         const exemptions = tx.exemptions || [];
-        const payingPeople = PEOPLE.ALL.filter(person => !exemptions.includes(person));
+        const payingPeople = allPeople.filter(person => !exemptions.includes(person));
         
         if (payingPeople.length > 0) {
           const amountPerPerson = tx.amount / payingPeople.length;
@@ -52,7 +58,8 @@ const Calculations = {
   
   // Calculate bill distribution with exemptions
   calculateBillDistribution(amount, exemptions) {
-    const payingPeople = PEOPLE.ALL.filter(person => !exemptions.includes(person));
+    const allPeople = AppState.getPeopleList();
+    const payingPeople = allPeople.filter(person => !exemptions.includes(person));
     
     if (payingPeople.length === 0) {
       return { 

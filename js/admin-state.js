@@ -41,6 +41,23 @@ const AppState = {
       billTypes: newData.billTypes || {}
     };
   },
+
+  // Dynamic Getters for People and Bill Types
+  getPeopleList() {
+    if (this.data && this.data.people) {
+      const keys = Object.keys(this.data.people);
+      if (keys.length > 0) return keys;
+    }
+    return PEOPLE.ALL; // Fallback to config if data is empty
+  },
+
+  getBillTypesList() {
+    if (this.data && this.data.billTypes) {
+      const keys = Object.keys(this.data.billTypes);
+      if (keys.length > 0) return keys;
+    }
+    return BILL_TYPES; // Fallback to config
+  },
   
   // PAT management
   setPAT(token) {

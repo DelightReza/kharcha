@@ -73,6 +73,7 @@ const Utils = {
   
   // Get bill icon
   getBillIcon(billType) {
-    return BILL_ICONS[billType] || '📦';
+    // Return specific icon or generic box if unknown
+    return BILL_ICONS[billType] || '🧾';
   }
 };

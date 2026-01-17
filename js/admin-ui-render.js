@@ -29,13 +29,17 @@ const UI = {
   // Render personal finance summary
   renderPersonalFinance() {
     const personalFinance = Calculations.calculatePersonalFinance();
+    const allPeople = AppState.getPeopleList();
     
     DOM.personalFinanceBody.innerHTML = '';
     DOM.personalBreakdown.innerHTML = '';
 
     // Render table rows
-    PEOPLE.ALL.forEach(person => {
+    allPeople.forEach(person => {
       const finance = personalFinance[person];
+      // Safety check in case calculation missed a person
+      if (!finance) return;
+
       const statusClass = finance.netBalance >= 0 ? 'text-green-600' : 'text-red-600';
       const statusIcon = finance.netBalance >= 0 ? 'fa-smile' : 'fa-frown';
       const statusText = finance.netBalance >= 0 ? 'In Credit' : 'In Debit';
@@ -57,8 +61,10 @@ const UI = {
     });
 
     // Render detailed breakdown cards
-    PEOPLE.ALL.forEach(person => {
+    allPeople.forEach(person => {
       const finance = personalFinance[person];
+      if (!finance) return;
+
       const statusClass = finance.netBalance >= 0 ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
       const textClass = finance.netBalance >= 0 ? 'text-green-600' : 'text-red-600';
       
@@ -92,7 +98,11 @@ const UI = {
     const data = AppState.getData();
     DOM.billTypesSummary.innerHTML = '';
     
-    Object.entries(data.billTypes).forEach(([billType, amount]) => {
+    // Use the dynamic bill types from state if available, or just iterate the object keys
+    const billTypes = AppState.getBillTypesList();
+    
+    billTypes.forEach(billType => {
+      const amount = data.billTypes[billType] || 0;
       if (amount > 0) {
         const icon = Utils.getBillIcon(billType);
         

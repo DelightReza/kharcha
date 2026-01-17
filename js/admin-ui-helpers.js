@@ -7,9 +7,22 @@
 Object.assign(UI, {
   // Initialize form dropdowns
   initializeDropdowns() {
-    DOM.personSelect.innerHTML = PEOPLE.DEFAULT.map(person => 
-      `<option value="${person}">👤 ${person}</option>`
-    ).join('');
+    const people = AppState.getPeopleList();
+    
+    // Check if element exists before setting innerHTML
+    if (DOM.personSelect) {
+        DOM.personSelect.innerHTML = people.map(person => 
+          `<option value="${person}">👤 ${person}</option>`
+        ).join('');
+    }
+    
+    // Also update Debit Type dropdown dynamically
+    const billTypes = AppState.getBillTypesList();
+    if (DOM.debitType) {
+        DOM.debitType.innerHTML = billTypes.map(billType => 
+            `<option value="${billType}">${Utils.getBillIcon(billType)} ${billType}</option>`
+        ).join('');
+    }
   },
   
   // Set default dates
@@ -19,19 +32,21 @@ Object.assign(UI, {
     DOM.debitDate.value = today;
   },
   
-  // Update whoOrBill dropdown based on type
+  // Update whoOrBill dropdown based on type (Used primarily in Edit Modal logic)
   updateWhoOrBillDropdown(selectElement, type) {
     selectElement.innerHTML = '';
     
     if (type === 'credit') {
-      PEOPLE.DEFAULT.forEach(person => {
+      const people = AppState.getPeopleList();
+      people.forEach(person => {
         const option = document.createElement('option');
         option.value = person;
         option.textContent = `👤 ${person}`;
         selectElement.appendChild(option);
       });
     } else {
-      BILL_TYPES.forEach(billType => {
+      const billTypes = AppState.getBillTypesList();
+      billTypes.forEach(billType => {
         const option = document.createElement('option');
         option.value = billType;
         option.textContent = `${Utils.getBillIcon(billType)} ${billType}`;
@@ -42,7 +57,8 @@ Object.assign(UI, {
   
   // Initialize bill exemptions
   initBillExemptions() {
-    DOM.exemptionCheckboxes.innerHTML = PEOPLE.ALL.map(person => `
+    const people = AppState.getPeopleList();
+    DOM.exemptionCheckboxes.innerHTML = people.map(person => `
       <label class="flex items-center space-x-2 text-sm">
         <input type="checkbox" value="${person}" class="rounded text-red-600 focus:ring-red-500 exemption-checkbox">
         <span>${person}</span>
@@ -55,6 +71,11 @@ Object.assign(UI, {
       checkbox.addEventListener('change', () => this.updateExemptionPreview());
     });
     
+    // Remove existing listener to avoid duplicates if re-initialized
+    const newEnableExemptions = DOM.enableExemptions.cloneNode(true);
+    DOM.enableExemptions.parentNode.replaceChild(newEnableExemptions, DOM.enableExemptions);
+    DOM.enableExemptions = newEnableExemptions;
+
     DOM.enableExemptions.addEventListener('change', function() {
       DOM.exemptionFields.classList.toggle('hidden', !this.checked);
       if (this.checked) {
@@ -78,7 +99,8 @@ Object.assign(UI, {
       return;
     }
     
-    const payingPeople = PEOPLE.ALL.filter(person => !exemptPeople.includes(person));
+    const allPeople = AppState.getPeopleList();
+    const payingPeople = allPeople.filter(person => !exemptPeople.includes(person));
     
     if (payingPeople.length === 0) {
       DOM.exemptionDetails.innerHTML = 
@@ -117,9 +139,10 @@ Object.assign(UI, {
       return;
     }
     
-    const amountPerPerson = amount / PEOPLE.ALL.length;
+    const allPeople = AppState.getPeopleList();
+    const amountPerPerson = amount / allPeople.length;
     
-    DOM.distributionDetails.innerHTML = PEOPLE.ALL.map(person => `
+    DOM.distributionDetails.innerHTML = allPeople.map(person => `
       <div class="flex justify-between items-center bg-green-50 p-2 rounded-lg">
         <span class="text-gray-600 text-xs">${person}:</span>
         <span class="font-medium text-green-600 text-sm">${amountPerPerson.toFixed(2)}</span>

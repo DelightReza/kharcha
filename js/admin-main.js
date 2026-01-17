@@ -9,7 +9,7 @@ const App = {
     // Initialize DOM references
     DOM.init();
     
-    // Initialize UI components
+    // Initialize dropdowns immediately (with defaults) so the UI isn't empty
     UI.initializeDropdowns();
     UI.setDefaultDates();
     
@@ -19,11 +19,12 @@ const App = {
     // Load data
     await DataManager.loadDataFromGitHubPages();
     
+    // Re-initialize UI components after data load to reflect dynamic People/BillTypes from JSON
+    UI.initializeDropdowns();
+    UI.initBillExemptions();
+    
     // Setup event listeners
     this.setupEventListeners();
-    
-    // Initialize bill exemptions
-    UI.initBillExemptions();
     
     // Initial render
     UI.renderDashboard();
