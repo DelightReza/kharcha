@@ -267,6 +267,156 @@ const TransactionManager = {
     }, 800);
   },
 
+  // Add Offline Settlement
+  addSettlement() {
+    const payer = DOM.settlementPayer.value; // Person giving cash
+    const receiver = DOM.settlementReceiver.value; // Person getting cash
+    const amount = parseFloat(DOM.settlementAmount.value);
+    const customNote = DOM.settlementNote.value.trim();
+
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      UI.showTransactionStatus('❌ Please enter a valid amount', 'error');
+      setTimeout(() => UI.hideTransactionStatus(), 3000);
+      return;
+    }
+
+    if (payer === receiver) {
+      UI.showTransactionStatus('❌ Payer and Receiver cannot be the same person', 'error');
+      setTimeout(() => UI.hideTransactionStatus(), 3000);
+      return;
+    }
+
+    UI.showTransactionStatus('🔄 Processing settlement...', 'processing');
+    DOM.addSettlementBtn.disabled = true;
+    DOM.addSettlementBtn.innerHTML = '<div class="loading-spinner mr-2"></div> ...';
+
+    setTimeout(() => {
+      try {
+        const data = AppState.getData();
+        const transactionDate = new Date().toISOString();
+        const baseId = Utils.generateTransactionId('tx_set');
+
+        // Payer paid cash: Their balance goes UP (less debt) -> Positive Credit
+        const payerTx = {
+          id: `${baseId}_payer`,
+          type: 'credit',
+          whoOrBill: payer,
+          note: customNote ? `Settlement: ${customNote}` : `Settlement to ${receiver}`,
+          amount: amount,
+          date: transactionDate,
+          parentId: baseId
+        };
+
+        // Receiver got cash: Their balance goes DOWN (less claim) -> Negative Credit
+        const receiverTx = {
+          id: `${baseId}_rcvr`,
+          type: 'credit',
+          whoOrBill: receiver,
+          note: customNote ? `Settlement: ${customNote}` : `Settlement from ${payer}`,
+          amount: -amount,
+          date: transactionDate,
+          parentId: baseId
+        };
+
+        data.transactions.unshift(payerTx, receiverTx);
+        
+        // Update balances
+        data.people[payer] = (data.people[payer] || 0) + amount;
+        data.people[receiver] = (data.people[receiver] || 0) - amount;
+
+        DataManager.saveData();
+        UI.renderDashboard();
+
+        UI.showTransactionStatus(`✅ ${payer} paid ${amount} to ${receiver}`, 'success');
+        DOM.settlementAmount.value = '';
+        DOM.settlementNote.value = '';
+
+      } catch (error) {
+        UI.showTransactionStatus('❌ Error processing settlement', 'error');
+        console.error('Settlement error:', error);
+      }
+
+      DOM.addSettlementBtn.disabled = false;
+      DOM.addSettlementBtn.innerHTML = 'Settle Debt';
+      setTimeout(() => UI.hideTransactionStatus(), 4000);
+    }, 600);
+  },
+
+  // Add Balance Transfer
+  addTransfer() {
+    const sender = DOM.transferSender.value; // Giving fund
+    const recipient = DOM.transferRecipient.value; // Receiving fund
+    const amount = parseFloat(DOM.transferAmount.value);
+    const customNote = DOM.transferNote.value.trim();
+
+    if (!amount || amount <= 0 || isNaN(amount)) {
+      UI.showTransactionStatus('❌ Please enter a valid amount', 'error');
+      setTimeout(() => UI.hideTransactionStatus(), 3000);
+      return;
+    }
+
+    if (sender === recipient) {
+      UI.showTransactionStatus('❌ Sender and Recipient cannot be the same', 'error');
+      setTimeout(() => UI.hideTransactionStatus(), 3000);
+      return;
+    }
+
+    UI.showTransactionStatus('🔄 Processing transfer...', 'processing');
+    DOM.addTransferBtn.disabled = true;
+    DOM.addTransferBtn.innerHTML = '<div class="loading-spinner mr-2"></div> ...';
+
+    setTimeout(() => {
+      try {
+        const data = AppState.getData();
+        const transactionDate = new Date().toISOString();
+        const baseId = Utils.generateTransactionId('tx_trf');
+
+        // Sender gives fund: Balance goes DOWN -> Negative Credit
+        const senderTx = {
+          id: `${baseId}_send`,
+          type: 'credit',
+          whoOrBill: sender,
+          note: customNote ? `Transfer: ${customNote}` : `Transfer to ${recipient}`,
+          amount: -amount,
+          date: transactionDate,
+          parentId: baseId
+        };
+
+        // Recipient gets fund: Balance goes UP -> Positive Credit
+        const recipientTx = {
+          id: `${baseId}_rcpt`,
+          type: 'credit',
+          whoOrBill: recipient,
+          note: customNote ? `Transfer: ${customNote}` : `Transfer from ${sender}`,
+          amount: amount,
+          date: transactionDate,
+          parentId: baseId
+        };
+
+        data.transactions.unshift(senderTx, recipientTx);
+        
+        // Update balances
+        data.people[sender] = (data.people[sender] || 0) - amount;
+        data.people[recipient] = (data.people[recipient] || 0) + amount;
+
+        DataManager.saveData();
+        UI.renderDashboard();
+
+        UI.showTransactionStatus(`✅ Transferred ${amount} from ${sender} to ${recipient}`, 'success');
+        DOM.transferAmount.value = '';
+        DOM.transferNote.value = '';
+
+      } catch (error) {
+        UI.showTransactionStatus('❌ Error processing transfer', 'error');
+        console.error('Transfer error:', error);
+      }
+
+      DOM.addTransferBtn.disabled = false;
+      DOM.addTransferBtn.innerHTML = 'Transfer Funds';
+      setTimeout(() => UI.hideTransactionStatus(), 4000);
+    }, 600);
+  },
+
   // Save edited transaction
   saveEditedTransaction() {
     const transactionId = document.getElementById('editTransactionId').value;

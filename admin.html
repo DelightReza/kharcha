@@ -16,7 +16,6 @@
           fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
             brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
-            // Keeping primary map for legacy JS if needed, but mapping to brand
             primary: { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
           },
           animation: {
@@ -73,7 +72,6 @@
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
-  <!-- Keeping original CSS file for JS dependencies (modals etc) if any specific classes are targeted -->
   <link rel="stylesheet" href="css/admin-styles.css">
 </head>
 <body class="text-slate-800 antialiased min-h-screen pb-12">
@@ -104,7 +102,7 @@
 
   <div class="max-w-7xl mx-auto px-4 lg:px-6">
     
-    <!-- Hero Stats Cards (Liquid Style) -->
+    <!-- Hero Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
       <!-- Credit Card -->
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl shadow-emerald-500/20 animate-slide-up">
@@ -255,24 +253,76 @@
                         </div>
                     </div>
 
-                    <!-- Advanced Tools Section (Collapsed visual style) -->
+                    <!-- Advanced Tools Section (Distribution, Settlement, Transfer) -->
                     <div class="mt-8 pt-6 border-t border-slate-100">
-                        
-                        <!-- Distribution Section -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-                            <h3 class="font-bold text-sm text-slate-700 mb-4 flex items-center">
-                                <i class="fas fa-crown mr-2 text-purple-500"></i>Distribution
-                            </h3>
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <input id="distributionAmount" type="number" class="glass-input rounded-xl p-2 text-sm flex-1" placeholder="Amount">
-                                <input id="distributionNote" type="text" class="glass-input rounded-xl p-2 text-sm flex-1" placeholder="Note">
-                                <button id="addDistributionBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-purple-700 shadow-md shadow-purple-500/20">
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            
+                            <!-- Distribution Tool -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col h-full">
+                                <h3 class="font-bold text-sm text-slate-700 mb-3 flex items-center">
+                                    <i class="fas fa-crown mr-2 text-purple-500"></i>Distribution
+                                </h3>
+                                <p class="text-[10px] text-slate-400 mb-3">Distribute cost equally to everyone.</p>
+                                <div class="space-y-2 flex-grow">
+                                    <input id="distributionAmount" type="number" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Amount">
+                                    <input id="distributionNote" type="text" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Note (e.g. Rent)">
+                                </div>
+                                <button id="addDistributionBtn" class="mt-3 w-full bg-purple-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-purple-700 shadow-md shadow-purple-500/20">
                                     Distribute
                                 </button>
+                                <div id="distributionPreview" class="hidden mt-2 text-[10px] text-slate-500"><div id="distributionDetails"></div></div>
                             </div>
-                            <div id="distributionPreview" class="hidden mt-3 text-xs text-slate-500 p-2 bg-white rounded-lg border border-slate-200">
-                                <div id="distributionDetails"></div>
+
+                            <!-- Offline Settlement Tool -->
+                            <div class="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 flex flex-col h-full">
+                                <h3 class="font-bold text-sm text-emerald-800 mb-3 flex items-center">
+                                    <i class="fas fa-handshake mr-2 text-emerald-600"></i>Offline Payment
+                                </h3>
+                                <p class="text-[10px] text-slate-400 mb-3">Someone paid cash to clear debt.</p>
+                                <div class="space-y-2 flex-grow">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="text-[10px] text-slate-400 font-bold uppercase">Paid By</label>
+                                            <select id="settlementPayer" class="glass-input w-full rounded-xl p-1.5 text-xs"></select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-400 font-bold uppercase">Received By</label>
+                                            <select id="settlementReceiver" class="glass-input w-full rounded-xl p-1.5 text-xs"></select>
+                                        </div>
+                                    </div>
+                                    <input id="settlementAmount" type="number" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Amount">
+                                    <input id="settlementNote" type="text" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Note (Optional)">
+                                </div>
+                                <button id="addSettlementBtn" class="mt-3 w-full bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-md shadow-emerald-500/20">
+                                    Settle Debt
+                                </button>
                             </div>
+
+                            <!-- Fund Transfer Tool -->
+                            <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex flex-col h-full">
+                                <h3 class="font-bold text-sm text-blue-800 mb-3 flex items-center">
+                                    <i class="fas fa-exchange-alt mr-2 text-blue-600"></i>Balance Transfer
+                                </h3>
+                                <p class="text-[10px] text-slate-400 mb-3">Move app funds between members.</p>
+                                <div class="space-y-2 flex-grow">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label class="text-[10px] text-slate-400 font-bold uppercase">From (Sender)</label>
+                                            <select id="transferSender" class="glass-input w-full rounded-xl p-1.5 text-xs"></select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-slate-400 font-bold uppercase">To (Recipient)</label>
+                                            <select id="transferRecipient" class="glass-input w-full rounded-xl p-1.5 text-xs"></select>
+                                        </div>
+                                    </div>
+                                    <input id="transferAmount" type="number" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Amount">
+                                    <input id="transferNote" type="text" class="glass-input rounded-xl p-2 text-xs w-full" placeholder="Note (Optional)">
+                                </div>
+                                <button id="addTransferBtn" class="mt-3 w-full bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 shadow-md shadow-blue-500/20">
+                                    Transfer Funds
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>

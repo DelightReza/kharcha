@@ -45,12 +45,26 @@ const DOM = {
   noTransactions: null,
   transactionsSummary: null,
   
-  // Distribution elements (Renamed from Owner distribution)
+  // Distribution elements
   distributionAmount: null,
   distributionNote: null,
   distributionPreview: null,
   distributionDetails: null,
   addDistributionBtn: null,
+  
+  // Settlement (Offline) elements
+  settlementPayer: null,
+  settlementReceiver: null,
+  settlementAmount: null,
+  settlementNote: null,
+  addSettlementBtn: null,
+
+  // Transfer (Balance) elements
+  transferSender: null,
+  transferRecipient: null,
+  transferAmount: null,
+  transferNote: null,
+  addTransferBtn: null,
   
   // Personal finance
   personalFinanceBody: null,
@@ -122,6 +136,20 @@ const DOM = {
     this.distributionPreview = document.getElementById('distributionPreview');
     this.distributionDetails = document.getElementById('distributionDetails');
     this.addDistributionBtn = document.getElementById('addDistributionBtn');
+    
+    // Settlement elements
+    this.settlementPayer = document.getElementById('settlementPayer');
+    this.settlementReceiver = document.getElementById('settlementReceiver');
+    this.settlementAmount = document.getElementById('settlementAmount');
+    this.settlementNote = document.getElementById('settlementNote');
+    this.addSettlementBtn = document.getElementById('addSettlementBtn');
+
+    // Transfer elements
+    this.transferSender = document.getElementById('transferSender');
+    this.transferRecipient = document.getElementById('transferRecipient');
+    this.transferAmount = document.getElementById('transferAmount');
+    this.transferNote = document.getElementById('transferNote');
+    this.addTransferBtn = document.getElementById('addTransferBtn');
     
     // Personal finance
     this.personalFinanceBody = document.getElementById('personalFinanceBody');

@@ -54,6 +54,12 @@ const App = {
     DOM.distributionAmount.addEventListener('input', () => UI.updateDistributionPreview());
     DOM.addDistributionBtn.addEventListener('click', () => TransactionManager.distributeMoney());
     
+    // Settlement (Offline)
+    DOM.addSettlementBtn.addEventListener('click', () => TransactionManager.addSettlement());
+
+    // Transfer (Balance)
+    DOM.addTransferBtn.addEventListener('click', () => TransactionManager.addTransfer());
+    
     // Date/time toggles
     DOM.creditCustomDate.addEventListener('change', () => {
       DOM.creditDateTimeFields.classList.toggle('hidden', !DOM.creditCustomDate.checked);

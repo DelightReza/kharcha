@@ -8,15 +8,20 @@ Object.assign(UI, {
   // Initialize form dropdowns
   initializeDropdowns() {
     const people = AppState.getPeopleList();
+    const peopleOptions = people.map(person => `<option value="${person}">👤 ${person}</option>`).join('');
     
-    // Check if element exists before setting innerHTML
-    if (DOM.personSelect) {
-        DOM.personSelect.innerHTML = people.map(person => 
-          `<option value="${person}">👤 ${person}</option>`
-        ).join('');
-    }
+    // Main forms
+    if (DOM.personSelect) DOM.personSelect.innerHTML = peopleOptions;
     
-    // Also update Debit Type dropdown dynamically
+    // Settlement forms
+    if (DOM.settlementPayer) DOM.settlementPayer.innerHTML = peopleOptions;
+    if (DOM.settlementReceiver) DOM.settlementReceiver.innerHTML = peopleOptions;
+
+    // Transfer forms
+    if (DOM.transferSender) DOM.transferSender.innerHTML = peopleOptions;
+    if (DOM.transferRecipient) DOM.transferRecipient.innerHTML = peopleOptions;
+    
+    // Debit Type dropdown
     const billTypes = AppState.getBillTypesList();
     if (DOM.debitType) {
         DOM.debitType.innerHTML = billTypes.map(billType => 
