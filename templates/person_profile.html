@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Back Button -->
+<div class="mb-6">
+    <a href="../index.html" class="inline-flex items-center gap-2 text-slate-600 hover:text-brand-600 transition-colors">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Dashboard</span>
+    </a>
+</div>
+
+<!-- Person Header -->
+<div class="glass-card rounded-3xl p-6 mb-8 animate-slide-up">
+    <div class="flex items-center gap-4 mb-6">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold 
+            {{ 'bg-emerald-100 text-emerald-700' if person_finance.net_balance >= 0 else 'bg-rose-100 text-rose-700' }}">
+            {{ person_name[0] }}
+        </div>
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800">{{ person_name }}</h1>
+            <p class="text-slate-500">Personal Finance Profile</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+            <div class="text-sm text-gray-600 mb-1">Credits</div>
+            <div class="text-2xl font-bold text-green-600">{{ "{:,.2f}".format(person_finance.credits) }}</div>
+            <div class="text-xs text-gray-500 mt-1">Money Given</div>
+        </div>
+        <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border border-red-200">
+            <div class="text-sm text-gray-600 mb-1">Debits</div>
+            <div class="text-2xl font-bold text-red-600">{{ "{:,.2f}".format(person_finance.debits) }}</div>
+            <div class="text-xs text-gray-500 mt-1">Share of Bills</div>
+        </div>
+        <div class="bg-gradient-to-br {{ 'from-emerald-50 to-teal-50 border-emerald-200' if person_finance.net_balance >= 0 else 'from-red-50 to-rose-50 border-red-200' }} rounded-xl p-4 border">
+            <div class="text-sm text-gray-600 mb-1">Net Balance</div>
+            <div class="text-2xl font-bold {{ 'text-emerald-600' if person_finance.net_balance >= 0 else 'text-red-600' }}">
+                {{ "{:,.2f}".format(person_finance.net_balance) }}
+            </div>
+            <div class="text-xs text-gray-500 mt-1">{{ 'In Credit' if person_finance.net_balance >= 0 else 'In Debit' }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="glass-card rounded-3xl overflow-hidden animate-slide-up" style="animation-delay: 100ms;">
+    <div class="p-6 border-b border-slate-100">
+        <h2 class="text-xl font-bold text-slate-800 flex items-center">
+            <i class="fas fa-history text-brand-600 mr-2"></i>
+            Transaction History ({{ person_transactions|length }} transaction{{ 's' if person_transactions|length != 1 else '' }})
+        </h2>
+    </div>
+    
+    {% if person_transactions|length > 0 %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th class="p-4 text-left font-semibold text-slate-700">Date</th>
+                    <th class="p-4 text-left font-semibold text-slate-700">Type</th>
+                    <th class="p-4 text-left font-semibold text-slate-700">Category</th>
+                    <th class="p-4 text-left font-semibold text-slate-700">Description</th>
+                    <th class="p-4 text-right font-semibold text-slate-700">Amount</th>
+                    <th class="p-4 text-right font-semibold text-slate-700">My Share</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for tx in person_transactions %}
+                <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="window.location.href='../transactions/{{ tx.id }}.html'">
+                    <td class="p-4 text-slate-700">{{ tx.display_date }}</td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {{ 'bg-green-100 text-green-700' if tx.person_role == 'credit' else 'bg-red-100 text-red-700' }}">
+                            <i class="fas {{ 'fa-arrow-down' if tx.person_role == 'credit' else 'fa-arrow-up' }} mr-1"></i>
+                            {{ 'Credit' if tx.person_role == 'credit' else 'Debit' }}
+                        </span>
+                    </td>
+                    <td class="p-4 font-medium text-slate-700">{{ tx.whoOrBill }}</td>
+                    <td class="p-4 text-slate-600">{{ tx.note if tx.note else '-' }}</td>
+                    <td class="p-4 text-right font-medium text-slate-700">{{ "{:,.2f}".format(tx.amount) }}</td>
+                    <td class="p-4 text-right font-bold {{ 'text-green-600' if tx.person_role == 'credit' else 'text-red-600' }}">
+                        {{ '+' if tx.person_role == 'credit' else '-' }}{{ "{:,.2f}".format(tx.person_amount) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+        <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
+        <p class="text-slate-500">No transactions found for this person.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
