@@ -377,7 +377,7 @@ const Modals = {
     }`;
     
     // Set summary
-    DOM.personProfileSummary.textContent = `Net Balance: ${Utils.formatCurrency(finance.netBalance)} SOM`;
+    DOM.personProfileSummary.textContent = `Net Balance: ${Utils.formatCurrency(finance.netBalance)}`;
     
     // Filter transactions for this person
     const personTransactions = [];
@@ -439,7 +439,7 @@ const Modals = {
         <!-- Transaction History -->
         <div>
           <h4 class="font-bold text-gray-800 mb-4 flex items-center">
-            <i class="fas fa-history text-blue-600 mr-2"></i>Transaction History (${personTransactions.length} transactions)
+            <i class="fas fa-history text-blue-600 mr-2"></i>Transaction History (${personTransactions.length} transaction${personTransactions.length === 1 ? '' : 's'})
           </h4>
           
           ${personTransactions.length === 0 ? `
@@ -455,26 +455,31 @@ const Modals = {
                 const amountClass = isCredit ? 'text-green-600' : 'text-red-600';
                 const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
                 
+                // Store transaction ID in a data attribute for safe passing
+                const txId = Utils.escapeHtml(tx.id);
+                const noteHtml = tx.note ? Utils.escapeHtml(tx.note) : '';
+                const whoOrBillHtml = Utils.escapeHtml(tx.whoOrBill);
+                
                 return `
-                  <div class="bg-gradient-to-r ${typeClass} rounded-xl p-4 border hover:shadow-md transition-all cursor-pointer" onclick="Modals.showTransactionDetail(${JSON.stringify(tx).replace(/"/g, '&quot;')})">
+                  <div class="bg-gradient-to-r ${typeClass} rounded-xl p-4 border hover:shadow-md transition-all cursor-pointer" data-tx-id="${txId}" onclick="Modals.showTransactionById('${txId}')">
                     <div class="flex items-start justify-between">
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
                           <i class="fas ${icon} ${amountClass}"></i>
                           <span class="font-semibold ${amountClass}">${isCredit ? 'Credit' : 'Debit Share'}</span>
-                          ${!isCredit ? `<span class="text-xs text-gray-500">(${tx.whoOrBill})</span>` : ''}
+                          ${!isCredit ? `<span class="text-xs text-gray-500">(${whoOrBillHtml})</span>` : ''}
                         </div>
                         <div class="text-sm text-gray-600 mb-1">
                           <i class="fas fa-calendar text-gray-400 mr-1"></i>${tx.formattedDate}
                         </div>
                         ${tx.note ? `
                           <div class="text-sm text-gray-600 italic">
-                            <i class="fas fa-sticky-note text-gray-400 mr-1"></i>${tx.note}
+                            <i class="fas fa-sticky-note text-gray-400 mr-1"></i>${noteHtml}
                           </div>
                         ` : ''}
                         ${!isCredit && tx.payingPeople ? `
                           <div class="text-xs text-gray-500 mt-2">
-                            <i class="fas fa-users text-gray-400 mr-1"></i>Split among: ${tx.payingPeople.join(', ')}
+                            <i class="fas fa-users text-gray-400 mr-1"></i>Split among: ${tx.payingPeople.map(p => Utils.escapeHtml(p)).join(', ')}
                           </div>
                         ` : ''}
                       </div>
@@ -503,5 +508,14 @@ const Modals = {
   // Hide person profile modal
   hidePersonProfileModal() {
     DOM.personProfileModal.classList.add('hidden');
+  },
+  
+  // Show transaction by ID (helper for person profile)
+  showTransactionById(txId) {
+    const data = AppState.getData();
+    const transaction = data.transactions.find(tx => tx.id === txId);
+    if (transaction) {
+      this.showTransactionDetail(transaction);
+    }
   }
 };
