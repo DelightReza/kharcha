@@ -47,6 +47,10 @@ const App = {
     DOM.cancelEditTransaction.addEventListener('click', () => Modals.hideEditModal());
     DOM.saveEditTransaction.addEventListener('click', () => TransactionManager.saveEditedTransaction());
     
+    // Person profile modal buttons
+    DOM.closePersonProfileModal.addEventListener('click', () => Modals.hidePersonProfileModal());
+    DOM.closePersonProfileModalBtn.addEventListener('click', () => Modals.hidePersonProfileModal());
+    
     // Load more button
     DOM.loadMoreBtn.addEventListener('click', () => UI.loadMoreTransactions());
     
@@ -79,6 +83,12 @@ const App = {
     DOM.editTransactionModal.addEventListener('click', (e) => {
       if (e.target === DOM.editTransactionModal) {
         Modals.hideEditModal();
+      }
+    });
+    
+    DOM.personProfileModal.addEventListener('click', (e) => {
+      if (e.target === DOM.personProfileModal) {
+        Modals.hidePersonProfileModal();
       }
     });
   }

@@ -353,5 +353,169 @@ const Modals = {
   // Hide edit modal
   hideEditModal() {
     DOM.editTransactionModal.classList.add('hidden');
+  },
+  
+  // Show person profile modal
+  showPersonProfile(personName) {
+    const data = AppState.getData();
+    const personalFinance = Calculations.calculatePersonalFinance();
+    const finance = personalFinance[personName];
+    
+    if (!finance) {
+      console.error('No finance data for person:', personName);
+      return;
+    }
+    
+    // Set person name and avatar
+    DOM.personProfileName.textContent = personName;
+    DOM.personProfileAvatar.textContent = personName.charAt(0).toUpperCase();
+    
+    // Set color based on balance
+    const isPositive = finance.netBalance >= 0;
+    DOM.personProfileAvatar.className = `w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
+      isPositive ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    
+    // Set summary
+    DOM.personProfileSummary.textContent = `Net Balance: ${Utils.formatCurrency(finance.netBalance)}`;
+    
+    // Filter transactions for this person
+    const personTransactions = [];
+    
+    data.transactions.forEach(tx => {
+      const txDate = new Date(tx.date);
+      
+      // Add credit transactions where person gave money
+      if (tx.type === 'credit' && tx.whoOrBill === personName) {
+        personTransactions.push({
+          ...tx,
+          personRole: 'credit',
+          personAmount: tx.amount,
+          formattedDate: Utils.toUTC6(tx.date)
+        });
+      }
+      
+      // Add debit transactions where person shares the cost
+      if (tx.type === 'debit') {
+        const exemptions = tx.exemptions || [];
+        const allPeople = AppState.getPeopleList();
+        const payingPeople = allPeople.filter(person => !exemptions.includes(person));
+        
+        if (payingPeople.includes(personName)) {
+          const amountPerPerson = tx.amount / payingPeople.length;
+          personTransactions.push({
+            ...tx,
+            personRole: 'debit',
+            personAmount: amountPerPerson,
+            payingPeople: payingPeople,
+            formattedDate: Utils.toUTC6(tx.date)
+          });
+        }
+      }
+    });
+    
+    // Sort by date (most recent first)
+    personTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Build the content
+    let contentHTML = `
+      <div class="space-y-6">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+            <div class="text-xs text-gray-600 mb-1">Credits</div>
+            <div class="text-lg font-bold text-green-600">${Utils.formatCurrency(finance.credits)}</div>
+          </div>
+          <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border border-red-200">
+            <div class="text-xs text-gray-600 mb-1">Debits</div>
+            <div class="text-lg font-bold text-red-600">${Utils.formatCurrency(finance.debits)}</div>
+          </div>
+          <div class="bg-gradient-to-br ${isPositive ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-red-50 to-rose-50 border-red-200'} rounded-xl p-4 border">
+            <div class="text-xs text-gray-600 mb-1">Net</div>
+            <div class="text-lg font-bold ${isPositive ? 'text-emerald-600' : 'text-red-600'}">${Utils.formatCurrency(finance.netBalance)}</div>
+          </div>
+        </div>
+        
+        <!-- Transaction History -->
+        <div>
+          <h4 class="font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-history text-blue-600 mr-2"></i>Transaction History (${personTransactions.length} transaction${personTransactions.length === 1 ? '' : 's'})
+          </h4>
+          
+          ${personTransactions.length === 0 ? `
+            <div class="text-center py-8 text-gray-400">
+              <i class="fas fa-inbox text-4xl mb-2"></i>
+              <p>No transactions found</p>
+            </div>
+          ` : `
+            <div class="space-y-3">
+              ${personTransactions.map(tx => {
+                const isCredit = tx.personRole === 'credit';
+                const typeClass = isCredit ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
+                const amountClass = isCredit ? 'text-green-600' : 'text-red-600';
+                const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
+                
+                // Store transaction ID in a data attribute for safe passing
+                const txId = Utils.escapeHtml(tx.id);
+                const noteHtml = tx.note ? Utils.escapeHtml(tx.note) : '';
+                const whoOrBillHtml = Utils.escapeHtml(tx.whoOrBill);
+                
+                return `
+                  <div class="bg-gradient-to-r ${typeClass} rounded-xl p-4 border hover:shadow-md transition-all cursor-pointer" data-tx-id="${txId}" onclick="Modals.showTransactionById('${txId}')">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                          <i class="fas ${icon} ${amountClass}"></i>
+                          <span class="font-semibold ${amountClass}">${isCredit ? 'Credit' : 'Debit Share'}</span>
+                          ${!isCredit ? `<span class="text-xs text-gray-500">(${whoOrBillHtml})</span>` : ''}
+                        </div>
+                        <div class="text-sm text-gray-600 mb-1">
+                          <i class="fas fa-calendar text-gray-400 mr-1"></i>${tx.formattedDate}
+                        </div>
+                        ${tx.note ? `
+                          <div class="text-sm text-gray-600 italic">
+                            <i class="fas fa-sticky-note text-gray-400 mr-1"></i>${noteHtml}
+                          </div>
+                        ` : ''}
+                        ${!isCredit && tx.payingPeople ? `
+                          <div class="text-xs text-gray-500 mt-2">
+                            <i class="fas fa-users text-gray-400 mr-1"></i>Split among: ${tx.payingPeople.map(p => Utils.escapeHtml(p)).join(', ')}
+                          </div>
+                        ` : ''}
+                      </div>
+                      <div class="text-right ml-4">
+                        <div class="text-xl font-bold ${amountClass}">
+                          ${isCredit ? '+' : '-'}${Utils.formatCurrency(tx.personAmount)}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                          ${!isCredit ? `of ${Utils.formatCurrency(tx.amount)}` : 'total'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+    
+    DOM.personProfileContent.innerHTML = contentHTML;
+    DOM.personProfileModal.classList.remove('hidden');
+  },
+  
+  // Hide person profile modal
+  hidePersonProfileModal() {
+    DOM.personProfileModal.classList.add('hidden');
+  },
+  
+  // Show transaction by ID (helper for person profile)
+  showTransactionById(txId) {
+    const data = AppState.getData();
+    const transaction = data.transactions.find(tx => tx.id === txId);
+    if (transaction) {
+      this.showTransactionDetail(transaction);
+    }
   }
 };

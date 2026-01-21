@@ -87,6 +87,15 @@ const DOM = {
   exemptionPreview: null,
   exemptionDetails: null,
   
+  // Person profile modal elements
+  personProfileModal: null,
+  closePersonProfileModal: null,
+  closePersonProfileModalBtn: null,
+  personProfileName: null,
+  personProfileSummary: null,
+  personProfileAvatar: null,
+  personProfileContent: null,
+  
   // Initialize all DOM references
   init() {
     // Form elements
@@ -171,5 +180,14 @@ const DOM = {
     this.exemptionCheckboxes = document.getElementById('exemptionCheckboxes');
     this.exemptionPreview = document.getElementById('exemptionPreview');
     this.exemptionDetails = document.getElementById('exemptionDetails');
+    
+    // Person profile modal elements
+    this.personProfileModal = document.getElementById('personProfileModal');
+    this.closePersonProfileModal = document.getElementById('closePersonProfileModal');
+    this.closePersonProfileModalBtn = document.getElementById('closePersonProfileModalBtn');
+    this.personProfileName = document.getElementById('personProfileName');
+    this.personProfileSummary = document.getElementById('personProfileSummary');
+    this.personProfileAvatar = document.getElementById('personProfileAvatar');
+    this.personProfileContent = document.getElementById('personProfileContent');
   }
 };

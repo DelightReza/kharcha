@@ -42,7 +42,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {% for person, data in personal_finance.items() %}
-            <div class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:border-blue-200 transition-all duration-300">
+            <a href="people/{{ person }}.html" class="glass-card rounded-2xl p-4 flex items-center justify-between group hover:border-blue-200 transition-all duration-300 cursor-pointer">
                 <div class="flex items-center gap-4">
                     <!-- Avatar Circle -->
                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold 
@@ -62,7 +62,7 @@
                     </div>
                     <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Net Balance</div>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
 

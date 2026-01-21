@@ -45,7 +45,8 @@ const UI = {
       const statusText = finance.netBalance >= 0 ? 'In Credit' : 'In Debit';
       
       const row = document.createElement('tr');
-      row.className = 'border-b border-gray-100 hover:bg-gray-50';
+      row.className = 'border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
+      row.onclick = () => Modals.showPersonProfile(person);
       row.innerHTML = `
         <td class="p-4 font-semibold text-gray-800">${person}</td>
         <td class="p-4 text-right font-medium text-green-600">${Utils.formatCurrency(finance.credits)}</td>
