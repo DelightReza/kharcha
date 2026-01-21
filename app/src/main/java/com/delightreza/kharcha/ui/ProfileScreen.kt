@@ -272,9 +272,9 @@ fun VerticalDivider() {
 fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     val isCredit = tx.type == "credit"
-    val color = if(isCredit) Color(0xFF059669) else Color(0xFFDC2626)
-    val icon = if(isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
-    
+    val color = if (isCredit) Color(0xFF059669) else Color(0xFFDC2626)
+    val icon = if (isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -282,21 +282,54 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
         border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = if(isCredit) "Deposit" else tx.whoOrBill, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                Text(text = if(tx.note.isNotEmpty()) tx.note else localDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(
+                    text = if (isCredit) "Deposit" else tx.whoOrBill,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = if (tx.note.isNotEmpty()) tx.note else "Transaction Note",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                // Add the transaction date here
+                Text(
+                    text = localDate,
+                    style = MaterialTheme.typography.bodySmall, // Adjust the typography as needed
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) // Minor styling for differentiation
+                )
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = "${if(isCredit) "+" else "-"}${"%.2f".format(myShare)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
+                Text(
+                    text = "${if (isCredit) "+" else "-"}${"%.2f".format(myShare)}",
+                    color = color,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End
+                )
                 if (!isCredit) {
-                    Text("My Share", fontSize = 10.sp, color = Color.LightGray, textAlign = TextAlign.End)
+                    Text(
+                        text = "My Share",
+                        fontSize = 10.sp,
+                        color = Color.LightGray,
+                        textAlign = TextAlign.End
+                    )
                 }
             }
         }
