@@ -12,12 +12,20 @@
     "Raza": 3250.0,
     "Salman": 3250.0,
     "Mujeeb": 3100.0,
-    "Gulam": 2650.0,
+    "Gulam": 3150.0,
     "Rana": 2250.0,
     "Naved": 2250.0,
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769087082375_app",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "",
+      "amount": 500,
+      "date": "2026-01-22T13:04:42.375066Z"
+    },
     {
       "id": "tx_1768711923550_app",
       "type": "debit",
