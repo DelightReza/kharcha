@@ -32,6 +32,7 @@ import com.delightreza.kharcha.utils.Constants
 import com.delightreza.kharcha.utils.DateUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun ProfileScreen(
@@ -230,7 +231,7 @@ fun ProfileScreen(
         }
 
         if (data != null) {
-            // UPDATED: Calculate using dynamic list size
+            // Dynamic Member Count
             val currentMemberCount = data!!.people.size
             
             val myTransactions = data!!.transactions.filter { tx ->
@@ -252,7 +253,8 @@ fun ProfileScreen(
                 items(myTransactions.take(30)) { tx ->
                     val exemptionsCount = tx.exemptions?.size ?: 0
                     val payingPeopleCount = currentMemberCount - exemptionsCount
-                    // Avoid division by zero
+                    
+                    // If debit, split cost. If credit, take full amount.
                     val myShare = if (tx.type == "debit" && payingPeopleCount > 0) tx.amount / payingPeopleCount else tx.amount
 
                     ProfileTransactionRow(tx, myShare)
@@ -271,9 +273,21 @@ fun VerticalDivider() {
 @Composable
 fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
-    val isCredit = tx.type == "credit"
-    val color = if (isCredit) Color(0xFF059669) else Color(0xFFDC2626)
-    val icon = if (isCredit) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+    
+    // LOGIC FIX:
+    // A Credit can be Positive (Deposit/Receiving Transfer) OR Negative (Sending Transfer/Settlement)
+    // A Debit is always Negative impact (Red)
+    val isPositiveEffect = if (tx.type == "debit") false else myShare > 0
+    
+    val color = if (isPositiveEffect) Color(0xFF059669) else Color(0xFFDC2626)
+    val icon = if (isPositiveEffect) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
+    
+    // Smart Title
+    val title = when {
+        tx.type == "debit" -> tx.whoOrBill
+        myShare < 0 -> "Transfer / Settle" // Money Sent
+        else -> "Deposit / Received"      // Money Received
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -299,31 +313,30 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isCredit) "Deposit" else tx.whoOrBill,
+                    text = title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (tx.note.isNotEmpty()) tx.note else "Transaction Note",
+                    text = if (tx.note.isNotEmpty()) tx.note else localDate,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                // Add the transaction date here
-                Text(
-                    text = localDate,
-                    style = MaterialTheme.typography.bodySmall, // Adjust the typography as needed
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) // Minor styling for differentiation
+                    color = Color.Gray,
+                    maxLines = 1
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
+                // Fix: Display absolute value with correct sign
+                val sign = if (isPositiveEffect) "+" else "-"
+                
                 Text(
-                    text = "${if (isCredit) "+" else "-"}${"%.2f".format(myShare)}",
+                    text = "$sign${"%.2f".format(abs(myShare))}",
                     color = color,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End
                 )
-                if (!isCredit) {
+                
+                if (tx.type == "debit") {
                     Text(
                         text = "My Share",
                         fontSize = 10.sp,

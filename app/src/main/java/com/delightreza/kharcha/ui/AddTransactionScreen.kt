@@ -221,7 +221,7 @@ fun AddTransactionScreen(
                 }
             }
         } else {
-            // --- UPDATED CONFIRMATION DIALOG ---
+            // --- CONFIRMATION DIALOG ---
             if (showConfirmation) {
                 AlertDialog(
                     onDismissRequest = { showConfirmation = false },
@@ -354,8 +354,9 @@ fun AddTransactionScreen(
 
                 // --- 2. DUAL SUBJECT MODE (Settlement / Transfer) ---
                 if (type == "settlement" || type == "transfer") {
-                    val fromLabel = if(type == "settlement") "Paid By (Gave Cash)" else "Sender (Giving Fund)"
-                    val toLabel = if(type == "settlement") "Received By (Got Cash)" else "Recipient (Getting Fund)"
+                    // UPDATED LABELS HERE
+                    val fromLabel = if(type == "settlement") "Paid By" else "From (Sender)"
+                    val toLabel = if(type == "settlement") "Received By" else "To (Recipient)"
 
                     Text("From Account", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
