@@ -24,7 +24,7 @@ def format_utc6(iso_date):
         return iso_date
 
 def calculate_finance(data):
-    # Dynamic People List (Single Source of Truth) - Sorted for consistency
+    # Dynamic People List from JSON keys
     all_people = sorted(list(data.get('people', {}).keys()))
     
     # Initialize logic
@@ -40,9 +40,12 @@ def calculate_finance(data):
 
         if tx['type'] == 'credit':
             total_credits += tx['amount']
-            if tx['whoOrBill'] in finance:
-                finance[tx['whoOrBill']]['credits'] += tx['amount']
-                finance[tx['whoOrBill']]['net_balance'] += tx['amount']
+            # Ensure person exists in finance dict
+            if tx['whoOrBill'] not in finance:
+                finance[tx['whoOrBill']] = {'credits': 0, 'debits': 0, 'net_balance': 0}
+            
+            finance[tx['whoOrBill']]['credits'] += tx['amount']
+            finance[tx['whoOrBill']]['net_balance'] += tx['amount']
         
         elif tx['type'] == 'debit':
             total_debits += tx['amount']
