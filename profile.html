@@ -229,8 +229,13 @@
                                         const amountClass = isCredit ? 'text-emerald-600' : 'text-slate-800';
                                         const sign = isCredit ? '+' : '-';
                                         
+                                        // UPDATED LOGIC HERE: 
+                                        // If parentId exists, link to the parent group ID.
+                                        // Otherwise link to the specific transaction ID.
+                                        const targetId = tx.parentId ? tx.parentId : tx.id;
+                                        
                                         return `
-                                        <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer" onclick="window.location.href='transactions/${tx.id}.html'">
+                                        <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer" onclick="window.location.href='transactions/${targetId}.html'">
                                             <td class="p-4 pl-6 w-16">
                                                 <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconClass}">
                                                     <i class="fas ${icon}"></i>
@@ -242,6 +247,7 @@
                                             </td>
                                             <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
                                                 ${tx.note ? tx.note : '<span class="opacity-50">-</span>'}
+                                                ${tx.parentId ? '<i class="fas fa-layer-group ml-1 text-brand-400" title="Group Transaction"></i>' : ''}
                                             </td>
                                             <td class="p-4 pr-6 text-right">
                                                 <div class="font-bold ${amountClass}">
