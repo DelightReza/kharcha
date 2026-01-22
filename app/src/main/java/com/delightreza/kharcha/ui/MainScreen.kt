@@ -18,7 +18,7 @@ fun MainScreen(
     repository: Repository,
     dataStore: AppDataStore,
     currentUser: String,
-    hasToken: Boolean // New Param
+    hasToken: Boolean
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -40,7 +40,6 @@ fun MainScreen(
             }
         },
         floatingActionButton = {
-            // FIXED: Only show if tab is Home AND token exists
             if (selectedTab == 0 && hasToken) {
                 FloatingActionButton(onClick = { rootNavController.navigate("add_transaction") }) {
                     Icon(Icons.Default.Add, contentDescription = "Add")
@@ -60,6 +59,7 @@ fun MainScreen(
                 repository = repository,
                 dataStore = dataStore,
                 currentUser = currentUser,
+                navController = rootNavController, // <--- CRITICAL UPDATE HERE
                 onLogout = {
                     rootNavController.navigate("onboarding") {
                         popUpTo("main") { inclusive = true }

@@ -1,6 +1,7 @@
 package com.delightreza.kharcha.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.delightreza.kharcha.data.AppDataStore
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
@@ -40,6 +42,7 @@ fun ProfileScreen(
     repository: Repository,
     dataStore: AppDataStore,
     currentUser: String,
+    navController: NavController,
     onLogout: () -> Unit
 ) {
     var data by remember { mutableStateOf<KharchaData?>(null) }
@@ -231,7 +234,6 @@ fun ProfileScreen(
         }
 
         if (data != null) {
-            // Dynamic Member Count
             val currentMemberCount = data!!.people.size
             
             val myTransactions = data!!.transactions.filter { tx ->
@@ -253,11 +255,13 @@ fun ProfileScreen(
                 items(myTransactions.take(30)) { tx ->
                     val exemptionsCount = tx.exemptions?.size ?: 0
                     val payingPeopleCount = currentMemberCount - exemptionsCount
-                    
-                    // If debit, split cost. If credit, take full amount.
                     val myShare = if (tx.type == "debit" && payingPeopleCount > 0) tx.amount / payingPeopleCount else tx.amount
 
-                    ProfileTransactionRow(tx, myShare)
+                    ProfileTransactionRow(tx, myShare) {
+                        // FIX: Pass ParentID if exists (Group Link), otherwise ID
+                        val targetId = tx.parentId ?: tx.id
+                        navController.navigate("detail/$targetId")
+                    }
                 }
             }
         }
@@ -271,26 +275,44 @@ fun VerticalDivider() {
 }
 
 @Composable
-fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
+fun ProfileTransactionRow(tx: Transaction, myShare: Double, onClick: () -> Unit) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     
-    // LOGIC FIX:
-    // A Credit can be Positive (Deposit/Receiving Transfer) OR Negative (Sending Transfer/Settlement)
-    // A Debit is always Negative impact (Red)
+    // 1. Determine Visuals based on money flow
     val isPositiveEffect = if (tx.type == "debit") false else myShare > 0
-    
     val color = if (isPositiveEffect) Color(0xFF059669) else Color(0xFFDC2626)
     val icon = if (isPositiveEffect) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
     
-    // Smart Title
+    // 2. Smart Title Logic
     val title = when {
-        tx.type == "debit" -> tx.whoOrBill
-        myShare < 0 -> "Transfer / Settle" // Money Sent
-        else -> "Deposit / Received"      // Money Received
+        // Case A: Credit/Settlement/Transfer
+        tx.type == "credit" -> {
+            if (myShare < 0) "Transfer / Settle" else "Deposit / Received"
+        }
+        // Case B: Debit "Other" -> Use Note as Title
+        tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> tx.note
+        // Case C: Standard Debit
+        else -> tx.whoOrBill
+    }
+
+    // 3. Smart Subtitle Logic (Always show Date)
+    val subtitle = when {
+        // Case A: Credit -> Note + Date
+        tx.type == "credit" -> {
+            if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
+        }
+        // Case B: Debit "Other" -> "Other" + Date (since Note is title)
+        tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> "Other • $localDate"
+        // Case C: Standard Debit -> Note + Date
+        else -> {
+            if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
+        }
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -311,6 +333,7 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
                 Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -318,18 +341,19 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (tx.note.isNotEmpty()) tx.note else localDate,
+                    text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 1
                 )
             }
+            
             Column(horizontalAlignment = Alignment.End) {
-                // Fix: Display absolute value with correct sign
+                val amountDisplay = abs(myShare)
                 val sign = if (isPositiveEffect) "+" else "-"
                 
                 Text(
-                    text = "$sign${"%.2f".format(abs(myShare))}",
+                    text = "$sign${"%.2f".format(amountDisplay)}",
                     color = color,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
