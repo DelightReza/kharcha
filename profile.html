@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f3f4f6; background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,.1) 0, transparent 50%); }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen pb-10">
+
+    <!-- Glass Header -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-white/30 mb-8">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 text-slate-600 hover:text-brand-600 transition-colors">
+                <div class="bg-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </div>
+                <span class="font-bold text-sm hidden sm:block">Back to Dashboard</span>
+            </a>
+            <div id="lastUpdated" class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold bg-slate-50 px-2 py-1 rounded-md">
+                Loading...
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 animate-fade-in" id="mainContent">
+        <!-- Loading State -->
+        <div class="flex flex-col items-center justify-center mt-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mb-4"></div>
+            <p class="text-slate-400 text-sm">Loading profile...</p>
+        </div>
+    </main>
+
+    <script>
+        // Utilities
+        const formatCurrency = (amount) => parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        
+        const formatDateTime = (isoString) => {
+            try {
+                const date = new Date(isoString);
+                // Convert to roughly UTC+6 for display (Adding 6 hours manually)
+                const utc6Date = new Date(date.getTime() + (6 * 60 * 60 * 1000));
+                
+                return utc6Date.toISOString()
+                    .replace('T', ' ')
+                    .substring(0, 16);
+            } catch (e) {
+                return isoString;
+            }
+        };
+
+        // Main Logic
+        async function loadProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const personName = urlParams.get('name');
+
+            if (!personName) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="text-center mt-20">
+                        <i class="fas fa-user-slash text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500">No person specified in URL.</p>
+                        <a href="index.html" class="text-brand-600 text-sm hover:underline mt-2 inline-block">Return Home</a>
+                    </div>`;
+                document.getElementById('lastUpdated').textContent = "Error";
+                return;
+            }
+
+            try {
+                // Fetch data with a cache-busting parameter
+                const response = await fetch(`data.json?t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error("Failed to load data");
+                
+                const data = await response.json();
+                
+                // Set timestamp based on current time
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+
+                // Calculate Finances
+                let credits = 0; // Money Given
+                let debits = 0;  // Share of Expenses
+                const transactions = [];
+                
+                // Get list of all people to calculate split correctly
+                const allPeople = Object.keys(data.people).sort();
+
+                // Sort transactions newest first
+                const sortedTxs = data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                sortedTxs.forEach(tx => {
+                    let amount = 0;
+                    let type = '';
+                    let isRelevant = false;
+
+                    // Case 1: I gave money (Credit)
+                    if (tx.type === 'credit' && tx.whoOrBill === personName) {
+                        amount = tx.amount;
+                        credits += amount;
+                        type = 'Credit';
+                        isRelevant = true;
+                    } 
+                    // Case 2: I share an expense (Debit)
+                    else if (tx.type === 'debit') {
+                        const exemptions = tx.exemptions || [];
+                        // Am I exempt?
+                        if (!exemptions.includes(personName)) {
+                            // Calculate split
+                            const contributors = allPeople.filter(p => !exemptions.includes(p));
+                            if (contributors.length > 0) {
+                                amount = tx.amount / contributors.length;
+                                debits += amount;
+                                type = 'Debit Share';
+                                isRelevant = true;
+                            }
+                        }
+                    }
+
+                    if (isRelevant) {
+                        transactions.push({
+                            ...tx,
+                            displayAmount: amount,
+                            displayType: type
+                        });
+                    }
+                });
+
+                const netBalance = credits - debits;
+                
+                renderUI(personName, credits, debits, netBalance, transactions);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="text-center mt-20">
+                        <i class="fas fa-exclamation-triangle text-4xl text-rose-300 mb-4"></i>
+                        <p class="text-slate-500">Error loading data.</p>
+                    </div>`;
+            }
+        }
+
+        function renderUI(name, credits, debits, net, transactions) {
+            const isPositive = net >= 0;
+            const netColor = isPositive ? 'text-emerald-600' : 'text-rose-500';
+            const bgAvatar = isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700';
+
+            const html = `
+                <!-- Person Header -->
+                <div class="glass-card rounded-3xl p-6 mb-8 animate-slide-up">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${bgAvatar}">
+                            ${name.charAt(0)}
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-slate-800">${name}</h1>
+                            <p class="text-slate-500">Personal Finance Profile</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white/60 rounded-xl p-4 border border-emerald-100">
+                            <div class="text-sm text-slate-500 mb-1">Credits (Given)</div>
+                            <div class="text-2xl font-bold text-emerald-600">${formatCurrency(credits)}</div>
+                        </div>
+                        <div class="bg-white/60 rounded-xl p-4 border border-rose-100">
+                            <div class="text-sm text-slate-500 mb-1">Debits (Spent)</div>
+                            <div class="text-2xl font-bold text-rose-600">${formatCurrency(debits)}</div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                            <div class="text-sm text-slate-500 mb-1">Net Balance</div>
+                            <div class="text-2xl font-bold ${netColor}">
+                                ${isPositive ? '+' : ''}${formatCurrency(net)}
+                            </div>
+                            <div class="text-xs text-slate-400 mt-1">
+                                ${isPositive ? 'You are owed money' : 'You owe money'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction List -->
+                <div class="glass-card rounded-3xl overflow-hidden animate-slide-up" style="animation-delay: 100ms;">
+                    <div class="p-6 border-b border-slate-100 bg-white/40">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center">
+                            <i class="fas fa-history text-brand-600 mr-2"></i>
+                            History <span class="ml-2 text-xs font-normal text-slate-500 bg-white px-2 py-0.5 rounded-full border"> ${transactions.length} </span>
+                        </h2>
+                    </div>
+                    
+                    ${transactions.length === 0 ? 
+                        `<div class="p-12 text-center text-slate-400">
+                            <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                            <p class="text-sm">No transactions found.</p>
+                         </div>` 
+                        : 
+                        `<div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <tbody class="divide-y divide-slate-100">
+                                    ${transactions.map(tx => {
+                                        const isCredit = tx.displayType === 'Credit';
+                                        const iconClass = isCredit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600';
+                                        const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
+                                        const amountClass = isCredit ? 'text-emerald-600' : 'text-slate-800';
+                                        const sign = isCredit ? '+' : '-';
+                                        
+                                        return `
+                                        <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer" onclick="window.location.href='transactions/${tx.id}.html'">
+                                            <td class="p-4 pl-6 w-16">
+                                                <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconClass}">
+                                                    <i class="fas ${icon}"></i>
+                                                </div>
+                                            </td>
+                                            <td class="p-4">
+                                                <div class="font-bold text-slate-700">${tx.whoOrBill}</div>
+                                                <div class="text-xs text-slate-400">${formatDateTime(tx.date).split(' ')[0]}</div>
+                                            </td>
+                                            <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
+                                                ${tx.note ? tx.note : '<span class="opacity-50">-</span>'}
+                                            </td>
+                                            <td class="p-4 pr-6 text-right">
+                                                <div class="font-bold ${amountClass}">
+                                                    ${sign}${formatCurrency(tx.displayAmount)}
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 uppercase tracking-wide">
+                                                    ${isCredit ? 'Full' : 'Share'}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>`
+                    }
+                </div>
+                
+                <div class="h-10"></div>
+            `;
+
+            document.getElementById('mainContent').innerHTML = html;
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
