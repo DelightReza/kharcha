@@ -5,7 +5,7 @@
     "Gas": 2431.0,
     "Garbage": 1321.4,
     "Internet": 2460.0,
-    "Other": 10115.0
+    "Other": 10456.0
   },
   "people": {
     "Musawwar": 2670.0,
@@ -18,6 +18,14 @@
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769345993166_app",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Epoxy",
+      "amount": 341,
+      "date": "2026-01-25T12:59:53.166035Z"
+    },
     {
       "id": "tx_1769345948281_app",
       "type": "credit",
