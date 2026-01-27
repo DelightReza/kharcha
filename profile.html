@@ -234,6 +234,9 @@
                                         // Otherwise link to the specific transaction ID.
                                         const targetId = tx.parentId ? tx.parentId : tx.id;
                                         
+                                        // Updated display name logic
+                                        const displayName = (tx.whoOrBill === 'Other' && tx.note) ? tx.note : tx.whoOrBill;
+                                        
                                         return `
                                         <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer" onclick="window.location.href='transactions/${targetId}.html'">
                                             <td class="p-4 pl-6 w-16">
@@ -242,7 +245,7 @@
                                                 </div>
                                             </td>
                                             <td class="p-4">
-                                                <div class="font-bold text-slate-700">${tx.whoOrBill}</div>
+                                                <div class="font-bold text-slate-700">${displayName}</div>
                                                 <div class="text-xs text-slate-400">${formatDateTime(tx.date).split(' ')[0]}</div>
                                             </td>
                                             <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">

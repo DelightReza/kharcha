@@ -83,7 +83,9 @@
                                 </div>
                             </td>
                             <td class="p-4">
-                                <div class="font-bold text-slate-700">{{ tx.whoOrBill }}</div>
+                                <div class="font-bold text-slate-700">
+                                    {{ tx.note if (tx.whoOrBill == 'Other' and tx.note) else tx.whoOrBill }}
+                                </div>
                                 <div class="text-xs text-slate-400">{{ tx.display_date.split(' ')[0] }}</div>
                             </td>
                             <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
@@ -210,6 +212,7 @@
                 
                 // Format date for display (just the date part)
                 const displayDate = tx.display_date.split(' ')[0];
+                const displayName = (tx.whoOrBill === 'Other' && tx.note) ? tx.note : tx.whoOrBill;
                 
                 row.innerHTML = `
                     <td class="p-4 pl-6">
@@ -219,7 +222,7 @@
                         </div>
                     </td>
                     <td class="p-4">
-                        <div class="font-bold text-slate-700">${tx.whoOrBill}</div>
+                        <div class="font-bold text-slate-700">${displayName}</div>
                         <div class="text-xs text-slate-400">${displayDate}</div>
                     </td>
                     <td class="p-4 text-xs text-slate-500 hidden sm:table-cell">
