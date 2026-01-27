@@ -5,7 +5,7 @@
     "Gas": 2431.0,
     "Garbage": 1321.4,
     "Internet": 2460.0,
-    "Other": 11956.0
+    "Other": 13376.0
   },
   "people": {
     "Musawwar": 2670.0,
@@ -18,6 +18,14 @@
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769499563426_app",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Coal",
+      "amount": 1420,
+      "date": "2026-01-27T07:39:23.426002Z"
+    },
     {
       "id": "tx_1769499513598_app",
       "type": "debit",
