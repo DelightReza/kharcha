@@ -22,8 +22,8 @@
       "id": "tx_1769523141658_app",
       "type": "debit",
       "whoOrBill": "Other",
-      "note": "Toti + Repair",
-      "amount": 700,
+      "note": "Toti Repair",
+      "amount": 500,
       "date": "2026-01-27T14:12:21.658812Z"
     },
     {
@@ -63,7 +63,7 @@
       "type": "debit",
       "whoOrBill": "Other",
       "note": "Toti",
-      "amount": 1500,
+      "amount": 1700,
       "date": "2026-01-27T07:38:33.592718Z"
     },
     {
