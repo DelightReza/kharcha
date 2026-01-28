@@ -14,10 +14,18 @@
     "Mujeeb": 4441.0,
     "Gulam": 4150.0,
     "Rana": 2250.0,
-    "Naved": 2250.0,
+    "Naved": 4250.0,
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769614961881_app",
+      "type": "credit",
+      "whoOrBill": "Naved",
+      "note": "",
+      "amount": 2000,
+      "date": "2026-01-28T15:42:41.881445Z"
+    },
     {
       "id": "tx_1769599476500_app",
       "type": "credit",
