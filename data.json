@@ -5,7 +5,7 @@
     "Gas": 2431.0,
     "Garbage": 1321.4,
     "Internet": 2460.0,
-    "Other": 14076.0
+    "Other": 14166.0
   },
   "people": {
     "Musawwar": 4670.0,
@@ -18,6 +18,14 @@
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769699898723_app",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Toti Pipe",
+      "amount": 90,
+      "date": "2026-01-29T15:18:18.723820Z"
+    },
     {
       "id": "tx_1769699316699_app",
       "type": "credit",
