@@ -13,11 +13,19 @@
     "Salman": 4250.0,
     "Mujeeb": 4441.0,
     "Gulam": 4150.0,
-    "Rana": 2250.0,
+    "Rana": 4250.0,
     "Naved": 4250.0,
     "Nizamuddin": 3250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769699316699_app",
+      "type": "credit",
+      "whoOrBill": "Rana",
+      "note": "",
+      "amount": 2000,
+      "date": "2026-01-29T15:08:36.699853Z"
+    },
     {
       "id": "tx_1769615113880_app",
       "type": "credit",
