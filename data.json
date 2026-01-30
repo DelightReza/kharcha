@@ -15,9 +15,17 @@
     "Gulam": 4150.0,
     "Rana": 4250.0,
     "Naved": 4250.0,
-    "Nizamuddin": 3250.0
+    "Nizamuddin": 4250.0
   },
   "transactions": [
+    {
+      "id": "tx_1769759773575_app",
+      "type": "credit",
+      "whoOrBill": "Nizamuddin",
+      "note": "",
+      "amount": 1000,
+      "date": "2026-01-30T07:56:13.575844Z"
+    },
     {
       "id": "tx_1769753219101_app",
       "type": "debit",
