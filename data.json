@@ -5,7 +5,7 @@
     "Gas": 2431.0,
     "Garbage": 1321.4,
     "Internet": 2810.0,
-    "Other": 14166.0
+    "Other": 14256.0
   },
   "people": {
     "Musawwar": 5107.5,
@@ -18,6 +18,14 @@
     "Nizamuddin": 4687.5
   },
   "transactions": [
+    {
+      "id": "tx_1770559333341_app",
+      "type": "debit",
+      "whoOrBill": "Other",
+      "note": "Milkwa",
+      "amount": 90,
+      "date": "2026-02-08T14:02:13.340140Z"
+    },
     {
       "id": "tx_1770366535133_app",
       "type": "debit",
