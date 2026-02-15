@@ -30,11 +30,11 @@
             </div>
             <div class="bg-white p-4 rounded-xl border border-slate-200">
                 <p class="text-xs text-slate-500 uppercase font-bold">Total Credit</p>
-                <p class="text-xl font-bold text-emerald-600">{{ "{:,.0f}".format(total_credit) }}</p>
+                <p class="text-xl font-bold text-emerald-600">{{ "{:,.0f}".format(total_credit) }} {{ currency }}</p>
             </div>
             <div class="bg-white p-4 rounded-xl border border-slate-200">
                 <p class="text-xs text-slate-500 uppercase font-bold">Total Debit</p>
-                <p class="text-xl font-bold text-rose-600">{{ "{:,.0f}".format(total_debit) }}</p>
+                <p class="text-xl font-bold text-rose-600">{{ "{:,.0f}".format(total_debit) }} {{ currency }}</p>
             </div>
             <div class="bg-white p-4 rounded-xl border border-slate-200">
                 <p class="text-xs text-slate-500 uppercase font-bold">Date</p>
@@ -68,7 +68,7 @@
                         </td>
                         <td class="p-4 pr-6 text-right">
                             <span class="font-bold {{ 'text-emerald-600' if tx.type == 'credit' else 'text-slate-800' }}">
-                                {{ "{:,.0f}".format(tx.amount) }}
+                                {{ "{:,.0f}".format(tx.amount) }} {{ currency }}
                             </span>
                         </td>
                     </tr>

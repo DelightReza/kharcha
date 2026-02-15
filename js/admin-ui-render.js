@@ -1,4 +1,3 @@
-// js/admin-ui-render.js
 /**
  * UI rendering and display functions
  */
@@ -111,7 +110,7 @@ const UI = {
         billCard.className = 'bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 text-center border border-red-200 shadow-sm hover:shadow-md transition-all duration-200';
         billCard.innerHTML = `
           <div class="font-semibold text-gray-700 mb-2">${icon} ${billType}</div>
-          <div class="text-lg font-bold text-red-600">${Utils.formatCurrency(amount)} SOM</div>
+          <div class="text-lg font-bold text-red-600">${Utils.formatCurrency(amount)}</div>
           <div class="text-xs text-gray-500 mt-2">Total spent</div>
         `;
         DOM.billTypesSummary.appendChild(billCard);
@@ -123,6 +122,7 @@ const UI = {
   renderTransactions() {
     const data = AppState.getData();
     const totalTransactions = data.transactions.length;
+    const config = AppState.config;  // get config
     
     if (totalTransactions === 0) {
       DOM.transactionBody.innerHTML = '';
@@ -135,7 +135,8 @@ const UI = {
     }
 
     const currentPage = AppState.getCurrentPage();
-    const transactionsToShow = data.transactions.slice(0, currentPage * CONFIG.TRANSACTIONS_PER_PAGE);
+    const perPage = config?.transactionsPerPage || 15;  // fallback to 15 if config missing
+    const transactionsToShow = data.transactions.slice(0, currentPage * perPage);
     const hasMore = totalTransactions > transactionsToShow.length;
 
     DOM.transactionsSummary.textContent = `Showing ${transactionsToShow.length} of ${totalTransactions} transactions`;

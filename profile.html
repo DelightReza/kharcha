@@ -60,16 +60,22 @@
     </main>
 
     <script>
+        let appConfig = {
+            currency: 'SOM',
+            timeOffset: 6
+        };
+
         // Utilities
-        const formatCurrency = (amount) => parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        const formatCurrency = (amount) => parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ' + appConfig.currency;
         
         const formatDateTime = (isoString) => {
             try {
                 const date = new Date(isoString);
-                // Convert to roughly UTC+6 for display (Adding 6 hours manually)
-                const utc6Date = new Date(date.getTime() + (6 * 60 * 60 * 1000));
+                // Convert to offset from config for display
+                const offsetMs = appConfig.timeOffset * 60 * 60 * 1000;
+                const localDate = new Date(date.getTime() + offsetMs);
                 
-                return utc6Date.toISOString()
+                return localDate.toISOString()
                     .replace('T', ' ')
                     .substring(0, 16);
             } catch (e) {
@@ -94,6 +100,18 @@
             }
 
             try {
+                // Fetch config first
+                try {
+                    const configResp = await fetch('config.json');
+                    if (configResp.ok) {
+                        const loadedConfig = await configResp.json();
+                        appConfig.currency = loadedConfig.currency || 'SOM';
+                        appConfig.timeOffset = loadedConfig.timeOffset || 6;
+                    }
+                } catch (e) {
+                    console.log('Using default config');
+                }
+
                 // Fetch data with a cache-busting parameter
                 const response = await fetch(`data.json?t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error("Failed to load data");
@@ -229,12 +247,7 @@
                                         const amountClass = isCredit ? 'text-emerald-600' : 'text-slate-800';
                                         const sign = isCredit ? '+' : '-';
                                         
-                                        // UPDATED LOGIC HERE: 
-                                        // If parentId exists, link to the parent group ID.
-                                        // Otherwise link to the specific transaction ID.
                                         const targetId = tx.parentId ? tx.parentId : tx.id;
-                                        
-                                        // Updated display name logic
                                         const displayName = (tx.whoOrBill === 'Other' && tx.note) ? tx.note : tx.whoOrBill;
                                         
                                         return `

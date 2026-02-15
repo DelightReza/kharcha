@@ -5,63 +5,78 @@ import datetime
 from datetime import timezone, timedelta
 from jinja2 import Environment, FileSystemLoader
 
-# Configuration
+CONFIG_FILE = 'config.json'
 DATA_FILE = 'data.json'
 INDEX_FILE = 'index.html'
 TRANSACTIONS_DIR = 'transactions'
 
-def load_data():
+def load_config():
+    with open(CONFIG_FILE, 'r') as f:
+        return json.load(f)
+
+def load_data(config):
+    # If data.json doesn't exist, create it using config
+    if not os.path.exists(DATA_FILE):
+        default_data = {
+            "people": {p: 0 for p in config["people"]},
+            "billTypes": {b["name"]: 0 for b in config["billTypes"]},
+            "transactions": []
+        }
+        with open(DATA_FILE, 'w') as f:
+            json.dump(default_data, f, indent=2)
+        return default_data
     with open(DATA_FILE, 'r') as f:
         return json.load(f)
 
-def format_utc6(iso_date):
-    """Helper to format date string to readable UTC+6"""
+def format_utc_offset(offset_hours):
+    """Format UTC offset string like 'UTC+6' or 'UTC-5.5'."""
+    hours = int(offset_hours)
+    minutes = int(abs(offset_hours - hours) * 60)
+    sign = "+" if offset_hours >= 0 else "-"
+    
+    if minutes == 0:
+        return f"UTC{sign}{abs(hours)}"
+    else:
+        return f"UTC{sign}{abs(hours)}.{int(minutes/60*10)}"
+
+def format_local_time(iso_date, offset_hours):
+    """Convert ISO date to local time string."""
     try:
         utc_time = datetime.datetime.fromisoformat(iso_date.replace('Z', '+00:00'))
-        utc6_time = utc_time + timedelta(hours=6)
-        return utc6_time.strftime('%Y-%m-%d %H:%M')
+        hours = int(offset_hours)
+        minutes = int((offset_hours - hours) * 60)
+        local_time = utc_time + timedelta(hours=hours, minutes=minutes)
+        return local_time.strftime('%Y-%m-%d %H:%M')
     except:
         return iso_date
 
-def calculate_finance(data):
-    # Dynamic People List from JSON keys
-    all_people = sorted(list(data.get('people', {}).keys()))
-    
-    # Initialize logic
+def calculate_finance(data, config):
+    all_people = config["people"]
     finance = {p: {'credits': 0, 'debits': 0, 'net_balance': 0} for p in all_people}
     total_credits = 0
     total_debits = 0
-    
     enriched_txs = []
 
     for tx in data['transactions']:
-        tx['display_date'] = format_utc6(tx['date'])
+        tx['display_date'] = format_local_time(tx['date'], config["timeOffset"])
         enriched_txs.append(tx)
 
         if tx['type'] == 'credit':
             total_credits += tx['amount']
-            # Ensure person exists in finance dict
-            if tx['whoOrBill'] not in finance:
-                finance[tx['whoOrBill']] = {'credits': 0, 'debits': 0, 'net_balance': 0}
-            
-            finance[tx['whoOrBill']]['credits'] += tx['amount']
-            finance[tx['whoOrBill']]['net_balance'] += tx['amount']
-        
+            if tx['whoOrBill'] in finance:
+                finance[tx['whoOrBill']]['credits'] += tx['amount']
+                finance[tx['whoOrBill']]['net_balance'] += tx['amount']
         elif tx['type'] == 'debit':
             total_debits += tx['amount']
-            
             exemptions = tx.get('exemptions', [])
             contributors = [p for p in all_people if p not in exemptions]
-            
             if contributors:
                 split_amount = tx['amount'] / len(contributors)
                 for p in contributors:
-                    if p in finance:
-                        finance[p]['debits'] += split_amount
-                        finance[p]['net_balance'] -= split_amount
+                    finance[p]['debits'] += split_amount
+                    finance[p]['net_balance'] -= split_amount
 
     enriched_txs.sort(key=lambda x: x['date'], reverse=True)
-
     return {
         'finance': finance,
         'totals': {
@@ -73,115 +88,101 @@ def calculate_finance(data):
     }
 
 def smart_write(filepath, content):
-    """Only write the file if content has changed to preserve timestamps/git history."""
     if os.path.exists(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
-            existing_content = f.read()
-        if existing_content == content:
-            return False # Skipped
-    
+            existing = f.read()
+        if existing == content:
+            return False
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
-    return True # Written
+    return True
 
 def main():
-    # Setup Jinja2
+    config = load_config()
     env = Environment(loader=FileSystemLoader('templates'))
-    
-    # Load Data
-    data = load_data()
-    results = calculate_finance(data)
-    
-    # Prepare Chart Data
-    bill_types = data.get('billTypes', {})
-    chart_labels = list(bill_types.keys())
-    chart_data = list(bill_types.values())
-    
-    # Current time for the Dashboard only
-    utc_now = datetime.datetime.now(timezone.utc) + timedelta(hours=6)
-    dashboard_time = utc_now.strftime('%Y-%m-%d %H:%M UTC+6')
+    data = load_data(config)
+    results = calculate_finance(data, config)
 
-    # --- 1. Generate Dashboard (Always update this) ---
-    print(f"Generating Dashboard ({dashboard_time})...")
-    template = env.get_template('dashboard.html')
+    # Prepare chart data (use bill types from config)
+    bill_type_names = [bt["name"] for bt in config["billTypes"]]
+    bill_type_totals = [data.get("billTypes", {}).get(name, 0) for name in bill_type_names]
+
+    # Time calculations
+    utc_now = datetime.datetime.now(timezone.utc)
+    offset = config["timeOffset"]
+    hours = int(offset)
+    minutes = int((offset - hours) * 60)
+    local_now = utc_now + timedelta(hours=hours, minutes=minutes)
     
+    offset_str = format_utc_offset(offset)
+    dashboard_time = local_now.strftime('%Y-%m-%d %H:%M ') + offset_str
+    
+    site_subtitle = config.get("siteSubtitle", "House Fund")
+
+    # Dashboard
+    template = env.get_template('dashboard.html')
     output = template.render(
+        site_title=config["siteTitle"],
+        site_subtitle=site_subtitle,
+        currency=config["currency"],
         last_updated=dashboard_time,
         total_credits=results['totals']['credits'],
         total_debits=results['totals']['debits'],
         balance=results['totals']['balance'],
         personal_finance=results['finance'],
         transactions=results['transactions'],
-        chart_labels=chart_labels,
-        chart_data=chart_data
+        chart_labels=bill_type_names,
+        chart_data=bill_type_totals,
+        bill_types=config["billTypes"]
     )
-    
     with open(INDEX_FILE, 'w', encoding='utf-8') as f:
         f.write(output)
 
-    # Make sure directory exists
     os.makedirs(TRANSACTIONS_DIR, exist_ok=True)
 
-    # --- 2. Generate Individual Transaction Pages ---
-    print("Generating Individual Transaction Pages...")
+    # Individual transaction pages
     tx_template = env.get_template('transaction.html')
-    
-    grouped_transactions = {}
-    skipped_count = 0
-    written_count = 0
-
+    grouped = {}
+    written = skipped = 0
     for tx in results['transactions']:
-        # Use the transaction's own date as the "Last Updated" in the header
-        tx_header_time = f"{tx['display_date']} UTC+6"
-
-        tx_html = tx_template.render(tx=tx, last_updated=tx_header_time)
-        file_path = f"{TRANSACTIONS_DIR}/{tx['id']}.html"
-        
-        if smart_write(file_path, tx_html):
-            written_count += 1
-        else:
-            skipped_count += 1
-        
-        # Collect for groups
-        if 'parentId' in tx:
-            pid = tx['parentId']
-            if pid not in grouped_transactions:
-                grouped_transactions[pid] = []
-            grouped_transactions[pid].append(tx)
-
-    print(f"   - Transactions: {written_count} updated, {skipped_count} skipped.")
-
-    # --- 3. Generate Group Transaction Pages ---
-    print("Generating Group Pages...")
-    group_template = env.get_template('transaction_group.html')
-    
-    g_written = 0
-    g_skipped = 0
-
-    for group_id, txs in grouped_transactions.items():
-        # Calculate group totals
-        g_credit = sum(t['amount'] for t in txs if t['type'] == 'credit')
-        g_debit = sum(t['amount'] for t in txs if t['type'] == 'debit')
-        
-        # Use the first transaction's date for the group header time
-        group_header_time = f"{txs[0]['display_date']} UTC+6"
-
-        group_html = group_template.render(
-            group_id=group_id,
-            transactions=txs,
-            total_credit=g_credit,
-            total_debit=g_debit,
-            last_updated=group_header_time
+        tx_html = tx_template.render(
+            tx=tx,
+            currency=config["currency"],
+            site_title=config["siteTitle"],
+            site_subtitle=site_subtitle,
+            last_updated=f"{tx['display_date']} {offset_str}"
         )
-        
-        file_path = f"{TRANSACTIONS_DIR}/{group_id}.html"
-        if smart_write(file_path, group_html):
+        path = f"{TRANSACTIONS_DIR}/{tx['id']}.html"
+        if smart_write(path, tx_html):
+            written += 1
+        else:
+            skipped += 1
+        if 'parentId' in tx:
+            grouped.setdefault(tx['parentId'], []).append(tx)
+
+    # Group pages
+    group_template = env.get_template('transaction_group.html')
+    g_written = g_skipped = 0
+    for gid, txs in grouped.items():
+        credit = sum(t['amount'] for t in txs if t['type'] == 'credit')
+        debit = sum(t['amount'] for t in txs if t['type'] == 'debit')
+        html = group_template.render(
+            group_id=gid,
+            transactions=txs,
+            total_credit=credit,
+            total_debit=debit,
+            currency=config["currency"],
+            site_title=config["siteTitle"],
+            site_subtitle=site_subtitle,
+            last_updated=f"{txs[0]['display_date']} {offset_str}"
+        )
+        path = f"{TRANSACTIONS_DIR}/{gid}.html"
+        if smart_write(path, html):
             g_written += 1
         else:
             g_skipped += 1
 
-    print(f"   - Groups: {g_written} updated, {g_skipped} skipped.")
-    print("✅ Build Complete.")
+    print(f"Dashboard written. Transactions: {written} new, {skipped} unchanged. Groups: {g_written} new, {g_skipped} unchanged.")
 
 if __name__ == "__main__":
     main()

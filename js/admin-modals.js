@@ -7,6 +7,9 @@ const Modals = {
   // Show transaction detail modal
   showTransactionDetail(transaction) {
     const { balanceBefore, balanceAfter } = Calculations.calculateRunningBalance(transaction.id);
+    const currency = AppState.config?.currency || 'SOM';
+    const offset = AppState.config?.timeOffset || 0;
+    const timeLabel = `UTC${offset >= 0 ? '+' : ''}${offset}`;
     
     const formattedDate = Utils.toUTC6(transaction.date);
     const typeClass = transaction.type === 'credit' ? 'text-green-600' : 'text-red-600';
@@ -22,7 +25,7 @@ const Modals = {
     const distributionDisplay = distTotal ? 
       `<div class="flex justify-between items-center bg-purple-50 p-3 rounded-lg border border-purple-200">
         <span class="text-gray-600 text-sm">Distribution Source:</span>
-        <span class="font-medium text-purple-600">Distribution of ${Utils.formatCurrency(distTotal)} SOM</span>
+        <span class="font-medium text-purple-600">Distribution of ${Utils.formatCurrency(distTotal)}</span>
       </div>` : '';
     
     let exemptionDisplay = '';
@@ -37,7 +40,7 @@ const Modals = {
           <div class="text-sm text-gray-700 space-y-1">
             <div><span class="font-medium">Exempt people:</span> ${transaction.exemptions.join(', ')}</div>
             <div><span class="font-medium">Paying people:</span> ${distribution.payingPeople.join(', ')}</div>
-            <div class="font-medium text-orange-600">Amount per person: ${distribution.amountPerPerson.toFixed(2)} SOM</div>
+            <div class="font-medium text-orange-600">Amount per person: ${distribution.amountPerPerson.toFixed(2)} ${currency}</div>
           </div>
         </div>`;
     }
@@ -60,7 +63,7 @@ const Modals = {
           <div class="text-sm ${typeClass} font-medium flex items-center">${typeIcon} ${transaction.type}</div>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Date (UTC+6)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date (${timeLabel})</label>
           <div class="text-sm text-gray-900">${formattedDate}</div>
         </div>
       </div>
@@ -77,7 +80,7 @@ const Modals = {
       
       <div class="bg-white p-4 rounded-xl border border-gray-200">
         <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-        <div class="text-2xl font-bold ${typeClass}">${Utils.formatCurrency(transaction.amount)} SOM</div>
+        <div class="text-2xl font-bold ${typeClass}">${Utils.formatCurrency(transaction.amount)}</div>
       </div>
       
       ${distributionDisplay}
@@ -90,15 +93,15 @@ const Modals = {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
             <div class="text-gray-600 mb-1">Balance Before</div>
-            <div class="font-bold text-lg">${Utils.formatCurrency(balanceBefore)} SOM</div>
+            <div class="font-bold text-lg">${Utils.formatCurrency(balanceBefore)}</div>
           </div>
           <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
             <div class="text-gray-600 mb-1">Balance After</div>
-            <div class="font-bold text-lg">${Utils.formatCurrency(balanceAfter)} SOM</div>
+            <div class="font-bold text-lg">${Utils.formatCurrency(balanceAfter)}</div>
           </div>
           <div class="md:col-span-2 bg-gradient-to-r from-primary-50 to-blue-50 p-4 rounded-xl border border-primary-200 mt-2">
             <div class="text-gray-700 font-semibold mb-2">Net Change</div>
-            <div class="font-bold ${typeClass} text-2xl">${netChange} SOM</div>
+            <div class="font-bold ${typeClass} text-2xl">${netChange}</div>
           </div>
         </div>
       </div>
@@ -131,6 +134,10 @@ const Modals = {
   
   // Show edit transaction modal
   showEditTransactionModal(transaction) {
+    const currency = AppState.config?.currency || 'SOM';
+    const offset = AppState.config?.timeOffset || 0;
+    const timeLabel = `UTC${offset >= 0 ? '+' : ''}${offset}`;
+    
     const typeClass = transaction.type === 'credit' ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
     const typeIcon = transaction.type === 'credit' ? 'fa-plus-circle text-green-600' : 'fa-minus-circle text-red-600';
     
@@ -227,7 +234,7 @@ const Modals = {
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <i class="fas fa-money-bill-wave mr-2 ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}"></i>Amount (SOM)
+              <i class="fas fa-money-bill-wave mr-2 ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}"></i>Amount (${currency})
             </label>
             <input id="editAmount" type="number" step="0.01" value="${transaction.amount}" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-${transaction.type === 'credit' ? 'green' : 'red'}-500 focus:border-${transaction.type === 'credit' ? 'green' : 'red'}-500 bg-white shadow-sm transition-all duration-200">
           </div>
@@ -254,7 +261,7 @@ const Modals = {
                   <input type="date" id="editDate" value="${formattedDate}" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-${transaction.type === 'credit' ? 'green' : 'red'}-500">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Time (UTC+6)</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Time (${timeLabel})</label>
                   <input type="time" id="editTime" value="${formattedTime}" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-${transaction.type === 'credit' ? 'green' : 'red'}-500">
                 </div>
               </div>
@@ -306,6 +313,7 @@ const Modals = {
   
   // Update exemption preview in edit modal
   updateEditExemptionPreview(amount = null, exemptions = null) {
+    const currency = AppState.config?.currency || 'SOM';
     if (!amount) {
       amount = parseFloat(document.getElementById('editAmount').value);
     }
@@ -336,7 +344,7 @@ const Modals = {
         <span class="font-medium">Paying (${payingPeople.length} people):</span> ${payingPeople.join(', ')}
       </div>
       <div class="font-medium text-red-600">
-        Amount per person: ${amountPerPerson.toFixed(2)} SOM
+        Amount per person: ${amountPerPerson.toFixed(2)} ${currency}
       </div>
       <div class="text-xs text-red-500 mt-2 flex items-center">
         <i class="fas fa-info-circle mr-1"></i>

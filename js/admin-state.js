@@ -1,4 +1,3 @@
-// js/admin-state.js
 /**
  * Application state management
  */
@@ -9,31 +8,34 @@ const AppState = {
     billTypes: {},
     transactions: []
   },
-  
+
+  config: null,                // will hold the loaded config
+
   githubPAT: "",
   currentPage: 1,
   patTimeout: null,
-  
-  // Initialize default data structure
+
+  // Initialize default data structure using config
   initializeDefaultData() {
+    if (!this.config) return;
     this.data = {
-      people: PEOPLE.DEFAULT.reduce((acc, person) => {
-        acc[person] = 0;
+      people: this.config.people.reduce((acc, p) => {
+        acc[p] = 0;
         return acc;
       }, {}),
-      billTypes: BILL_TYPES.reduce((acc, billType) => {
-        acc[billType] = 0;
+      billTypes: this.config.billTypes.reduce((acc, bt) => {
+        acc[bt.name] = 0;
         return acc;
       }, {}),
       transactions: []
     };
   },
-  
+
   // Get current data
   getData() {
     return this.data;
   },
-  
+
   // Set data
   setData(newData) {
     this.data = {
@@ -42,32 +44,32 @@ const AppState = {
     };
   },
 
-  // Dynamic Getters for People and Bill Types
+  // Dynamic getters using config if available, otherwise from data
   getPeopleList() {
-    if (this.data && this.data.people) {
-      const keys = Object.keys(this.data.people);
-      if (keys.length > 0) return keys;
-    }
-    return PEOPLE.ALL; // Fallback to config if data is empty
+    if (this.config) return this.config.people;
+    return Object.keys(this.data.people).length ? Object.keys(this.data.people) : [];
   },
 
   getBillTypesList() {
-    if (this.data && this.data.billTypes) {
-      const keys = Object.keys(this.data.billTypes);
-      if (keys.length > 0) return keys;
-    }
-    return BILL_TYPES; // Fallback to config
+    if (this.config) return this.config.billTypes.map(bt => bt.name);
+    return Object.keys(this.data.billTypes).length ? Object.keys(this.data.billTypes) : [];
   },
-  
+
+  getBillIcon(billName) {
+    if (!this.config) return '🧾';
+    const bt = this.config.billTypes.find(b => b.name === billName);
+    return bt ? bt.icon : '🧾';
+  },
+
   // PAT management
   setPAT(token) {
     this.githubPAT = token;
   },
-  
+
   getPAT() {
     return this.githubPAT;
   },
-  
+
   clearPAT() {
     this.githubPAT = "";
     localStorage.removeItem('kharcha_pat');
@@ -77,20 +79,20 @@ const AppState = {
       this.patTimeout = null;
     }
   },
-  
+
   setPATTimeout(timeout) {
     this.patTimeout = timeout;
   },
-  
+
   // Page management
   incrementPage() {
     this.currentPage++;
   },
-  
+
   resetPage() {
     this.currentPage = 1;
   },
-  
+
   getCurrentPage() {
     return this.currentPage;
   }

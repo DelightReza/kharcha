@@ -208,6 +208,7 @@ const TransactionManager = {
   
   // Distribute money
   distributeMoney() {
+    const currency = AppState.config?.currency || 'SOM';
     const amount = parseFloat(DOM.distributionAmount.value);
     const note = DOM.distributionNote.value.trim();
     
@@ -249,7 +250,7 @@ const TransactionManager = {
         DataManager.saveData();
         UI.renderDashboard();
         
-        UI.showTransactionStatus(`✅ ${amount.toFixed(2)} SOM distributed equally among ${allPeople.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
+        UI.showTransactionStatus(`✅ ${amount.toFixed(2)} ${currency} distributed equally among ${allPeople.length} people (${amountPerPerson.toFixed(2)} each)`, 'success');
         
         DOM.distributionAmount.value = '';
         DOM.distributionNote.value = '';

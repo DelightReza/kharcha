@@ -1,0 +1,23 @@
+{
+  "siteTitle": "Burj Khalifa",
+  "siteSubtitle": "Expenses Tracker",
+  "currency": "SOM",
+  "timeOffset": 6,
+  "transactionsPerPage": 10,
+  "repoOwner": "DelightReza",
+  "repoName": "kharcha",
+  "repoBranch": "main",
+  "dataFileName": "data.json",
+  "people": [
+    "Raza", "Salman", "Mujeeb", "Gulam",
+    "Rana", "Naved", "Musawwar", "Nizamuddin"
+  ],
+  "billTypes": [
+    { "name": "Electricity", "icon": "⚡" },
+    { "name": "Water", "icon": "💧" },
+    { "name": "Gas", "icon": "🔥" },
+    { "name": "Garbage", "icon": "🗑️" },
+    { "name": "Internet", "icon": "🌐" },
+    { "name": "Other", "icon": "📦" }
+  ]
+}

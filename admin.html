@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kharcha — Admin Panel</title>
+  <title>Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -84,12 +84,16 @@
                 <i class="fas fa-shield-alt text-lg"></i>
             </div>
             <div>
-                <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900">Kharcha Admin</h1>
-                <p class="text-xs text-slate-500 font-medium">Management Console</p>
+                <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900" id="adminHeaderTitle">Admin Panel</h1>
+                <p class="text-xs text-slate-500 font-medium" id="adminHeaderSubtitle">Management Console</p>
             </div>
         </div>
         
         <div class="flex items-center gap-3">
+            <!-- Settings Button -->
+            <button id="openSettingsBtn" class="glass-input px-3 py-2 rounded-lg text-slate-600 hover:text-brand-600 hover:bg-white transition-all flex items-center shadow-sm">
+                <i class="fas fa-cog mr-2"></i> Settings
+            </button>
             <div class="hidden md:flex items-center px-3 py-1 bg-emerald-100/50 text-emerald-700 rounded-lg border border-emerald-200/50 text-xs font-bold uppercase tracking-wider">
                 <i class="fas fa-circle text-[8px] mr-2 animate-pulse-slow"></i> Live Mode
             </div>
@@ -174,7 +178,7 @@
                                     <select id="personSelect" class="glass-input w-full rounded-xl p-2.5 text-sm text-slate-700"></select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Amount (SOM)</label>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Amount (<span class="currency-label"></span>)</label>
                                     <input id="creditAmount" type="number" step="0.01" class="glass-input w-full rounded-xl p-2.5 text-sm" placeholder="0.00">
                                 </div>
                                 <div>
@@ -211,7 +215,7 @@
                                     <select id="debitType" class="glass-input w-full rounded-xl p-2.5 text-sm text-slate-700"></select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Amount (SOM)</label>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Amount (<span class="currency-label"></span>)</label>
                                     <input id="debitAmount" type="number" step="0.01" class="glass-input w-full rounded-xl p-2.5 text-sm" placeholder="0.00">
                                 </div>
                                 <div>
@@ -438,9 +442,71 @@
     <!-- Footer -->
     <footer class="text-center text-slate-400 text-sm py-8">
         <p class="flex items-center justify-center gap-2">
-            Kharcha Admin <i class="fas fa-heart text-rose-400"></i> Private Panel
+            <span id="footerBrand">Admin</span> <i class="fas fa-heart text-rose-400"></i> Private Panel
         </p>
     </footer>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4 animate-fade-in">
+    <div class="glass-card bg-white rounded-3xl shadow-2xl p-0 max-w-2xl w-full mx-auto max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center">
+                <i class="fas fa-cog text-slate-500 mr-2"></i> Configuration
+            </h3>
+            <button id="closeSettingsModal" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
+            
+            <!-- People Settings -->
+            <div>
+                <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center">
+                    <i class="fas fa-users mr-2 text-brand-500"></i> People
+                </h4>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div class="flex gap-2 mb-4">
+                        <input id="newPersonName" type="text" placeholder="Enter name" class="glass-input flex-1 rounded-lg p-2 text-sm">
+                        <button id="addPersonBtn" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-700">Add</button>
+                    </div>
+                    <div id="settingsPeopleList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bill Types Settings -->
+            <div>
+                <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center">
+                    <i class="fas fa-receipt mr-2 text-brand-500"></i> Bill Types
+                </h4>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div class="flex gap-2 mb-4">
+                        <input id="newBillIcon" type="text" placeholder="Icon (e.g. 🏠)" class="glass-input w-20 rounded-lg p-2 text-sm text-center">
+                        <input id="newBillName" type="text" placeholder="Bill Type Name" class="glass-input flex-1 rounded-lg p-2 text-sm">
+                        <button id="addBillTypeBtn" class="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-700">Add</button>
+                    </div>
+                    <div id="settingsBillList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-500 bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-start">
+                <i class="fas fa-info-circle text-yellow-600 mt-0.5 mr-2"></i>
+                <p>Changes here update the <strong>config.json</strong> file. You must commit these changes to GitHub for them to take effect on the public site.</p>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <div id="configCommitStatus" class="text-xs font-medium"></div>
+            <button id="saveConfigBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-brand-500/20 flex items-center">
+                <i class="fas fa-cloud-upload-alt mr-2"></i> Save & Commit Config
+            </button>
+        </div>
+    </div>
   </div>
 
   <!-- Transaction Details Modal -->
@@ -521,7 +587,6 @@
   </div>
 
   <!-- Load JavaScript modules in order -->
-  <script src="js/admin-config.js"></script>
   <script src="js/admin-state.js"></script>
   <script src="js/admin-dom.js"></script>
   <script src="js/admin-utils.js"></script>

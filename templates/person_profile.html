@@ -27,18 +27,18 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
             <div class="text-sm text-gray-600 mb-1">Credits</div>
-            <div class="text-2xl font-bold text-green-600">{{ "{:,.2f}".format(person_finance.credits) }}</div>
+            <div class="text-2xl font-bold text-green-600">{{ "{:,.2f}".format(person_finance.credits) }} {{ currency }}</div>
             <div class="text-xs text-gray-500 mt-1">Money Given</div>
         </div>
         <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border border-red-200">
             <div class="text-sm text-gray-600 mb-1">Debits</div>
-            <div class="text-2xl font-bold text-red-600">{{ "{:,.2f}".format(person_finance.debits) }}</div>
+            <div class="text-2xl font-bold text-red-600">{{ "{:,.2f}".format(person_finance.debits) }} {{ currency }}</div>
             <div class="text-xs text-gray-500 mt-1">Share of Bills</div>
         </div>
         <div class="bg-gradient-to-br {{ 'from-emerald-50 to-teal-50 border-emerald-200' if person_finance.net_balance >= 0 else 'from-red-50 to-rose-50 border-red-200' }} rounded-xl p-4 border">
             <div class="text-sm text-gray-600 mb-1">Net Balance</div>
             <div class="text-2xl font-bold {{ 'text-emerald-600' if person_finance.net_balance >= 0 else 'text-red-600' }}">
-                {{ "{:,.2f}".format(person_finance.net_balance) }}
+                {{ "{:,.2f}".format(person_finance.net_balance) }} {{ currency }}
             </div>
             <div class="text-xs text-gray-500 mt-1">{{ 'In Credit' if person_finance.net_balance >= 0 else 'In Debit' }}</div>
         </div>
@@ -80,9 +80,9 @@
                     </td>
                     <td class="p-4 font-medium text-slate-700">{{ tx.whoOrBill }}</td>
                     <td class="p-4 text-slate-600">{{ tx.note if tx.note else '-' }}</td>
-                    <td class="p-4 text-right font-medium text-slate-700">{{ "{:,.2f}".format(tx.amount) }}</td>
+                    <td class="p-4 text-right font-medium text-slate-700">{{ "{:,.2f}".format(tx.amount) }} {{ currency }}</td>
                     <td class="p-4 text-right font-bold {{ 'text-green-600' if tx.person_role == 'credit' else 'text-red-600' }}">
-                        {{ '+' if tx.person_role == 'credit' else '-' }}{{ "{:,.2f}".format(tx.person_amount) }}
+                        {{ '+' if tx.person_role == 'credit' else '-' }}{{ "{:,.2f}".format(tx.person_amount) }} {{ currency }}
                     </td>
                 </tr>
                 {% endfor %}

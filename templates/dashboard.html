@@ -10,7 +10,7 @@
             <i class="fas fa-arrow-down text-9xl"></i>
         </div>
         <p class="text-emerald-100 text-sm font-medium mb-1">Total Collected</p>
-        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_credits) }}</h2>
+        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_credits) }} {{ currency }}</h2>
     </div>
 
     <!-- Money Out -->
@@ -19,7 +19,7 @@
             <i class="fas fa-fire text-9xl"></i>
         </div>
         <p class="text-rose-100 text-sm font-medium mb-1">Total Spent</p>
-        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_debits) }}</h2>
+        <h2 class="text-3xl font-bold tracking-tight">{{ "{:,.0f}".format(total_debits) }} {{ currency }}</h2>
     </div>
 
     <!-- Balance -->
@@ -28,7 +28,7 @@
             <i class="fas fa-wallet text-9xl"></i>
         </div>
         <p class="text-blue-100 text-sm font-medium mb-1">Current Balance</p>
-        <h2 class="text-4xl font-bold tracking-tight">{{ "{:,.0f}".format(balance) }}</h2>
+        <h2 class="text-4xl font-bold tracking-tight">{{ "{:,.0f}".format(balance) }} {{ currency }}</h2>
     </div>
 </div>
 
@@ -52,13 +52,13 @@
                     <div>
                         <h4 class="font-bold text-slate-700">{{ person }}</h4>
                         <div class="text-xs text-slate-400">
-                            Given: <span class="text-slate-600 font-medium">{{ "{:,.0f}".format(data.credits) }}</span>
+                            Given: <span class="text-slate-600 font-medium">{{ "{:,.0f}".format(data.credits) }} {{ currency }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="font-bold text-lg {{ 'text-emerald-600' if data.net_balance >= 0 else 'text-rose-500' }}">
-                        {{ "{:,.0f}".format(data.net_balance) }}
+                        {{ "{:,.0f}".format(data.net_balance) }} {{ currency }}
                     </div>
                     <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Net Balance</div>
                 </div>
@@ -93,7 +93,7 @@
                             </td>
                             <td class="p-4 pr-6 text-right">
                                 <span class="font-bold {{ 'text-emerald-600' if tx.type == 'credit' else 'text-slate-800' }}">
-                                    {{ "+" if tx.type == 'credit' else "-" }}{{ "{:,.0f}".format(tx.amount) }}
+                                    {{ "+" if tx.type == 'credit' else "-" }}{{ "{:,.0f}".format(tx.amount) }} {{ currency }}
                                 </span>
                             </td>
                         </tr>
@@ -120,7 +120,7 @@
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="text-center">
                         <span class="block text-xs text-slate-400">Total</span>
-                        <span class="block text-xl font-bold text-slate-800">{{ "{:,.0f}".format(total_debits) }}</span>
+                        <span class="block text-xl font-bold text-slate-800">{{ "{:,.0f}".format(total_debits) }} {{ currency }}</span>
                     </div>
                 </div>
             </div>
@@ -230,7 +230,7 @@
                     </td>
                     <td class="p-4 pr-6 text-right">
                         <span class="font-bold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-slate-800'}">
-                            ${tx.type === 'credit' ? '+' : '-'}${tx.amount.toLocaleString()}
+                            ${tx.type === 'credit' ? '+' : '-'}${tx.amount.toLocaleString()} {{ currency }}
                         </span>
                     </td>
                 `;

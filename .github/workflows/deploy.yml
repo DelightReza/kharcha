@@ -3,7 +3,7 @@ name: Deploy Kharcha to GitHub Pages
 on:
   push:
     branches: [ main ]
-    paths: [ 'data.json' ]
+    paths: [ 'data.json', 'config.json' ]
   workflow_dispatch:
 
 permissions:

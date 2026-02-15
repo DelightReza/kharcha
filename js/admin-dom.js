@@ -38,6 +38,20 @@ const DOM = {
   saveEditTransaction: null,
   editTransactionForm: null,
   
+  // Settings Modal elements
+  openSettingsBtn: null,
+  settingsModal: null,
+  closeSettingsModal: null,
+  settingsPeopleList: null,
+  newPersonName: null,
+  addPersonBtn: null,
+  settingsBillList: null,
+  newBillIcon: null,
+  newBillName: null,
+  addBillTypeBtn: null,
+  saveConfigBtn: null,
+  configCommitStatus: null,
+  
   // Status elements
   transactionStatus: null,
   loadMoreContainer: null,
@@ -132,6 +146,20 @@ const DOM = {
     this.saveEditTransaction = document.getElementById('saveEditTransaction');
     this.editTransactionForm = document.getElementById('editTransactionForm');
     
+    // Settings Modal elements
+    this.openSettingsBtn = document.getElementById('openSettingsBtn');
+    this.settingsModal = document.getElementById('settingsModal');
+    this.closeSettingsModal = document.getElementById('closeSettingsModal');
+    this.settingsPeopleList = document.getElementById('settingsPeopleList');
+    this.newPersonName = document.getElementById('newPersonName');
+    this.addPersonBtn = document.getElementById('addPersonBtn');
+    this.settingsBillList = document.getElementById('settingsBillList');
+    this.newBillIcon = document.getElementById('newBillIcon');
+    this.newBillName = document.getElementById('newBillName');
+    this.addBillTypeBtn = document.getElementById('addBillTypeBtn');
+    this.saveConfigBtn = document.getElementById('saveConfigBtn');
+    this.configCommitStatus = document.getElementById('configCommitStatus');
+
     // Status elements
     this.transactionStatus = document.getElementById('transactionStatus');
     this.loadMoreContainer = document.getElementById('loadMoreContainer');
