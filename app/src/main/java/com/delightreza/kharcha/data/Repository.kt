@@ -8,15 +8,16 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
+import java.net.URI
 
 class Repository(private val dataStore: AppDataStore) {
     private val api: GitHubApi
     
-    // Custom Serializer to handle Double/Int formatting for JSON
     private class TransactionSerializer : JsonSerializer<Transaction> {
         override fun serialize(src: Transaction, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
             val jsonObject = JsonObject()
@@ -24,19 +25,11 @@ class Repository(private val dataStore: AppDataStore) {
             jsonObject.addProperty("type", src.type)
             jsonObject.addProperty("whoOrBill", src.whoOrBill)
             jsonObject.addProperty("note", src.note)
-            
-            if (src.amount % 1.0 == 0.0) {
-                jsonObject.addProperty("amount", src.amount.toInt())
-            } else {
-                jsonObject.addProperty("amount", src.amount)
-            }
-            
+            if (src.amount % 1.0 == 0.0) jsonObject.addProperty("amount", src.amount.toInt()) else jsonObject.addProperty("amount", src.amount)
             jsonObject.addProperty("date", src.date)
-
             if (!src.exemptions.isNullOrEmpty()) jsonObject.add("exemptions", context.serialize(src.exemptions))
             if (src.parentId != null) jsonObject.addProperty("parentId", src.parentId)
             if (src.distributionTotal != null) jsonObject.addProperty("distributionTotal", src.distributionTotal)
-
             return jsonObject
         }
     }
@@ -59,14 +52,10 @@ class Repository(private val dataStore: AppDataStore) {
 
     suspend fun setActiveConfig(url: String): AppConfig? = withContext(Dispatchers.IO) {
         try {
-            // 1. Fetch Config
             val config = api.fetchConfig(url)
-            
-            // 2. Save Config & URL
             val json = gson.toJson(config)
             dataStore.saveConfigCache(json)
             dataStore.saveConfigUrl(url)
-            
             return@withContext config
         } catch (e: Exception) {
             e.printStackTrace()
@@ -78,57 +67,92 @@ class Repository(private val dataStore: AppDataStore) {
         return dataStore.getConfigCache()
     }
 
+    // NEW: Update Configuration on GitHub
+    suspend fun updateRemoteConfig(token: String, newConfig: AppConfig): Boolean = withContext(Dispatchers.IO) {
+        try {
+            // 1. Get Config URL to determine Repo/Path
+            val configUrl = dataStore.configUrlFlow.firstOrNull() ?: return@withContext false
+            val (owner, repo, path) = parseGitHubUrl(configUrl) ?: return@withContext false
+
+            // 2. Get Current SHA
+            val authHeader = "token $token"
+            val fileDetails = api.getFileDetails(authHeader, owner, repo, path)
+
+            // 3. Prepare Update
+            val jsonContent = gson.toJson(newConfig)
+            val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
+            
+            val request = UpdateFileRequest(
+                message = "App: Update Configuration (People/Bills)",
+                content = encodedContent,
+                sha = fileDetails.sha
+            )
+
+            // 4. Push
+            api.updateFile(authHeader, owner, repo, path, request)
+            
+            // 5. Update Local Cache
+            dataStore.saveConfigCache(jsonContent)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // Helper to parse: https://user.github.io/repo/config.json -> (user, repo, config.json)
+    private fun parseGitHubUrl(url: String): Triple<String, String, String>? {
+        try {
+            val uri = URI(url)
+            val host = uri.host // e.g. delightreza.github.io
+            val path = uri.path.trimStart('/') // e.g. kitchen/config.json
+
+            if (host.contains("github.io")) {
+                val owner = host.split(".")[0]
+                val parts = path.split("/", limit = 2)
+                if (parts.size == 2) {
+                    return Triple(owner, parts[0], parts[1])
+                }
+            }
+        } catch (e: Exception) { e.printStackTrace() }
+        return null
+    }
+
     // --- DATA METHODS ---
 
     suspend fun getCachedData(): KharchaData? = withContext(Dispatchers.IO) {
         val json = dataStore.getCache()
         if (!json.isNullOrEmpty()) {
-            try {
-                return@withContext gson.fromJson(json, KharchaData::class.java)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            try { return@withContext gson.fromJson(json, KharchaData::class.java) } catch (e: Exception) { e.printStackTrace() }
         }
         return@withContext null
     }
 
     suspend fun fetchData(): KharchaData? = withContext(Dispatchers.IO) {
         val config = getAppConfig() ?: return@withContext null
-        
         try {
-            // Construct Data URL: https://{owner}.github.io/{repo}/{filename}?t={timestamp}
             val dataUrl = "https://${config.repoOwner}.github.io/${config.repoName}/${config.dataFileName}?t=${System.currentTimeMillis()}"
             val data = api.getPublicData(dataUrl)
-            
             val json = gson.toJson(data)
             dataStore.saveCache(json)
-            
             return@withContext data
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return@withContext null
-        }
+        } catch (e: Exception) { e.printStackTrace(); return@withContext null }
     }
 
     suspend fun verifyToken(token: String): Boolean = withContext(Dispatchers.IO) {
         val config = getAppConfig() ?: return@withContext false
         try {
-            // Verify by trying to fetch file metadata
             api.getFileDetails("token $token", config.repoOwner, config.repoName, config.dataFileName)
             true
         } catch (e: Exception) { false }
     }
 
-    // --- WRITE OPERATIONS ---
-
     private suspend fun getLatestDataAndContext(token: String): Triple<String, GitHubFileResponse, KharchaData>? {
         val config = getAppConfig() ?: return null
         val authHeader = "token $token"
-        
         val fileDetails = api.getFileDetails(authHeader, config.repoOwner, config.repoName, config.dataFileName)
         val currentJson = String(Base64.decode(fileDetails.content, Base64.NO_WRAP))
         val currentData = gson.fromJson(currentJson, KharchaData::class.java)
-        
         return Triple(authHeader, fileDetails, currentData)
     }
 
@@ -136,13 +160,7 @@ class Repository(private val dataStore: AppDataStore) {
         val config = getAppConfig() ?: return
         val jsonContent = gson.toJson(data)
         val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
-        
-        val request = UpdateFileRequest(
-            message = "App: $msg",
-            content = encodedContent,
-            sha = sha
-        )
-
+        val request = UpdateFileRequest(message = "App: $msg", content = encodedContent, sha = sha)
         api.updateFile(authHeader, config.repoOwner, config.repoName, config.dataFileName, request)
         dataStore.saveCache(jsonContent)
     }
@@ -151,38 +169,24 @@ class Repository(private val dataStore: AppDataStore) {
         try {
             val ctx = getLatestDataAndContext(token) ?: return@withContext false
             val (authHeader, fileDetails, currentData) = ctx
-
             currentData.transactions.add(0, newTx)
             updateTotals(currentData, newTx, add = true)
-
             commitData(authHeader, currentData, fileDetails.sha, "Add ${newTx.type}")
             true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
+        } catch (e: Exception) { e.printStackTrace(); false }
     }
 
-    // (Simplified logic for other adds to save space - they follow same pattern)
     suspend fun addDistribution(token: String, totalAmount: Double, note: String, date: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val ctx = getLatestDataAndContext(token) ?: return@withContext false
             val (authHeader, fileDetails, currentData) = ctx
-            
-            // Use people from Config for distribution logic, or fallback to Data if empty
             val config = getAppConfig()
             val people = if (!config?.people.isNullOrEmpty()) config!!.people.sorted() else currentData.people.keys.toList().sorted()
-            
             if (people.isEmpty()) return@withContext false
-
             val splitAmount = totalAmount / people.size
             val parentId = "tx_dist_${System.currentTimeMillis()}"
-
             people.forEachIndexed { index, person ->
-                val tx = Transaction(
-                    id = "${parentId}_$index", type = "credit", whoOrBill = person, note = note,
-                    amount = splitAmount, date = date, parentId = parentId, distributionTotal = totalAmount
-                )
+                val tx = Transaction(id = "${parentId}_$index", type = "credit", whoOrBill = person, note = note, amount = splitAmount, date = date, parentId = parentId, distributionTotal = totalAmount)
                 currentData.transactions.add(0, tx)
                 updateTotals(currentData, tx, add = true)
             }
@@ -196,15 +200,10 @@ class Repository(private val dataStore: AppDataStore) {
             val ctx = getLatestDataAndContext(token) ?: return@withContext false
             val (authHeader, fileDetails, currentData) = ctx
             val parentId = "tx_set_${System.currentTimeMillis()}"
-
             val payerTx = Transaction(id = "${parentId}_payer", type = "credit", whoOrBill = payer, note = if(note.isNotEmpty()) "Settlement: $note" else "Settlement to $receiver", amount = amount, date = date, parentId = parentId)
             val receiverTx = Transaction(id = "${parentId}_rcvr", type = "credit", whoOrBill = receiver, note = if(note.isNotEmpty()) "Settlement: $note" else "Settlement from $payer", amount = -amount, date = date, parentId = parentId)
-
-            currentData.transactions.add(0, payerTx)
-            currentData.transactions.add(0, receiverTx)
-            updateTotals(currentData, payerTx, add = true)
-            updateTotals(currentData, receiverTx, add = true)
-
+            currentData.transactions.add(0, payerTx); currentData.transactions.add(0, receiverTx)
+            updateTotals(currentData, payerTx, add = true); updateTotals(currentData, receiverTx, add = true)
             commitData(authHeader, currentData, fileDetails.sha, "Settlement: $payer -> $receiver")
             true
         } catch (e: Exception) { e.printStackTrace(); false }
@@ -215,15 +214,10 @@ class Repository(private val dataStore: AppDataStore) {
             val ctx = getLatestDataAndContext(token) ?: return@withContext false
             val (authHeader, fileDetails, currentData) = ctx
             val parentId = "tx_trf_${System.currentTimeMillis()}"
-
             val senderTx = Transaction(id = "${parentId}_send", type = "credit", whoOrBill = sender, note = if(note.isNotEmpty()) "Transfer: $note" else "Transfer to $recipient", amount = -amount, date = date, parentId = parentId)
             val recipientTx = Transaction(id = "${parentId}_rcpt", type = "credit", whoOrBill = recipient, note = if(note.isNotEmpty()) "Transfer: $note" else "Transfer from $sender", amount = amount, date = date, parentId = parentId)
-
-            currentData.transactions.add(0, senderTx)
-            currentData.transactions.add(0, recipientTx)
-            updateTotals(currentData, senderTx, add = true)
-            updateTotals(currentData, recipientTx, add = true)
-
+            currentData.transactions.add(0, senderTx); currentData.transactions.add(0, recipientTx)
+            updateTotals(currentData, senderTx, add = true); updateTotals(currentData, recipientTx, add = true)
             commitData(authHeader, currentData, fileDetails.sha, "Transfer: $sender -> $recipient")
             true
         } catch (e: Exception) { e.printStackTrace(); false }
@@ -234,17 +228,8 @@ class Repository(private val dataStore: AppDataStore) {
             val ctx = getLatestDataAndContext(token) ?: return@withContext false
             val (authHeader, fileDetails, currentData) = ctx
             val targetTx = currentData.transactions.find { it.id == transactionId } ?: return@withContext false
-            
-            val toDelete = if (targetTx.parentId != null) {
-                currentData.transactions.filter { it.parentId == targetTx.parentId }
-            } else {
-                listOf(targetTx)
-            }
-
-            toDelete.forEach { tx ->
-                updateTotals(currentData, tx, add = false) 
-                currentData.transactions.remove(tx)
-            }
+            val toDelete = if (targetTx.parentId != null) currentData.transactions.filter { it.parentId == targetTx.parentId } else listOf(targetTx)
+            toDelete.forEach { tx -> updateTotals(currentData, tx, add = false); currentData.transactions.remove(tx) }
             commitData(authHeader, currentData, fileDetails.sha, "Delete transaction")
             true
         } catch (e: Exception) { e.printStackTrace(); false }
@@ -256,12 +241,9 @@ class Repository(private val dataStore: AppDataStore) {
             val (authHeader, fileDetails, currentData) = ctx
             val index = currentData.transactions.indexOfFirst { it.id == updatedTx.id }
             if (index == -1) return@withContext false
-            
             val oldTx = currentData.transactions[index]
-            updateTotals(currentData, oldTx, add = false)
-            updateTotals(currentData, updatedTx, add = true)
+            updateTotals(currentData, oldTx, add = false); updateTotals(currentData, updatedTx, add = true)
             currentData.transactions[index] = updatedTx
-
             commitData(authHeader, currentData, fileDetails.sha, "Edit transaction")
             true
         } catch (e: Exception) { e.printStackTrace(); false }
@@ -270,13 +252,10 @@ class Repository(private val dataStore: AppDataStore) {
     private fun updateTotals(data: KharchaData, tx: Transaction, add: Boolean) {
         val multiplier = if (add) 1.0 else -1.0
         val amount = tx.amount * multiplier
-
         if (tx.type == "credit") {
-            val oldVal = data.people[tx.whoOrBill] ?: 0.0
-            data.people[tx.whoOrBill] = oldVal + amount
+            data.people[tx.whoOrBill] = (data.people[tx.whoOrBill] ?: 0.0) + amount
         } else {
-            val oldVal = data.billTypes[tx.whoOrBill] ?: 0.0
-            data.billTypes[tx.whoOrBill] = oldVal + amount
+            data.billTypes[tx.whoOrBill] = (data.billTypes[tx.whoOrBill] ?: 0.0) + amount
         }
     }
 
@@ -284,22 +263,15 @@ class Repository(private val dataStore: AppDataStore) {
         val peopleKeys = data.people.keys
         val peopleList = if (peopleKeys.isNotEmpty()) peopleKeys.toList() else Constants.DEFAULT_MEMBERS
         val balances = peopleList.associateWith { 0.0 }.toMutableMap()
-
         data.transactions.forEach { tx ->
             if (tx.type == "credit") {
-                if (!balances.containsKey(tx.whoOrBill)) balances[tx.whoOrBill] = 0.0
-                val current = balances[tx.whoOrBill] ?: 0.0
-                balances[tx.whoOrBill] = current + tx.amount
+                balances[tx.whoOrBill] = (balances[tx.whoOrBill] ?: 0.0) + tx.amount
             } else {
                 val exemptions = tx.exemptions ?: emptyList()
                 val contributors = peopleList.filter { !exemptions.contains(it) }
                 if (contributors.isNotEmpty()) {
                     val splitAmount = tx.amount / contributors.size
-                    contributors.forEach { person ->
-                        if (!balances.containsKey(person)) balances[person] = 0.0
-                        val current = balances[person] ?: 0.0
-                        balances[person] = current - splitAmount
-                    }
+                    contributors.forEach { person -> balances[person] = (balances[person] ?: 0.0) - splitAmount }
                 }
             }
         }

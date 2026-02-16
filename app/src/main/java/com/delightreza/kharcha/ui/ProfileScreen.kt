@@ -78,7 +78,7 @@ fun ProfileScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Header Card (With Secret Long Press)
+        // 1. Header Card
         item {
             val netBalance = balances[currentUser] ?: 0.0
             val given = data?.people?.get(currentUser) ?: 0.0
@@ -118,7 +118,6 @@ fun ProfileScreen(
                     Text(text = currentUser, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    // Stats Row - Equal Heights
                     Row(
                         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -143,7 +142,22 @@ fun ProfileScreen(
             }
         }
 
-        // 2. Admin Access Card
+        // 2. NEW: Config Settings (Only if Admin)
+        if (!savedToken.value.isNullOrBlank()) {
+            item {
+                OutlinedButton(
+                    onClick = { navController.navigate("settings") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Settings, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Config Settings (People & Bills)")
+                }
+            }
+        }
+
+        // 3. Admin Access Card
         if (showAdminAccess) {
             item {
                 Card(
@@ -207,7 +221,7 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Switch User
+        // 4. Switch User
         item {
             OutlinedButton(
                 onClick = {
@@ -227,7 +241,7 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Personal History
+        // 5. Personal History
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text("Your Recent Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -235,7 +249,6 @@ fun ProfileScreen(
 
         if (data != null) {
             val currentMemberCount = data!!.people.size
-            
             val myTransactions = data!!.transactions.filter { tx ->
                 if (tx.type == "credit") {
                     tx.whoOrBill == currentUser
@@ -244,21 +257,14 @@ fun ProfileScreen(
                     !exemptions.contains(currentUser)
                 }
             }
-            
             if (myTransactions.isEmpty()) {
-                item { 
-                    Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text("No recent activity.", color = Color.Gray, textAlign = TextAlign.Center)
-                    }
-                }
+                item { Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { Text("No recent activity.", color = Color.Gray, textAlign = TextAlign.Center) } }
             } else {
                 items(myTransactions.take(30)) { tx ->
                     val exemptionsCount = tx.exemptions?.size ?: 0
                     val payingPeopleCount = currentMemberCount - exemptionsCount
                     val myShare = if (tx.type == "debit" && payingPeopleCount > 0) tx.amount / payingPeopleCount else tx.amount
-
                     ProfileTransactionRow(tx, myShare) {
-                        // FIX: Pass ParentID if exists (Group Link), otherwise ID
                         val targetId = tx.parentId ?: tx.id
                         navController.navigate("detail/$targetId")
                     }
@@ -277,97 +283,45 @@ fun VerticalDivider() {
 @Composable
 fun ProfileTransactionRow(tx: Transaction, myShare: Double, onClick: () -> Unit) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
-    
-    // 1. Determine Visuals based on money flow
     val isPositiveEffect = if (tx.type == "debit") false else myShare > 0
     val color = if (isPositiveEffect) Color(0xFF059669) else Color(0xFFDC2626)
     val icon = if (isPositiveEffect) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
     
-    // 2. Smart Title Logic
     val title = when {
-        // Case A: Credit/Settlement/Transfer
-        tx.type == "credit" -> {
-            if (myShare < 0) "Transfer / Settle" else "Deposit / Received"
-        }
-        // Case B: Debit "Other" -> Use Note as Title
+        tx.type == "credit" -> if (myShare < 0) "Transfer / Settle" else "Deposit / Received"
         tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> tx.note
-        // Case C: Standard Debit
         else -> tx.whoOrBill
     }
 
-    // 3. Smart Subtitle Logic (Always show Date)
     val subtitle = when {
-        // Case A: Credit -> Note + Date
-        tx.type == "credit" -> {
-            if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
-        }
-        // Case B: Debit "Other" -> "Other" + Date (since Note is title)
+        tx.type == "credit" -> if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
         tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> "Other • $localDate"
-        // Case C: Standard Debit -> Note + Date
-        else -> {
-            if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
-        }
+        else -> if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
                 Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
-            
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                    maxLines = 1
-                )
+                Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
             }
-            
             Column(horizontalAlignment = Alignment.End) {
                 val amountDisplay = abs(myShare)
                 val sign = if (isPositiveEffect) "+" else "-"
-                
-                Text(
-                    text = "$sign${"%.2f".format(amountDisplay)}",
-                    color = color,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End
-                )
-                
-                if (tx.type == "debit") {
-                    Text(
-                        text = "My Share",
-                        fontSize = 10.sp,
-                        color = Color.LightGray,
-                        textAlign = TextAlign.End
-                    )
-                }
+                Text(text = "$sign${"%.2f".format(amountDisplay)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
+                if (tx.type == "debit") Text(text = "My Share", fontSize = 10.sp, color = Color.LightGray, textAlign = TextAlign.End)
             }
         }
     }

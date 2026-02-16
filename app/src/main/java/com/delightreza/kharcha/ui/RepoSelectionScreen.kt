@@ -40,6 +40,7 @@ fun RepoSelectionScreen(
                     errorMsg = "Failed to load config. Check URL."
                 }
             }
+            Unit // Explicitly return Unit so this lambda type is () -> Unit, not () -> Job
         }
     }
 
@@ -73,7 +74,7 @@ fun RepoSelectionScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = handleSubmit,
+            onClick = { handleSubmit() }, // Wrapped in lambda to ensure Unit return type compatibility
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {

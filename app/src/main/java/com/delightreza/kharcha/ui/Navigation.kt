@@ -38,10 +38,6 @@ fun AppNavigation() {
         return
     }
 
-    // Logic: 
-    // 1. If no Config URL -> Repo Selection
-    // 2. If no User -> User Selection
-    // 3. Else -> Main
     val startDest = if (configUrlState.value.isNullOrEmpty()) {
         "repo_selection"
     } else if (userState.value.isNullOrEmpty()) {
@@ -52,7 +48,6 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = startDest) {
         
-        // NEW: Repository Selection Screen
         composable("repo_selection") {
             RepoSelectionScreen(
                 repository = repository,
@@ -96,6 +91,17 @@ fun AppNavigation() {
                 currentUser = userState.value ?: "",
                 hasToken = !tokenState.value.isNullOrBlank()
             )
+        }
+
+        // NEW ROUTE
+        composable("settings") {
+            val token = tokenState.value
+            if (!token.isNullOrBlank()) {
+                SettingsScreen(navController = navController, repository = repository, token = token)
+            } else {
+                // Should not happen as button is hidden, but safety check
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            }
         }
 
         composable(
