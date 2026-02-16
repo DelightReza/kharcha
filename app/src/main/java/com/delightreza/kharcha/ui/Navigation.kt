@@ -89,17 +89,23 @@ fun AppNavigation() {
                 repository = repository, 
                 dataStore = dataStore, 
                 currentUser = userState.value ?: "",
-                hasToken = !tokenState.value.isNullOrBlank()
+                hasToken = !tokenState.value.isNullOrBlank(),
+                onSwitchRepo = {
+                    scope.launch {
+                        dataStore.clearConfig()
+                        navController.navigate("repo_selection") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    }
+                }
             )
         }
 
-        // NEW ROUTE
         composable("settings") {
             val token = tokenState.value
             if (!token.isNullOrBlank()) {
                 SettingsScreen(navController = navController, repository = repository, token = token)
             } else {
-                // Should not happen as button is hidden, but safety check
                 LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }

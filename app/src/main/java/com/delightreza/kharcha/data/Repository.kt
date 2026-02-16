@@ -8,6 +8,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
@@ -50,12 +51,24 @@ class Repository(private val dataStore: AppDataStore) {
 
     // --- CONFIGURATION METHODS ---
 
+    fun getSavedRepos(): Flow<Set<String>> = dataStore.savedReposFlow
+
+    suspend fun removeSavedRepo(url: String) {
+        dataStore.removeSavedRepo(url)
+    }
+
     suspend fun setActiveConfig(url: String): AppConfig? = withContext(Dispatchers.IO) {
         try {
             val config = api.fetchConfig(url)
             val json = gson.toJson(config)
+            
+            // Save Active Config
             dataStore.saveConfigCache(json)
             dataStore.saveConfigUrl(url)
+            
+            // Add to History
+            dataStore.addSavedRepo(url)
+            
             return@withContext config
         } catch (e: Exception) {
             e.printStackTrace()
@@ -70,15 +83,12 @@ class Repository(private val dataStore: AppDataStore) {
     // NEW: Update Configuration on GitHub
     suspend fun updateRemoteConfig(token: String, newConfig: AppConfig): Boolean = withContext(Dispatchers.IO) {
         try {
-            // 1. Get Config URL to determine Repo/Path
             val configUrl = dataStore.configUrlFlow.firstOrNull() ?: return@withContext false
             val (owner, repo, path) = parseGitHubUrl(configUrl) ?: return@withContext false
 
-            // 2. Get Current SHA
             val authHeader = "token $token"
             val fileDetails = api.getFileDetails(authHeader, owner, repo, path)
 
-            // 3. Prepare Update
             val jsonContent = gson.toJson(newConfig)
             val encodedContent = Base64.encodeToString(jsonContent.toByteArray(), Base64.NO_WRAP)
             
@@ -88,10 +98,7 @@ class Repository(private val dataStore: AppDataStore) {
                 sha = fileDetails.sha
             )
 
-            // 4. Push
             api.updateFile(authHeader, owner, repo, path, request)
-            
-            // 5. Update Local Cache
             dataStore.saveConfigCache(jsonContent)
             true
         } catch (e: Exception) {
@@ -100,12 +107,11 @@ class Repository(private val dataStore: AppDataStore) {
         }
     }
 
-    // Helper to parse: https://user.github.io/repo/config.json -> (user, repo, config.json)
     private fun parseGitHubUrl(url: String): Triple<String, String, String>? {
         try {
             val uri = URI(url)
-            val host = uri.host // e.g. delightreza.github.io
-            val path = uri.path.trimStart('/') // e.g. kitchen/config.json
+            val host = uri.host 
+            val path = uri.path.trimStart('/') 
 
             if (host.contains("github.io")) {
                 val owner = host.split(".")[0]

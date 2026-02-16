@@ -18,7 +18,8 @@ fun MainScreen(
     repository: Repository,
     dataStore: AppDataStore,
     currentUser: String,
-    hasToken: Boolean
+    hasToken: Boolean,
+    onSwitchRepo: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -59,12 +60,13 @@ fun MainScreen(
                 repository = repository,
                 dataStore = dataStore,
                 currentUser = currentUser,
-                navController = rootNavController, // <--- CRITICAL UPDATE HERE
+                navController = rootNavController,
                 onLogout = {
                     rootNavController.navigate("onboarding") {
                         popUpTo("main") { inclusive = true }
                     }
-                }
+                },
+                onSwitchRepo = onSwitchRepo
             )
         }
     }

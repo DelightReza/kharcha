@@ -43,7 +43,8 @@ fun ProfileScreen(
     dataStore: AppDataStore,
     currentUser: String,
     navController: NavController,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onSwitchRepo: () -> Unit
 ) {
     var data by remember { mutableStateOf<KharchaData?>(null) }
     var balances by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
@@ -142,7 +143,7 @@ fun ProfileScreen(
             }
         }
 
-        // 2. NEW: Config Settings (Only if Admin)
+        // 2. Config Settings (Only if Admin)
         if (!savedToken.value.isNullOrBlank()) {
             item {
                 OutlinedButton(
@@ -221,23 +222,40 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Switch User
+        // 4. Switch Actions (User & Repo)
         item {
-            OutlinedButton(
-                onClick = {
-                    scope.launch {
-                        dataStore.clearUser()
-                        onLogout()
-                    }
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.Logout, null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Switch User", textAlign = TextAlign.Center)
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            dataStore.clearUser()
+                            onLogout()
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Logout, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Switch User", textAlign = TextAlign.Center, fontSize = 12.sp)
+                }
+
+                OutlinedButton(
+                    onClick = { onSwitchRepo() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Sync, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Switch Repo", textAlign = TextAlign.Center, fontSize = 12.sp)
+                }
             }
         }
 

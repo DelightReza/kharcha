@@ -3,6 +3,7 @@ package com.delightreza.kharcha.data
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
@@ -17,14 +18,18 @@ class AppDataStore(private val context: Context) {
         val SELECTED_USER = stringPreferencesKey("selected_user")
         val CACHED_DATA = stringPreferencesKey("cached_json_data")
         
-        // NEW: Config Tracking
+        // Active Session
         val CONFIG_URL = stringPreferencesKey("config_url")
         val CACHED_CONFIG = stringPreferencesKey("cached_config_json")
+
+        // History
+        val SAVED_REPOS = stringSetPreferencesKey("saved_repo_urls")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[GITHUB_TOKEN] }
     val userFlow: Flow<String?> = context.dataStore.data.map { it[SELECTED_USER] }
     val configUrlFlow: Flow<String?> = context.dataStore.data.map { it[CONFIG_URL] }
+    val savedReposFlow: Flow<Set<String>> = context.dataStore.data.map { it[SAVED_REPOS] ?: emptySet() }
 
     suspend fun saveToken(token: String) {
         context.dataStore.edit { it[GITHUB_TOKEN] = token }
@@ -36,6 +41,21 @@ class AppDataStore(private val context: Context) {
 
     suspend fun saveConfigUrl(url: String) {
         context.dataStore.edit { it[CONFIG_URL] = url }
+    }
+
+    // Add to History (Set ensures uniqueness)
+    suspend fun addSavedRepo(url: String) {
+        context.dataStore.edit { preferences ->
+            val currentSet = preferences[SAVED_REPOS] ?: emptySet()
+            preferences[SAVED_REPOS] = currentSet + url
+        }
+    }
+
+    suspend fun removeSavedRepo(url: String) {
+        context.dataStore.edit { preferences ->
+            val currentSet = preferences[SAVED_REPOS] ?: emptySet()
+            preferences[SAVED_REPOS] = currentSet - url
+        }
     }
 
     // Data Cache
@@ -65,12 +85,14 @@ class AppDataStore(private val context: Context) {
         context.dataStore.edit { it.remove(SELECTED_USER) }
     }
     
+    // Updated: Only clears ACTIVE session data, NOT the saved repo history
     suspend fun clearConfig() {
         context.dataStore.edit { 
             it.remove(CONFIG_URL)
             it.remove(CACHED_CONFIG)
             it.remove(CACHED_DATA)
             it.remove(SELECTED_USER)
+            // Note: SAVED_REPOS is intentionally NOT removed
         }
     }
 }
