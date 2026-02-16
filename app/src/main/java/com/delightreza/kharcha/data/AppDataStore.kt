@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -15,10 +16,15 @@ class AppDataStore(private val context: Context) {
         val GITHUB_TOKEN = stringPreferencesKey("github_token")
         val SELECTED_USER = stringPreferencesKey("selected_user")
         val CACHED_DATA = stringPreferencesKey("cached_json_data")
+        
+        // NEW: Config Tracking
+        val CONFIG_URL = stringPreferencesKey("config_url")
+        val CACHED_CONFIG = stringPreferencesKey("cached_config_json")
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[GITHUB_TOKEN] }
     val userFlow: Flow<String?> = context.dataStore.data.map { it[SELECTED_USER] }
+    val configUrlFlow: Flow<String?> = context.dataStore.data.map { it[CONFIG_URL] }
 
     suspend fun saveToken(token: String) {
         context.dataStore.edit { it[GITHUB_TOKEN] = token }
@@ -28,7 +34,11 @@ class AppDataStore(private val context: Context) {
         context.dataStore.edit { it[SELECTED_USER] = user }
     }
 
-    // Cache Methods
+    suspend fun saveConfigUrl(url: String) {
+        context.dataStore.edit { it[CONFIG_URL] = url }
+    }
+
+    // Data Cache
     suspend fun saveCache(json: String) {
         context.dataStore.edit { it[CACHED_DATA] = json }
     }
@@ -37,7 +47,30 @@ class AppDataStore(private val context: Context) {
         return context.dataStore.data.map { it[CACHED_DATA] }.first()
     }
 
+    // Config Cache
+    suspend fun saveConfigCache(json: String) {
+        context.dataStore.edit { it[CACHED_CONFIG] = json }
+    }
+
+    suspend fun getConfigCache(): AppConfig? {
+        val json = context.dataStore.data.map { it[CACHED_CONFIG] }.first()
+        return if (!json.isNullOrEmpty()) {
+            try {
+                Gson().fromJson(json, AppConfig::class.java)
+            } catch (e: Exception) { null }
+        } else null
+    }
+
     suspend fun clearUser() {
         context.dataStore.edit { it.remove(SELECTED_USER) }
+    }
+    
+    suspend fun clearConfig() {
+        context.dataStore.edit { 
+            it.remove(CONFIG_URL)
+            it.remove(CACHED_CONFIG)
+            it.remove(CACHED_DATA)
+            it.remove(SELECTED_USER)
+        }
     }
 }

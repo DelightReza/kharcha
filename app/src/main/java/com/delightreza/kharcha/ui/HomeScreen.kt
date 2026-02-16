@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.delightreza.kharcha.data.AppConfig
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
@@ -33,6 +34,7 @@ fun HomeScreen(
     navController: NavController
 ) {
     var data by remember { mutableStateOf<KharchaData?>(null) }
+    var config by remember { mutableStateOf<AppConfig?>(null) }
     var balances by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     var isRefreshing by remember { mutableStateOf(false) }
     var isInitialLoad by remember { mutableStateOf(true) }
@@ -51,6 +53,9 @@ fun HomeScreen(
         scope.launch {
             if (forceNetwork) isRefreshing = true
             if (forceNetwork) displayedCount = 20
+
+            // Config is likely cached
+            config = repository.getAppConfig()
 
             if (isInitialLoad && !forceNetwork) {
                 val cached = repository.getCachedData()
@@ -83,15 +88,32 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             } else if (data != null) {
+                val currency = config?.currency ?: "SOM"
+                
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                     
+                    // 0. Dynamic Header
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = config?.siteTitle ?: "Kharcha",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = config?.siteSubtitle ?: "Expense Tracker",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
                     // 1. Hero Stats
                     item {
                         val totalCredits = data!!.transactions.filter { it.type == "credit" }.sumOf { it.amount }
                         val totalDebits = data!!.transactions.filter { it.type == "debit" }.sumOf { it.amount }
                         val currentBalance = totalCredits - totalDebits
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
                         
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF3B82F6)),
@@ -110,7 +132,7 @@ fun HomeScreen(
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    "${currentBalance.toInt()}", 
+                                    "${currentBalance.toInt()} $currency", 
                                     color = Color.White, 
                                     fontSize = 32.sp, 
                                     fontWeight = FontWeight.Bold,
@@ -126,8 +148,8 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), 
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            StatCard("Total Collected", totalCredits, Color(0xFF10B981), Modifier.weight(1f).fillMaxHeight())
-                            StatCard("Total Spent", totalDebits, Color(0xFFEF4444), Modifier.weight(1f).fillMaxHeight())
+                            StatCard("Collected", totalCredits, Color(0xFF10B981), Modifier.weight(1f).fillMaxHeight(), currency)
+                            StatCard("Spent", totalDebits, Color(0xFFEF4444), Modifier.weight(1f).fillMaxHeight(), currency)
                         }
                         Spacer(modifier = Modifier.height(24.dp))
                     }
@@ -139,14 +161,13 @@ fun HomeScreen(
                     }
                     
                     items(balances.toList().sortedByDescending { it.second }.chunked(2)) { rowItems ->
-                        // Equal Height Row for Members
                         Row(
                             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), 
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             rowItems.forEach { (name, net) ->
                                 val given = data!!.people[name] ?: 0.0
-                                CompactMemberCard(name, net, given, Modifier.weight(1f).fillMaxHeight())
+                                CompactMemberCard(name, net, given, Modifier.weight(1f).fillMaxHeight(), currency)
                             }
                             if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                         }
@@ -194,7 +215,7 @@ fun HomeScreen(
                     val visibleTransactions = data!!.transactions.take(displayedCount)
                     
                     items(visibleTransactions) { tx ->
-                        TransactionRow(tx) {
+                        TransactionRow(tx, currency) {
                             navController.navigate("detail/${tx.id}")
                         }
                         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f))
@@ -225,19 +246,10 @@ fun HomeScreen(
 }
 
 @Composable
-fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
-    val displayTitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) {
-        tx.note
-    } else {
-        tx.whoOrBill
-    }
-
+fun TransactionRow(tx: Transaction, currency: String, onClick: () -> Unit) {
+    val displayTitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) tx.note else tx.whoOrBill
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
-    val displaySubtitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) {
-        "Other • $localDate"
-    } else {
-        localDate
-    }
+    val displaySubtitle = if (tx.whoOrBill == "Other" && tx.note.isNotEmpty()) "Other • $localDate" else localDate
 
     ListItem(
         modifier = Modifier.clickable { onClick() },
@@ -246,7 +258,7 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${if(tx.type=="credit") "+" else "-"}${tx.amount.toInt()}",
+                    text = "${if(tx.type=="credit") "+" else "-"}${tx.amount.toInt()} $currency",
                     color = if(tx.type=="credit") Color(0xFF059669) else Color(0xFFDC2626),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -260,7 +272,7 @@ fun TransactionRow(tx: Transaction, onClick: () -> Unit) {
 }
 
 @Composable
-fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
+fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier, currency: String) {
     Card(colors = CardDefaults.cardColors(containerColor = color), modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp), 
@@ -275,9 +287,9 @@ fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
                 textAlign = TextAlign.Center
             )
             Text(
-                "${amount.toInt()}", 
+                "${amount.toInt()} $currency", 
                 color = Color.White, 
-                fontSize = 20.sp, 
+                fontSize = 18.sp, 
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -286,7 +298,7 @@ fun StatCard(title: String, amount: Double, color: Color, modifier: Modifier) {
 }
 
 @Composable
-fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifier) {
+fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifier, currency: String) {
     Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = modifier) {
         Column(
             modifier = Modifier.padding(12.dp).fillMaxSize(),
@@ -314,7 +326,7 @@ fun CompactMemberCard(name: String, net: Double, given: Double, modifier: Modifi
                         fontSize = 16.sp,
                         textAlign = TextAlign.End
                     )
-                    Text("Net", fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.End)
+                    Text(currency, fontSize = 10.sp, color = Color.Gray, textAlign = TextAlign.End)
                 }
             }
         }

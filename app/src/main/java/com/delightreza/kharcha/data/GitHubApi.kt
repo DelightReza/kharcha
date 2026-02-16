@@ -4,21 +4,35 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PUT
-import retrofit2.http.Query
+import retrofit2.http.Path
+import retrofit2.http.Url
 
 interface GitHubApi {
-    @GET("https://delightreza.github.io/kharcha/data.json")
-    suspend fun getPublicData(@Query("t") timestamp: Long): KharchaData
+    
+    // 1. Fetch Config dynamically using full URL
+    @GET
+    suspend fun fetchConfig(@Url url: String): AppConfig
 
-    // Used for Verification AND getting SHA
-    @GET("repos/DelightReza/kharcha/contents/data.json")
+    // 2. Fetch Data dynamically using constructed URL
+    @GET
+    suspend fun getPublicData(@Url url: String): KharchaData
+
+    // 3. Get SHA/Content for Write Operations (Dynamic Path)
+    @GET("repos/{owner}/{repo}/contents/{path}")
     suspend fun getFileDetails(
-        @Header("Authorization") token: String
+        @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("path") path: String
     ): GitHubFileResponse
 
-    @PUT("repos/DelightReza/kharcha/contents/data.json")
+    // 4. Update File (Dynamic Path)
+    @PUT("repos/{owner}/{repo}/contents/{path}")
     suspend fun updateFile(
         @Header("Authorization") token: String,
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("path") path: String,
         @Body body: UpdateFileRequest
     )
 }

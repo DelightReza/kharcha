@@ -2,6 +2,26 @@ package com.delightreza.kharcha.data
 
 import com.google.gson.annotations.SerializedName
 
+// --- CONFIGURATION MODEL (From config.json) ---
+data class AppConfig(
+    val siteTitle: String = "Kharcha",
+    val siteSubtitle: String = "House Fund",
+    val currency: String = "SOM",
+    val timeOffset: Double = 6.0,
+    val repoOwner: String,
+    val repoName: String,
+    val repoBranch: String = "main",
+    val dataFileName: String = "data.json",
+    val people: List<String> = emptyList(),
+    val billTypes: List<BillTypeConfig> = emptyList()
+)
+
+data class BillTypeConfig(
+    val name: String,
+    val icon: String
+)
+
+// --- DATA MODEL (From data.json) ---
 data class KharchaData(
     val people: MutableMap<String, Double> = mutableMapOf(),
     val billTypes: MutableMap<String, Double> = mutableMapOf(),
@@ -9,25 +29,14 @@ data class KharchaData(
 )
 
 data class Transaction(
-    // 1. ID
     val id: String,
-    
-    // 2. Type
     val type: String, // "credit" or "debit"
-    
-    // 3. Who/Bill
     val whoOrBill: String,
-    
-    // 4. Note
     val note: String,
-    
-    // 5. Amount
     val amount: Double,
-    
-    // 6. Date
     val date: String,
     
-    // Optionals (will appear at the end if present)
+    // Optionals
     val exemptions: List<String>? = null,
     val parentId: String? = null,
     val distributionTotal: Double? = null

@@ -28,25 +28,59 @@ fun AppNavigation() {
     val scope = rememberCoroutineScope()
     
     val userState = dataStore.userFlow.collectAsState(initial = "__LOADING__")
+    val configUrlState = dataStore.configUrlFlow.collectAsState(initial = "__LOADING__")
     val tokenState = dataStore.tokenFlow.collectAsState(initial = null)
 
-    if (userState.value == "__LOADING__") {
+    if (userState.value == "__LOADING__" || configUrlState.value == "__LOADING__") {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    val startDest = if (userState.value.isNullOrEmpty()) "onboarding" else "main"
+    // Logic: 
+    // 1. If no Config URL -> Repo Selection
+    // 2. If no User -> User Selection
+    // 3. Else -> Main
+    val startDest = if (configUrlState.value.isNullOrEmpty()) {
+        "repo_selection"
+    } else if (userState.value.isNullOrEmpty()) {
+        "onboarding"
+    } else {
+        "main"
+    }
 
     NavHost(navController = navController, startDestination = startDest) {
+        
+        // NEW: Repository Selection Screen
+        composable("repo_selection") {
+            RepoSelectionScreen(
+                repository = repository,
+                onConfigLoaded = {
+                    scope.launch {
+                        navController.navigate("onboarding") {
+                            popUpTo("repo_selection") { inclusive = true }
+                        }
+                    }
+                }
+            )
+        }
+
         composable("onboarding") {
             UserSelectionScreen(
-                repository = repository, // Pass repository
+                repository = repository,
                 onUserSelected = { user ->
                     scope.launch {
                         dataStore.saveUser(user)
                         navController.navigate("main") {
+                            popUpTo("onboarding") { inclusive = true }
+                        }
+                    }
+                },
+                onChangeRepo = {
+                    scope.launch {
+                        dataStore.clearConfig()
+                        navController.navigate("repo_selection") {
                             popUpTo("onboarding") { inclusive = true }
                         }
                     }

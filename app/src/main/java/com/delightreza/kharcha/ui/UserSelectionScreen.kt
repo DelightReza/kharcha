@@ -22,22 +22,32 @@ import com.delightreza.kharcha.utils.Constants
 @Composable
 fun UserSelectionScreen(
     repository: Repository, 
-    onUserSelected: (String) -> Unit
+    onUserSelected: (String) -> Unit,
+    onChangeRepo: () -> Unit
 ) {
     var peopleList by remember { mutableStateOf(Constants.DEFAULT_MEMBERS) }
     var isLoading by remember { mutableStateOf(true) }
+    var repoTitle by remember { mutableStateOf("Kharcha") }
 
     LaunchedEffect(Unit) {
-        // Try cache first
-        val cached = repository.getCachedData()
-        if (cached != null && cached.people.isNotEmpty()) {
-            peopleList = cached.people.keys.toList().sorted()
+        val config = repository.getAppConfig()
+        if (config != null) {
+            peopleList = config.people.sorted()
+            repoTitle = config.siteTitle
             isLoading = false
         } else {
-            // Try fetch
-            val fetched = repository.fetchData()
-            if (fetched != null && fetched.people.isNotEmpty()) {
-                peopleList = fetched.people.keys.toList().sorted()
+            // Fallback logic if needed
+            val fetched = repository.fetchData() // this will force cache config
+            if (fetched != null) {
+                // If fetch data succeeds, config should be in cache now
+                val newConfig = repository.getAppConfig()
+                if (newConfig != null) {
+                    peopleList = newConfig.people.sorted()
+                    repoTitle = newConfig.siteTitle
+                } else {
+                    // Fallback to data keys
+                    peopleList = fetched.people.keys.sorted()
+                }
             }
             isLoading = false
         }
@@ -50,7 +60,7 @@ fun UserSelectionScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Welcome to Kharcha", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Welcome to $repoTitle", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text("Who are you?", fontSize = 16.sp, color = Color.Gray)
         
         Spacer(modifier = Modifier.height(32.dp))
@@ -67,6 +77,11 @@ fun UserSelectionScreen(
                     UserCard(person) { onUserSelected(person) }
                 }
             }
+        }
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        TextButton(onClick = onChangeRepo) {
+            Text("Switch Repository", color = Color.LightGray)
         }
     }
 }
