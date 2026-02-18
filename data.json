@@ -5,7 +5,7 @@
     "Gas": 2431.0,
     "Garbage": 1321.4,
     "Internet": 3800.0,
-    "Other": 14256.0
+    "Other": 14236.0
   },
   "people": {
     "Musawwar": 5407.5,
@@ -574,7 +574,7 @@
       "type": "debit",
       "whoOrBill": "Other",
       "note": "Liquid Cleaning",
-      "amount": 160,
+      "amount": 140,
       "date": "2025-12-11T07:46:02.137Z"
     },
     {
