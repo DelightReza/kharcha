@@ -9,7 +9,7 @@
   },
   "people": {
     "Musawwar": 5407.5,
-    "Raza": 5187.5,
+    "Raza": 5687.5,
     "Salman": 4687.5,
     "Mujeeb": 4878.5,
     "Gulam": 4587.5,
@@ -23,7 +23,7 @@
       "type": "credit",
       "whoOrBill": "Raza",
       "note": "",
-      "amount": 500,
+      "amount": 1000,
       "date": "2026-02-27T08:53:41.109809Z"
     },
     {
