@@ -9,7 +9,7 @@
   },
   "people": {
     "Musawwar": 5407.5,
-    "Raza": 4687.5,
+    "Raza": 5187.5,
     "Salman": 4687.5,
     "Mujeeb": 4878.5,
     "Gulam": 4587.5,
@@ -18,6 +18,14 @@
     "Nizamuddin": 5187.5
   },
   "transactions": [
+    {
+      "id": "tx_1772182421109_app",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "",
+      "amount": 500,
+      "date": "2026-02-27T08:53:41.109809Z"
+    },
     {
       "id": "tx_1772182390810_app",
       "type": "credit",
