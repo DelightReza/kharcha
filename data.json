@@ -12,12 +12,20 @@
     "Raza": 5687.5,
     "Salman": 4687.5,
     "Mujeeb": 4878.5,
-    "Gulam": 4587.5,
+    "Gulam": 5587.5,
     "Rana": 4687.5,
     "Naved": 5187.5,
     "Nizamuddin": 5187.5
   },
   "transactions": [
+    {
+      "id": "tx_1772188653511_app",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "",
+      "amount": 1000,
+      "date": "2026-02-27T10:37:33.511070Z"
+    },
     {
       "id": "tx_1772182421109_app",
       "type": "credit",
