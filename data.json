@@ -10,7 +10,7 @@
   "people": {
     "Musawwar": 5407.5,
     "Raza": 5687.5,
-    "Salman": 4687.5,
+    "Salman": 5187.5,
     "Mujeeb": 4878.5,
     "Gulam": 5587.5,
     "Rana": 4687.5,
@@ -18,6 +18,14 @@
     "Nizamuddin": 5187.5
   },
   "transactions": [
+    {
+      "id": "tx_1772237531782_app",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "",
+      "amount": 500,
+      "date": "2026-02-28T00:12:11.782118Z"
+    },
     {
       "id": "tx_1772188723103_app",
       "type": "debit",
