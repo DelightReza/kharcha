@@ -97,7 +97,11 @@ const DataManager = {
 
       // Prepare updated content
       const data = AppState.getData();
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+      const raw = JSON.stringify(data, null, 2).replace(
+        /"splitAmong": \[([^\]]+)\]/gs,
+        (_, inner) => '"splitAmong": [' + (inner.match(/"[^"]+"/g) || []).join(', ') + ']'
+      );
+      const content = btoa(unescape(encodeURIComponent(raw)));
       const commitMessage = `Update kharcha data - ${new Date().toLocaleString()}`;
 
       // Send PUT request to GitHub API
@@ -177,7 +181,12 @@ const DataManager = {
       }
 
       // Prepare updated content
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(config, null, 2))));
+      // Prepare updated content (compact inner objects to single lines)
+      const raw = JSON.stringify(config, null, 2).replace(
+        /\{[^{}]*\}/gs,
+        m => '{' + m.slice(1, -1).replace(/\s*\n\s*/g, ' ').trim() + '}'
+      );
+      const content = btoa(unescape(encodeURIComponent(raw)));
       const commitMessage = `Update config - ${new Date().toLocaleString()}`;
 
       // Send PUT request to GitHub API

@@ -17,9 +17,19 @@ def load_config():
 def load_data(config):
     # If data.json doesn't exist, create it using config
     if not os.path.exists(DATA_FILE):
+        people_config = config["people"]
+        if people_config and isinstance(people_config[0], dict):
+            people_keys = {p["id"]: 0 for p in people_config}
+        else:
+            people_keys = {p: 0 for p in people_config}
+        bill_types_config = config["billTypes"]
+        if bill_types_config and isinstance(bill_types_config[0], dict) and "id" in bill_types_config[0]:
+            bill_keys = {bt["id"]: 0 for bt in bill_types_config}
+        else:
+            bill_keys = {bt["name"]: 0 for bt in bill_types_config}
         default_data = {
-            "people": {p: 0 for p in config["people"]},
-            "billTypes": {b["name"]: 0 for b in config["billTypes"]},
+            "people": people_keys,
+            "billTypes": bill_keys,
             "transactions": []
         }
         with open(DATA_FILE, 'w') as f:
@@ -51,30 +61,61 @@ def format_local_time(iso_date, offset_hours):
         return iso_date
 
 def calculate_finance(data, config):
-    all_people = config["people"]
-    finance = {p: {'credits': 0, 'debits': 0, 'net_balance': 0} for p in all_people}
+    people_config = config["people"]
+    # Build ID-to-name maps (supports both V1 string array and V2 object array)
+    if people_config and isinstance(people_config[0], dict):
+        id_to_name = {p["id"]: p["name"] for p in people_config}
+        all_person_ids = [p["id"] for p in people_config]
+    else:
+        id_to_name = {p: p for p in people_config}
+        all_person_ids = list(people_config)
+
+    bill_types_config = config.get("billTypes", [])
+    if bill_types_config and isinstance(bill_types_config[0], dict) and "id" in bill_types_config[0]:
+        bt_id_to_name = {bt["id"]: bt["name"] for bt in bill_types_config}
+    else:
+        bt_id_to_name = {bt["name"]: bt["name"] for bt in bill_types_config}
+
+    # finance keyed by display NAME for template rendering
+    finance = {id_to_name[p_id]: {'credits': 0, 'debits': 0, 'net_balance': 0} for p_id in all_person_ids}
     total_credits = 0
     total_debits = 0
     enriched_txs = []
 
     for tx in data['transactions']:
-        tx['display_date'] = format_local_time(tx['date'], config["timeOffset"])
-        enriched_txs.append(tx)
+        tx_copy = tx.copy()
+        tx_copy['display_date'] = format_local_time(tx['date'], config["timeOffset"])
+        # Resolve whoOrBill ID to display name
+        if tx['type'] == 'credit':
+            tx_copy['whoOrBill'] = id_to_name.get(tx['whoOrBill'], tx['whoOrBill'])
+        else:
+            tx_copy['whoOrBill'] = bt_id_to_name.get(tx['whoOrBill'], tx['whoOrBill'])
+        # Resolve splitAmong IDs to display names for templates
+        if tx.get('splitAmong'):
+            tx_copy['splitAmong'] = [id_to_name.get(p, p) for p in tx['splitAmong']]
+        enriched_txs.append(tx_copy)
 
         if tx['type'] == 'credit':
             total_credits += tx['amount']
-            if tx['whoOrBill'] in finance:
-                finance[tx['whoOrBill']]['credits'] += tx['amount']
-                finance[tx['whoOrBill']]['net_balance'] += tx['amount']
+            person_name = id_to_name.get(tx['whoOrBill'], tx['whoOrBill'])
+            if person_name in finance:
+                finance[person_name]['credits'] += tx['amount']
+                finance[person_name]['net_balance'] += tx['amount']
         elif tx['type'] == 'debit':
             total_debits += tx['amount']
-            exemptions = tx.get('exemptions', [])
-            contributors = [p for p in all_people if p not in exemptions]
-            if contributors:
-                split_amount = tx['amount'] / len(contributors)
-                for p in contributors:
-                    finance[p]['debits'] += split_amount
-                    finance[p]['net_balance'] -= split_amount
+            # Use splitAmong snapshot (V2) or fall back to exemptions (V1)
+            if tx.get('splitAmong'):
+                paying_ids = tx['splitAmong']
+            else:
+                exemptions = tx.get('exemptions', [])
+                paying_ids = [p_id for p_id in all_person_ids if p_id not in exemptions]
+            if paying_ids:
+                split_amount = tx['amount'] / len(paying_ids)
+                for p_id in paying_ids:
+                    p_name = id_to_name.get(p_id, p_id)
+                    if p_name in finance:
+                        finance[p_name]['debits'] += split_amount
+                        finance[p_name]['net_balance'] -= split_amount
 
     enriched_txs.sort(key=lambda x: x['date'], reverse=True)
     return {
@@ -103,9 +144,14 @@ def main():
     data = load_data(config)
     results = calculate_finance(data, config)
 
-    # Prepare chart data (use bill types from config)
-    bill_type_names = [bt["name"] for bt in config["billTypes"]]
-    bill_type_totals = [data.get("billTypes", {}).get(name, 0) for name in bill_type_names]
+    # Prepare chart data (use bill types from config, handle V2 ID-based keys)
+    bill_types_config = config["billTypes"]
+    if bill_types_config and isinstance(bill_types_config[0], dict) and "id" in bill_types_config[0]:
+        bill_type_names = [bt["name"] for bt in bill_types_config]
+        bill_type_totals = [data.get("billTypes", {}).get(bt["id"], 0) for bt in bill_types_config]
+    else:
+        bill_type_names = [bt["name"] for bt in bill_types_config]
+        bill_type_totals = [data.get("billTypes", {}).get(name, 0) for name in bill_type_names]
 
     # Time calculations
     utc_now = datetime.datetime.now(timezone.utc)

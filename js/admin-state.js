@@ -18,13 +18,15 @@ const AppState = {
   // Initialize default data structure using config
   initializeDefaultData() {
     if (!this.config) return;
+    const activePeople = this.getActivePeopleObjects();
+    const billTypes = this.config.billTypes;
     this.data = {
-      people: this.config.people.reduce((acc, p) => {
-        acc[p] = 0;
+      people: activePeople.reduce((acc, p) => {
+        acc[typeof p === 'object' ? p.id : p] = 0;
         return acc;
       }, {}),
-      billTypes: this.config.billTypes.reduce((acc, bt) => {
-        acc[bt.name] = 0;
+      billTypes: billTypes.reduce((acc, bt) => {
+        acc[typeof bt === 'object' && bt.id ? bt.id : bt.name] = 0;
         return acc;
       }, {}),
       transactions: []
@@ -44,20 +46,69 @@ const AppState = {
     };
   },
 
-  // Dynamic getters using config if available, otherwise from data
+  // Return all people objects from config (V2 [{id,name,active}] or V1 [string])
+  getActivePeopleObjects() {
+    if (!this.config) return [];
+    const people = this.config.people;
+    if (!people || !people.length) return [];
+    if (typeof people[0] === 'object') {
+      return people.filter(p => p.active !== false);
+    }
+    return people.map(p => ({ id: p, name: p, active: true }));
+  },
+
+  // Returns only active person IDs (for new-transaction dropdowns)
   getPeopleList() {
-    if (this.config) return this.config.people;
-    return Object.keys(this.data.people).length ? Object.keys(this.data.people) : [];
+    return this.getActivePeopleObjects().map(p => p.id);
+  },
+
+  // Returns ALL person IDs including inactive (for historical calculations)
+  getAllPeopleIds() {
+    if (!this.config) return Object.keys(this.data.people);
+    const people = this.config.people;
+    if (!people || !people.length) return Object.keys(this.data.people);
+    if (typeof people[0] === 'object') {
+      return people.map(p => p.id);
+    }
+    return people;
+  },
+
+  // Resolve a person ID to their display name
+  getPersonName(id) {
+    if (!this.config) return id;
+    const people = this.config.people;
+    if (people && people.length && typeof people[0] === 'object') {
+      const person = people.find(p => p.id === id);
+      return person ? person.name : id;
+    }
+    return id; // V1: ID is the name
   },
 
   getBillTypesList() {
-    if (this.config) return this.config.billTypes.map(bt => bt.name);
+    if (this.config) {
+      const bts = this.config.billTypes;
+      if (bts && bts.length && typeof bts[0] === 'object' && bts[0].id) {
+        return bts.map(bt => bt.id);
+      }
+      return bts.map(bt => bt.name);
+    }
     return Object.keys(this.data.billTypes).length ? Object.keys(this.data.billTypes) : [];
   },
 
-  getBillIcon(billName) {
+  // Resolve a bill type ID to its display name
+  getBillTypeName(id) {
+    if (!this.config) return id;
+    const bts = this.config.billTypes;
+    if (bts && bts.length && typeof bts[0] === 'object' && bts[0].id) {
+      const bt = bts.find(b => b.id === id);
+      return bt ? bt.name : id;
+    }
+    return id;
+  },
+
+  getBillIcon(billId) {
     if (!this.config) return '🧾';
-    const bt = this.config.billTypes.find(b => b.name === billName);
+    const bt = this.config.billTypes.find(b => (b.id || b.name) === billId || b.name === billId);
     return bt ? bt.icon : '🧾';
   },
 

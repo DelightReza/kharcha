@@ -86,9 +86,9 @@
         // Main Logic
         async function loadProfile() {
             const urlParams = new URLSearchParams(window.location.search);
-            const personName = urlParams.get('name');
+            const personParam = urlParams.get('name');
 
-            if (!personName) {
+            if (!personParam) {
                 document.getElementById('mainContent').innerHTML = `
                     <div class="text-center mt-20">
                         <i class="fas fa-user-slash text-4xl text-slate-300 mb-4"></i>
@@ -100,17 +100,37 @@
             }
 
             try {
-                // Fetch config first
+                // Fetch config first to build ID <-> name mappings
+                let idToName = {};
+                let nameToId = {};
                 try {
                     const configResp = await fetch('config.json');
                     if (configResp.ok) {
                         const loadedConfig = await configResp.json();
                         appConfig.currency = loadedConfig.currency || 'SOM';
                         appConfig.timeOffset = loadedConfig.timeOffset || 6;
+                        // Build lookup maps (supports V1 string array and V2 object array)
+                        const people = loadedConfig.people || [];
+                        if (people.length && typeof people[0] === 'object') {
+                            people.forEach(p => {
+                                idToName[p.id] = p.name;
+                                nameToId[p.name.toLowerCase()] = p.id;
+                                nameToId[p.id] = p.id; // ID maps to itself
+                            });
+                        } else {
+                            people.forEach(p => {
+                                idToName[p] = p;
+                                nameToId[p.toLowerCase()] = p;
+                            });
+                        }
                     }
                 } catch (e) {
                     console.log('Using default config');
                 }
+
+                // Resolve person ID: URL param may be a name ("Raza") or an ID ("raza")
+                const personId = nameToId[personParam.toLowerCase()] || personParam;
+                const personDisplayName = idToName[personId] || personParam;
 
                 // Fetch data with a cache-busting parameter
                 const response = await fetch(`data.json?t=${new Date().getTime()}`);
@@ -125,9 +145,6 @@
                 let credits = 0; // Money Given
                 let debits = 0;  // Share of Expenses
                 const transactions = [];
-                
-                // Get list of all people to calculate split correctly
-                const allPeople = Object.keys(data.people).sort();
 
                 // Sort transactions newest first
                 const sortedTxs = data.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -137,8 +154,8 @@
                     let type = '';
                     let isRelevant = false;
 
-                    // Case 1: I gave money (Credit)
-                    if (tx.type === 'credit' && tx.whoOrBill === personName) {
+                    // Case 1: I gave money (Credit) – match by person ID
+                    if (tx.type === 'credit' && tx.whoOrBill === personId) {
                         amount = tx.amount;
                         credits += amount;
                         type = 'Credit';
@@ -146,12 +163,19 @@
                     } 
                     // Case 2: I share an expense (Debit)
                     else if (tx.type === 'debit') {
-                        const exemptions = tx.exemptions || [];
-                        // Am I exempt?
-                        if (!exemptions.includes(personName)) {
-                            // Calculate split
+                        // V2: use splitAmong snapshot; V1: fall back to exemptions
+                        if (tx.splitAmong && tx.splitAmong.length > 0) {
+                            if (tx.splitAmong.includes(personId)) {
+                                amount = tx.amount / tx.splitAmong.length;
+                                debits += amount;
+                                type = 'Debit Share';
+                                isRelevant = true;
+                            }
+                        } else {
+                            const exemptions = tx.exemptions || [];
+                            const allPeople = Object.keys(data.people);
                             const contributors = allPeople.filter(p => !exemptions.includes(p));
-                            if (contributors.length > 0) {
+                            if (contributors.includes(personId) && contributors.length > 0) {
                                 amount = tx.amount / contributors.length;
                                 debits += amount;
                                 type = 'Debit Share';
@@ -161,8 +185,11 @@
                     }
 
                     if (isRelevant) {
+                        // Resolve whoOrBill ID to display name
+                        const displayWhoOrBill = idToName[tx.whoOrBill] || tx.whoOrBill;
                         transactions.push({
                             ...tx,
+                            whoOrBill: displayWhoOrBill,
                             displayAmount: amount,
                             displayType: type
                         });
@@ -171,7 +198,7 @@
 
                 const netBalance = credits - debits;
                 
-                renderUI(personName, credits, debits, netBalance, transactions);
+                renderUI(personDisplayName, credits, debits, netBalance, transactions);
 
             } catch (error) {
                 console.error(error);

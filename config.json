@@ -2,22 +2,27 @@
   "siteTitle": "Burj Khalifa",
   "siteSubtitle": "Expenses Tracker",
   "currency": "SOM",
-  "timeOffset": 6,
   "transactionsPerPage": 10,
   "repoOwner": "DelightReza",
   "repoName": "kharcha",
   "repoBranch": "main",
   "dataFileName": "data.json",
   "people": [
-    "Raza", "Salman", "Mujeeb", "Gulam",
-    "Rana", "Naved", "Musawwar", "Nizamuddin"
+    {"id": "raza", "name": "Raza", "active": true},
+    {"id": "gulam", "name": "Gulam", "active": true},
+    {"id": "mujeeb", "name": "Mujeeb", "active": true},
+    {"id": "rana", "name": "Rana", "active": false},
+    {"id": "naved", "name": "Naved", "active": false},
+    {"id": "musawwar", "name": "Musawwar", "active": true},
+    {"id": "nizamuddin", "name": "Nizamuddin", "active": true},
+    {"id": "salman", "name": "Salman", "active": true}
   ],
   "billTypes": [
-    { "name": "Electricity", "icon": "⚡" },
-    { "name": "Water", "icon": "💧" },
-    { "name": "Gas", "icon": "🔥" },
-    { "name": "Garbage", "icon": "🗑️" },
-    { "name": "Internet", "icon": "🌐" },
-    { "name": "Other", "icon": "📦" }
+    { "id": "electricity", "name": "Electricity", "icon": "⚡" },
+    { "id": "water", "name": "Water", "icon": "💧" },
+    { "id": "gas", "name": "Gas", "icon": "🔥" },
+    { "id": "garbage", "name": "Garbage", "icon": "🗑️" },
+    { "id": "internet", "name": "Internet", "icon": "🌐" },
+    { "id": "other", "name": "Other", "icon": "📦" }
   ]
 }

@@ -19,6 +19,11 @@ const Modals = {
     const netChange = transaction.type === 'credit' ? 
       `+${Utils.formatCurrency(transaction.amount)}` : 
       `-${Utils.formatCurrency(transaction.amount)}`;
+
+    // Resolve whoOrBill ID to display name
+    const displayWhoOrBill = transaction.type === 'credit'
+      ? AppState.getPersonName(transaction.whoOrBill)
+      : AppState.getBillTypeName(transaction.whoOrBill);
     
     // Check for new key 'distributionTotal' or legacy key 'owner'
     const distTotal = transaction.distributionTotal || transaction.owner;
@@ -28,18 +33,33 @@ const Modals = {
         <span class="font-medium text-purple-600">Distribution of ${Utils.formatCurrency(distTotal)}</span>
       </div>` : '';
     
-    let exemptionDisplay = '';
-    if (transaction.type === 'debit' && transaction.exemptions && transaction.exemptions.length > 0) {
-      const distribution = Calculations.calculateBillDistribution(transaction.amount, transaction.exemptions);
+    let splitDisplay = '';
+    if (transaction.type === 'debit' && transaction.splitAmong && transaction.splitAmong.length > 0) {
+      const splitNames = transaction.splitAmong.map(id => AppState.getPersonName(id));
+      const amountPerPerson = transaction.amount / transaction.splitAmong.length;
       
-      exemptionDisplay = `
+      splitDisplay = `
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+          <h4 class="font-medium text-blue-700 mb-2 flex items-center">
+            <i class="fas fa-users mr-2 text-blue-600"></i>Split Among (Transaction Snapshot)
+          </h4>
+          <div class="text-sm text-gray-700 space-y-1">
+            <div><span class="font-medium">Split among:</span> ${splitNames.join(', ')}</div>
+            <div class="font-medium text-blue-600">Amount per person: ${amountPerPerson.toFixed(2)} ${currency}</div>
+          </div>
+        </div>`;
+    } else if (transaction.type === 'debit' && transaction.exemptions && transaction.exemptions.length > 0) {
+      const distribution = Calculations.calculateBillDistribution(transaction.amount, 
+        AppState.getAllPeopleIds().filter(id => !transaction.exemptions.includes(id)));
+      
+      splitDisplay = `
         <div class="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200">
           <h4 class="font-medium text-orange-700 mb-2 flex items-center">
             <i class="fas fa-user-slash mr-2 text-orange-600"></i>Bill Exemptions (This Transaction Only)
           </h4>
           <div class="text-sm text-gray-700 space-y-1">
             <div><span class="font-medium">Exempt people:</span> ${transaction.exemptions.join(', ')}</div>
-            <div><span class="font-medium">Paying people:</span> ${distribution.payingPeople.join(', ')}</div>
+            <div><span class="font-medium">Paying people:</span> ${distribution.splitAmong.map(id => AppState.getPersonName(id)).join(', ')}</div>
             <div class="font-medium text-orange-600">Amount per person: ${distribution.amountPerPerson.toFixed(2)} ${currency}</div>
           </div>
         </div>`;
@@ -70,7 +90,7 @@ const Modals = {
       
       <div class="bg-white p-4 rounded-xl border border-gray-200">
         <label class="block text-sm font-medium text-gray-700 mb-2">${transaction.type === 'credit' ? 'From Person' : 'Bill Type'}</label>
-        <div class="text-sm text-gray-900 font-medium">${transaction.whoOrBill}</div>
+        <div class="text-sm text-gray-900 font-medium">${displayWhoOrBill}</div>
       </div>
       
       <div class="bg-white p-4 rounded-xl border border-gray-200">
@@ -84,7 +104,7 @@ const Modals = {
       </div>
       
       ${distributionDisplay}
-      ${exemptionDisplay}
+      ${splitDisplay}
       
       <div class="border-t border-gray-200 pt-6 mt-4">
         <h4 class="font-bold text-gray-800 mb-4 flex items-center">
@@ -148,45 +168,49 @@ const Modals = {
     const formattedTime = localDate.toTimeString().split(' ')[0].substring(0, 5);
     
     let whoOrBillOptions = '';
-    let exemptionSection = '';
+    let splitAmongSection = '';
     
     if (transaction.type === 'credit') {
-      const people = AppState.getPeopleList();
-      people.forEach(person => {
-        const selected = person === transaction.whoOrBill ? 'selected' : '';
-        whoOrBillOptions += `<option value="${person}" ${selected}>👤 ${person}</option>`;
+      const activePeople = AppState.getActivePeopleObjects();
+      activePeople.forEach(p => {
+        const selected = p.id === transaction.whoOrBill ? 'selected' : '';
+        whoOrBillOptions += `<option value="${p.id}" ${selected}>👤 ${p.name}</option>`;
       });
     } else {
-      const billTypes = AppState.getBillTypesList();
-      billTypes.forEach(billType => {
-        const selected = billType === transaction.whoOrBill ? 'selected' : '';
-        const icon = Utils.getBillIcon(billType);
-        whoOrBillOptions += `<option value="${billType}" ${selected}>${icon} ${billType}</option>`;
+      const billTypeIds = AppState.getBillTypesList();
+      billTypeIds.forEach(btId => {
+        const selected = btId === transaction.whoOrBill ? 'selected' : '';
+        const icon = Utils.getBillIcon(btId);
+        whoOrBillOptions += `<option value="${btId}" ${selected}>${icon} ${AppState.getBillTypeName(btId)}</option>`;
       });
       
-      // Exemption section for debit transactions
-      const exemptions = transaction.exemptions || [];
-      const allPeople = AppState.getPeopleList();
+      // Compute current exemptions from splitAmong (inverted)
+      const activePeople = AppState.getActivePeopleObjects();
+      const currentSplitAmong = transaction.splitAmong || [];
+      // An active person is "exempt" if they're NOT in splitAmong
+      const exemptIds = currentSplitAmong.length > 0
+        ? activePeople.filter(p => !currentSplitAmong.includes(p.id)).map(p => p.id)
+        : (transaction.exemptions || []);
       
-      const exemptionCheckboxes = allPeople.map(person => `
+      const exemptionCheckboxes = activePeople.map(p => `
         <label class="flex items-center space-x-2 text-sm">
-          <input type="checkbox" value="${person}" class="rounded text-red-600 focus:ring-red-500 edit-exemption-checkbox" ${exemptions.includes(person) ? 'checked' : ''}>
-          <span>${person}</span>
+          <input type="checkbox" value="${p.id}" class="rounded text-red-600 focus:ring-red-500 edit-exemption-checkbox" ${exemptIds.includes(p.id) ? 'checked' : ''}>
+          <span>${p.name}</span>
         </label>
       `).join('');
       
-      exemptionSection = `
+      splitAmongSection = `
         <div class="border-t border-red-200 pt-4 mt-4">
           <div class="flex items-center mb-3">
-            <input type="checkbox" id="editEnableExemptions" class="mr-3 w-4 h-4 text-red-600 focus:ring-red-500 rounded" ${exemptions.length > 0 ? 'checked' : ''}>
+            <input type="checkbox" id="editEnableExemptions" class="mr-3 w-4 h-4 text-red-600 focus:ring-red-500 rounded" ${exemptIds.length > 0 ? 'checked' : ''}>
             <label for="editEnableExemptions" class="text-sm font-medium text-gray-700 flex items-center">
-              <i class="fas fa-user-slash mr-2 text-red-600"></i>Set bill exemptions (This Transaction Only)
+              <i class="fas fa-users mr-2 text-red-600"></i>Customize who splits this bill
             </label>
           </div>
           
-          <div id="editExemptionFields" class="${exemptions.length > 0 ? '' : 'hidden'} space-y-3 bg-white/50 p-4 rounded-xl border border-red-100">
+          <div id="editExemptionFields" class="${exemptIds.length > 0 ? '' : 'hidden'} space-y-3 bg-white/50 p-4 rounded-xl border border-red-100">
             <div class="mb-3">
-              <p class="text-sm font-medium text-gray-700 mb-2">Select people exempt from this bill:</p>
+              <p class="text-sm font-medium text-gray-700 mb-2">Select people to <strong>exclude</strong> from this bill:</p>
               <div class="grid grid-cols-2 gap-2" id="editExemptionCheckboxes">
                 ${exemptionCheckboxes}
               </div>
@@ -194,8 +218,7 @@ const Modals = {
             
             <div class="text-xs text-gray-500 flex items-center bg-red-50 p-2 rounded-lg">
               <i class="fas fa-info-circle mr-2 text-red-500"></i>
-              Exempt people won't be charged for this bill. Cost will be split among remaining people.
-              <strong class="ml-1">These exemptions apply only to this transaction.</strong>
+              Unchecked people will be in the splitAmong snapshot for this transaction.
             </div>
             
             <div id="editExemptionPreview" class="bg-white border border-red-100 rounded-xl p-3 shadow-inner">
@@ -203,7 +226,7 @@ const Modals = {
                 <i class="fas fa-calculator mr-2 text-red-600"></i>Cost Distribution Preview
               </h4>
               <div class="text-xs text-gray-600" id="editExemptionDetails">
-                ${this.updateEditExemptionPreview(transaction.amount, exemptions)}
+                ${this.updateEditExemptionPreview(transaction.amount, exemptIds)}
               </div>
             </div>
           </div>
@@ -271,7 +294,7 @@ const Modals = {
             </div>
           </div>
           
-          ${transaction.type === 'debit' ? exemptionSection : ''}
+          ${transaction.type === 'debit' ? splitAmongSection : ''}
         </div>
       </div>
     `;
@@ -312,14 +335,14 @@ const Modals = {
   },
   
   // Update exemption preview in edit modal
-  updateEditExemptionPreview(amount = null, exemptions = null) {
+  updateEditExemptionPreview(amount = null, exemptIds = null) {
     const currency = AppState.config?.currency || 'SOM';
     if (!amount) {
       amount = parseFloat(document.getElementById('editAmount').value);
     }
     
-    if (!exemptions) {
-      exemptions = Array.from(document.querySelectorAll('.edit-exemption-checkbox:checked'))
+    if (!exemptIds) {
+      exemptIds = Array.from(document.querySelectorAll('.edit-exemption-checkbox:checked'))
         .map(cb => cb.value);
     }
     
@@ -327,8 +350,9 @@ const Modals = {
       return '<span class="text-gray-400">Enter amount to see distribution</span>';
     }
     
-    const allPeople = AppState.getPeopleList();
-    const payingPeople = allPeople.filter(person => !exemptions.includes(person));
+    const activePeople = AppState.getActivePeopleObjects();
+    const payingPeople = activePeople.filter(p => !exemptIds.includes(p.id));
+    const exemptNames = activePeople.filter(p => exemptIds.includes(p.id)).map(p => p.name);
     
     if (payingPeople.length === 0) {
       return '<span class="text-red-600">⚠️ No one is paying this bill!</span>';
@@ -338,17 +362,17 @@ const Modals = {
     
     return `
       <div class="mb-2">
-        <span class="font-medium">Exempt:</span> ${exemptions.length > 0 ? exemptions.join(', ') : 'None'}
+        <span class="font-medium">Excluded:</span> ${exemptNames.length > 0 ? exemptNames.join(', ') : 'None'}
       </div>
       <div class="mb-2">
-        <span class="font-medium">Paying (${payingPeople.length} people):</span> ${payingPeople.join(', ')}
+        <span class="font-medium">Split among (${payingPeople.length} people):</span> ${payingPeople.map(p => p.name).join(', ')}
       </div>
       <div class="font-medium text-red-600">
         Amount per person: ${amountPerPerson.toFixed(2)} ${currency}
       </div>
       <div class="text-xs text-red-500 mt-2 flex items-center">
         <i class="fas fa-info-circle mr-1"></i>
-        These exemptions apply only to this transaction
+        This snapshot is frozen at transaction time
       </div>
     `;
   },
@@ -363,14 +387,15 @@ const Modals = {
     DOM.editTransactionModal.classList.add('hidden');
   },
   
-  // Show person profile modal
-  showPersonProfile(personName) {
+  // Show person profile modal (accepts person ID)
+  showPersonProfile(personId) {
     const data = AppState.getData();
     const personalFinance = Calculations.calculatePersonalFinance();
-    const finance = personalFinance[personName];
+    const finance = personalFinance[personId];
+    const personName = AppState.getPersonName(personId);
     
     if (!finance) {
-      console.error('No finance data for person:', personName);
+      console.error('No finance data for person:', personId);
       return;
     }
     
@@ -391,10 +416,8 @@ const Modals = {
     const personTransactions = [];
     
     data.transactions.forEach(tx => {
-      const txDate = new Date(tx.date);
-      
-      // Add credit transactions where person gave money
-      if (tx.type === 'credit' && tx.whoOrBill === personName) {
+      // Add credit transactions where person gave money (match by ID)
+      if (tx.type === 'credit' && tx.whoOrBill === personId) {
         personTransactions.push({
           ...tx,
           personRole: 'credit',
@@ -405,17 +428,25 @@ const Modals = {
       
       // Add debit transactions where person shares the cost
       if (tx.type === 'debit') {
-        const exemptions = tx.exemptions || [];
-        const allPeople = AppState.getPeopleList();
-        const payingPeople = allPeople.filter(person => !exemptions.includes(person));
+        // V2: use splitAmong snapshot; V1: fall back to exemptions
+        let payingIds;
+        if (tx.splitAmong && tx.splitAmong.length > 0) {
+          payingIds = tx.splitAmong;
+        } else {
+          const exemptions = tx.exemptions || [];
+          payingIds = AppState.getAllPeopleIds().filter(id => !exemptions.includes(id));
+        }
         
-        if (payingPeople.includes(personName)) {
-          const amountPerPerson = tx.amount / payingPeople.length;
+        if (payingIds.includes(personId)) {
+          const amountPerPerson = tx.amount / payingIds.length;
+          const payingNames = payingIds.map(id => AppState.getPersonName(id));
+          const displayBillType = AppState.getBillTypeName(tx.whoOrBill);
           personTransactions.push({
             ...tx,
+            whoOrBill: displayBillType,
             personRole: 'debit',
             personAmount: amountPerPerson,
-            payingPeople: payingPeople,
+            payingPeople: payingNames,
             formattedDate: Utils.toUTC6(tx.date)
           });
         }
@@ -463,7 +494,6 @@ const Modals = {
                 const amountClass = isCredit ? 'text-green-600' : 'text-red-600';
                 const icon = isCredit ? 'fa-arrow-down' : 'fa-arrow-up';
                 
-                // Store transaction ID in a data attribute for safe passing
                 const txId = Utils.escapeHtml(tx.id);
                 const noteHtml = tx.note ? Utils.escapeHtml(tx.note) : '';
                 const whoOrBillHtml = Utils.escapeHtml(tx.whoOrBill);

@@ -28,14 +28,15 @@ const UI = {
   // Render personal finance summary
   renderPersonalFinance() {
     const personalFinance = Calculations.calculatePersonalFinance();
-    const allPeople = AppState.getPeopleList();
+    const allPeopleIds = AppState.getAllPeopleIds();
     
     DOM.personalFinanceBody.innerHTML = '';
     DOM.personalBreakdown.innerHTML = '';
 
     // Render table rows
-    allPeople.forEach(person => {
-      const finance = personalFinance[person];
+    allPeopleIds.forEach(personId => {
+      const finance = personalFinance[personId];
+      const personName = AppState.getPersonName(personId);
       // Safety check in case calculation missed a person
       if (!finance) return;
 
@@ -45,9 +46,9 @@ const UI = {
       
       const row = document.createElement('tr');
       row.className = 'border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
-      row.onclick = () => Modals.showPersonProfile(person);
+      row.onclick = () => Modals.showPersonProfile(personId);
       row.innerHTML = `
-        <td class="p-4 font-semibold text-gray-800">${person}</td>
+        <td class="p-4 font-semibold text-gray-800">${personName}</td>
         <td class="p-4 text-right font-medium text-green-600">${Utils.formatCurrency(finance.credits)}</td>
         <td class="p-4 text-right font-medium text-red-600">${Utils.formatCurrency(finance.debits)}</td>
         <td class="p-4 text-right font-bold ${statusClass}">${Utils.formatCurrency(finance.netBalance)}</td>
@@ -61,8 +62,9 @@ const UI = {
     });
 
     // Render detailed breakdown cards
-    allPeople.forEach(person => {
-      const finance = personalFinance[person];
+    allPeopleIds.forEach(personId => {
+      const finance = personalFinance[personId];
+      const personName = AppState.getPersonName(personId);
       if (!finance) return;
 
       const statusClass = finance.netBalance >= 0 ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
@@ -71,7 +73,7 @@ const UI = {
       const card = document.createElement('div');
       card.className = `bg-gradient-to-br ${statusClass} rounded-xl p-4 text-center border shadow-sm hover:shadow-md transition-all duration-200`;
       card.innerHTML = `
-        <div class="font-bold text-gray-800 mb-3 text-lg">${person}</div>
+        <div class="font-bold text-gray-800 mb-3 text-lg">${personName}</div>
         <div class="space-y-2 text-sm">
           <div class="flex justify-between items-center">
             <span class="text-gray-600">Credits:</span>
@@ -150,18 +152,23 @@ const UI = {
         '<i class="fas fa-arrow-down mr-1"></i>' : 
         '<i class="fas fa-arrow-up mr-1"></i>';
       
-      const hasExemptions = tx.type === 'debit' && tx.exemptions && tx.exemptions.length > 0;
-      const exemptionIcon = hasExemptions ? '<i class="fas fa-user-slash ml-1 text-xs" title="Has exemptions"></i>' : '';
+      // Resolve whoOrBill ID to display name
+      const displayWhoOrBill = tx.type === 'credit'
+        ? AppState.getPersonName(tx.whoOrBill)
+        : AppState.getBillTypeName(tx.whoOrBill);
+
+      const hasSplitAmong = tx.type === 'debit' && tx.splitAmong && tx.splitAmong.length > 0;
+      const splitIcon = hasSplitAmong ? '<i class="fas fa-users ml-1 text-xs" title="Has split snapshot"></i>' : '';
       
       transactionsHTML += `
         <tr class="transaction-row border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="Modals.showTransactionDetail(${JSON.stringify(tx).replace(/"/g, '&quot;')})">
           <td class="p-4 font-medium text-gray-700">${formattedDate}</td>
           <td class="p-4">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${tx.type === 'credit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-              ${typeIcon}${tx.type}${exemptionIcon}
+              ${typeIcon}${tx.type}${splitIcon}
             </span>
           </td>
-          <td class="p-4 font-semibold text-gray-800">${tx.whoOrBill}</td>
+          <td class="p-4 font-semibold text-gray-800">${displayWhoOrBill}</td>
           <td class="p-4 text-gray-600">${tx.note || '<span class="text-gray-400">-</span>'}</td>
           <td class="p-4 text-right font-bold ${typeClass}">${Utils.formatCurrency(tx.amount)}</td>
           <td class="p-4 text-center">

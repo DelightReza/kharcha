@@ -86,9 +86,18 @@ const TransactionManager = {
           date: transactionDate
         };
 
-        // Add exemptions to debit transactions
-        if (type === 'debit' && exemptions && exemptions.length > 0) {
-          transaction.exemptions = exemptions;
+        // For debit: compute splitAmong from active people minus UI-selected exemptions
+        if (type === 'debit') {
+          const activePeople = AppState.getPeopleList();
+          let splitAmong;
+          if (DOM.enableExemptions.checked) {
+            const exemptions = Array.from(document.querySelectorAll('.exemption-checkbox:checked'))
+              .map(cb => cb.value);
+            splitAmong = activePeople.filter(id => !exemptions.includes(id));
+          } else {
+            splitAmong = activePeople.slice(); // all active people
+          }
+          transaction.splitAmong = splitAmong;
         }
 
         // Update data
@@ -298,11 +307,13 @@ const TransactionManager = {
         const baseId = Utils.generateTransactionId('tx_set');
 
         // Payer paid cash: Their balance goes UP (less debt) -> Positive Credit
+        const payerName = AppState.getPersonName(payer);
+        const receiverName = AppState.getPersonName(receiver);
         const payerTx = {
           id: `${baseId}_payer`,
           type: 'credit',
           whoOrBill: payer,
-          note: customNote ? `Settlement: ${customNote}` : `Settlement to ${receiver}`,
+          note: customNote ? `Settlement: ${customNote}` : `Settlement to ${receiverName}`,
           amount: amount,
           date: transactionDate,
           parentId: baseId
@@ -313,7 +324,7 @@ const TransactionManager = {
           id: `${baseId}_rcvr`,
           type: 'credit',
           whoOrBill: receiver,
-          note: customNote ? `Settlement: ${customNote}` : `Settlement from ${payer}`,
+          note: customNote ? `Settlement: ${customNote}` : `Settlement from ${payerName}`,
           amount: -amount,
           date: transactionDate,
           parentId: baseId
@@ -328,7 +339,7 @@ const TransactionManager = {
         DataManager.saveData();
         UI.renderDashboard();
 
-        UI.showTransactionStatus(`✅ ${payer} paid ${amount} to ${receiver}`, 'success');
+        UI.showTransactionStatus(`✅ ${payerName} paid ${amount} to ${receiverName}`, 'success');
         DOM.settlementAmount.value = '';
         DOM.settlementNote.value = '';
 
@@ -373,11 +384,13 @@ const TransactionManager = {
         const baseId = Utils.generateTransactionId('tx_trf');
 
         // Sender gives fund: Balance goes DOWN -> Negative Credit
+        const senderName = AppState.getPersonName(sender);
+        const recipientName = AppState.getPersonName(recipient);
         const senderTx = {
           id: `${baseId}_send`,
           type: 'credit',
           whoOrBill: sender,
-          note: customNote ? `Transfer: ${customNote}` : `Transfer to ${recipient}`,
+          note: customNote ? `Transfer: ${customNote}` : `Transfer to ${recipientName}`,
           amount: -amount,
           date: transactionDate,
           parentId: baseId
@@ -388,7 +401,7 @@ const TransactionManager = {
           id: `${baseId}_rcpt`,
           type: 'credit',
           whoOrBill: recipient,
-          note: customNote ? `Transfer: ${customNote}` : `Transfer from ${sender}`,
+          note: customNote ? `Transfer: ${customNote}` : `Transfer from ${senderName}`,
           amount: amount,
           date: transactionDate,
           parentId: baseId
@@ -403,7 +416,7 @@ const TransactionManager = {
         DataManager.saveData();
         UI.renderDashboard();
 
-        UI.showTransactionStatus(`✅ Transferred ${amount} from ${sender} to ${recipient}`, 'success');
+        UI.showTransactionStatus(`✅ Transferred ${amount} from ${senderName} to ${recipientName}`, 'success');
         DOM.transferAmount.value = '';
         DOM.transferNote.value = '';
 
@@ -467,13 +480,17 @@ const TransactionManager = {
           transactionDate = oldTransaction.date; // Keep original date
         }
         
-        // Get exemptions for debit transactions
-        let exemptions = [];
+        // Get splitAmong for debit transactions
+        let splitAmong = null;
         if (transactionType === 'debit') {
+          const activePeople = AppState.getPeopleList();
           const enableExemptions = document.getElementById('editEnableExemptions');
           if (enableExemptions && enableExemptions.checked) {
-            exemptions = Array.from(document.querySelectorAll('.edit-exemption-checkbox:checked'))
+            const exemptions = Array.from(document.querySelectorAll('.edit-exemption-checkbox:checked'))
               .map(cb => cb.value);
+            splitAmong = activePeople.filter(id => !exemptions.includes(id));
+          } else {
+            splitAmong = activePeople.slice();
           }
         }
         
@@ -486,13 +503,12 @@ const TransactionManager = {
           date: transactionDate
         };
         
-        // Add exemptions if it's a debit
+        // Store splitAmong for debit transactions
         if (transactionType === 'debit') {
-          if (exemptions.length > 0) {
-            updatedTransaction.exemptions = exemptions;
-          } else {
-            delete updatedTransaction.exemptions;
+          if (splitAmong && splitAmong.length > 0) {
+            updatedTransaction.splitAmong = splitAmong;
           }
+          delete updatedTransaction.exemptions; // remove legacy field
         }
         
         // Update people and bill types totals

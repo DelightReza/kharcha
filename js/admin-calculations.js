@@ -8,11 +8,11 @@ const Calculations = {
   calculatePersonalFinance() {
     const data = AppState.getData();
     const personalFinance = {};
-    const allPeople = AppState.getPeopleList();
+    const allPeopleIds = AppState.getAllPeopleIds(); // ALL people including inactive
     
     // Initialize all people
-    allPeople.forEach(person => {
-      personalFinance[person] = {
+    allPeopleIds.forEach(personId => {
+      personalFinance[personId] = {
         credits: 0,
         debits: 0,
         netBalance: 0
@@ -22,32 +22,35 @@ const Calculations = {
     // Calculate credits (direct from credit transactions)
     data.transactions.forEach(tx => {
       if (tx.type === 'credit') {
-        // Ensure person exists in our list (handle legacy data gracefully)
-        if (!personalFinance[tx.whoOrBill]) {
-             personalFinance[tx.whoOrBill] = { credits: 0, debits: 0, netBalance: 0 };
+        const personId = tx.whoOrBill;
+        if (!personalFinance[personId]) {
+          personalFinance[personId] = { credits: 0, debits: 0, netBalance: 0 };
         }
-        
-        if (personalFinance[tx.whoOrBill]) {
-          personalFinance[tx.whoOrBill].credits += tx.amount;
-          personalFinance[tx.whoOrBill].netBalance += tx.amount;
-        }
+        personalFinance[personId].credits += tx.amount;
+        personalFinance[personId].netBalance += tx.amount;
       }
     });
 
-    // Calculate debits (considering transaction-level exemptions)
+    // Calculate debits using splitAmong snapshot (V2) or fall back to exemptions (V1)
     data.transactions.forEach(tx => {
       if (tx.type === 'debit') {
-        const exemptions = tx.exemptions || [];
-        const payingPeople = allPeople.filter(person => !exemptions.includes(person));
+        let payingPeople;
+        if (tx.splitAmong && tx.splitAmong.length > 0) {
+          payingPeople = tx.splitAmong;
+        } else {
+          const exemptions = tx.exemptions || [];
+          payingPeople = allPeopleIds.filter(id => !exemptions.includes(id));
+        }
         
         if (payingPeople.length > 0) {
           const amountPerPerson = tx.amount / payingPeople.length;
           
-          payingPeople.forEach(person => {
-            if (personalFinance[person]) {
-              personalFinance[person].debits += amountPerPerson;
-              personalFinance[person].netBalance -= amountPerPerson;
+          payingPeople.forEach(personId => {
+            if (!personalFinance[personId]) {
+              personalFinance[personId] = { credits: 0, debits: 0, netBalance: 0 };
             }
+            personalFinance[personId].debits += amountPerPerson;
+            personalFinance[personId].netBalance -= amountPerPerson;
           });
         }
       }
@@ -56,24 +59,16 @@ const Calculations = {
     return personalFinance;
   },
   
-  // Calculate bill distribution with exemptions
-  calculateBillDistribution(amount, exemptions) {
-    const allPeople = AppState.getPeopleList();
-    const payingPeople = allPeople.filter(person => !exemptions.includes(person));
-    
-    if (payingPeople.length === 0) {
-      return { 
-        exemptPeople: exemptions, 
-        payingPeople: [], 
-        amountPerPerson: 0 
-      };
+  // Calculate bill distribution preview for a given splitAmong list
+  calculateBillDistribution(amount, splitAmong) {
+    if (!splitAmong || splitAmong.length === 0) {
+      return { splitAmong: [], amountPerPerson: 0 };
     }
     
-    const amountPerPerson = amount / payingPeople.length;
+    const amountPerPerson = amount / splitAmong.length;
     
     return {
-      exemptPeople: exemptions,
-      payingPeople: payingPeople,
+      splitAmong: splitAmong,
       amountPerPerson: amountPerPerson
     };
   },
