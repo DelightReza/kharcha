@@ -27,11 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.delightreza.kharcha.data.AppDataStore
+import com.delightreza.kharcha.data.AppConfig
 import com.delightreza.kharcha.data.KharchaData
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
-import com.delightreza.kharcha.utils.Constants
 import com.delightreza.kharcha.utils.DateUtils
+import com.delightreza.kharcha.utils.FormatUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -47,6 +48,7 @@ fun ProfileScreen(
     onSwitchRepo: () -> Unit
 ) {
     var data by remember { mutableStateOf<KharchaData?>(null) }
+    var config by remember { mutableStateOf<AppConfig?>(null) }
     var balances by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     
     // Admin Access State
@@ -62,6 +64,7 @@ fun ProfileScreen(
 
     LaunchedEffect(Unit) {
         val result = repository.fetchData()
+        config = repository.getAppConfig()
         if (result != null) {
             data = result
             balances = repository.calculateBalances(result)
@@ -74,6 +77,8 @@ fun ProfileScreen(
         }
     }
 
+    val currentUserName = config?.members?.find { it.id == currentUser }?.name ?: currentUser
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -82,7 +87,7 @@ fun ProfileScreen(
         // 1. Header Card
         item {
             val netBalance = balances[currentUser] ?: 0.0
-            val given = data?.people?.get(currentUser) ?: 0.0
+            val given = data?.transactions?.filter { it.type == "credit" && (it.payerId == currentUser || it.whoOrBill == currentUser) }?.sumOf { it.amount } ?: 0.0
             val spent = given - netBalance
             
             Card(
@@ -99,58 +104,42 @@ fun ProfileScreen(
                                     showAdminAccess = !showAdminAccess
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
-                                try {
-                                    awaitRelease()
-                                } finally {
-                                    pressJob.cancel()
-                                }
+                                try { awaitRelease() } finally { pressJob.cancel() }
                             }
                         )
                     }
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
-                        Text(text = currentUser.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        Text(text = currentUserName.take(1), color = MaterialTheme.colorScheme.onPrimary, fontSize = 36.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = currentUser, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    Text(text = currentUserName, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Given", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
-                            Text(text = "%.2f".format(given), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                            Text(text = FormatUtils.formatAmount(given), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Spent", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
-                            Text(text = "%.2f".format(spent), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                            Text(text = FormatUtils.formatAmount(spent), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFCA5A5), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                         VerticalDivider()
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                             Text("Net", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f), textAlign = TextAlign.Center)
-                            Text(text = "${if(netBalance > 0) "+" else ""}${"%.2f".format(netBalance)}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                            Text(text = "${if(netBalance > 0) "+" else ""}${FormatUtils.formatAmount(netBalance)}", style = MaterialTheme.typography.titleLarge, color = if (netBalance >= 0) Color(0xFF86EFAC) else Color(0xFFFDA4AF), fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         }
                     }
                 }
             }
         }
 
-        // 2. Config Settings (Only if Admin)
         if (!savedToken.value.isNullOrBlank()) {
             item {
-                OutlinedButton(
-                    onClick = { navController.navigate("settings") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                OutlinedButton(onClick = { navController.navigate("settings") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
                     Icon(Icons.Default.Settings, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Config Settings (People & Bills)")
@@ -158,14 +147,9 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Admin Access Card
         if (showAdminAccess) {
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -222,19 +206,10 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Switch Actions (User & Repo)
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            dataStore.clearUser()
-                            onLogout()
-                        }
-                    },
+                    onClick = { scope.launch { dataStore.clearUser(); onLogout() } },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
@@ -259,32 +234,40 @@ fun ProfileScreen(
             }
         }
 
-        // 5. Personal History
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text("Your Recent Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
 
         if (data != null) {
-            val currentMemberCount = data!!.people.size
             val myTransactions = data!!.transactions.filter { tx ->
                 if (tx.type == "credit") {
-                    tx.whoOrBill == currentUser
+                    tx.payerId == currentUser || tx.whoOrBill == currentUser
                 } else {
-                    val exemptions = tx.exemptions ?: emptyList()
-                    !exemptions.contains(currentUser)
+                    if (tx.splitAmong != null) tx.splitAmong.contains(currentUser)
+                    else {
+                        val exemptions = tx.exemptions ?: emptyList()
+                        !exemptions.contains(currentUser)
+                    }
                 }
             }
             if (myTransactions.isEmpty()) {
                 item { Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { Text("No recent activity.", color = Color.Gray, textAlign = TextAlign.Center) } }
             } else {
                 items(myTransactions.take(30)) { tx ->
-                    val exemptionsCount = tx.exemptions?.size ?: 0
-                    val payingPeopleCount = currentMemberCount - exemptionsCount
-                    val myShare = if (tx.type == "debit" && payingPeopleCount > 0) tx.amount / payingPeopleCount else tx.amount
-                    ProfileTransactionRow(tx, myShare) {
+                    val myShare = if (tx.type == "debit") {
+                        if (!tx.splitAmong.isNullOrEmpty()) tx.amount / tx.splitAmong.size
+                        else {
+                            val ex = tx.exemptions?.size ?: 0
+                            val total = config?.members?.size ?: 1
+                            tx.amount / (total - ex).coerceAtLeast(1)
+                        }
+                    } else {
+                        tx.amount
+                    }
+                    ProfileTransactionRow(tx, myShare, config) {
                         val targetId = tx.parentId ?: tx.id
-                        navController.navigate("detail/$targetId")
+                        navController.navigate("detail/${targetId}")
                     }
                 }
             }
@@ -294,28 +277,28 @@ fun ProfileScreen(
 }
 
 @Composable
-fun VerticalDivider() {
-    Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)))
-}
-
-@Composable
-fun ProfileTransactionRow(tx: Transaction, myShare: Double, onClick: () -> Unit) {
+fun ProfileTransactionRow(tx: Transaction, myShare: Double, config: AppConfig?, onClick: () -> Unit) {
     val localDate = DateUtils.formatToLocalDateOnly(tx.date)
     val isPositiveEffect = if (tx.type == "debit") false else myShare > 0
     val color = if (isPositiveEffect) Color(0xFF059669) else Color(0xFFDC2626)
     val icon = if (isPositiveEffect) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward
     
+    // FIX: Logic to show Note if Bill Type is "Other"
     val title = when {
         tx.type == "credit" -> if (myShare < 0) "Transfer / Settle" else "Deposit / Received"
-        tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> tx.note
+        tx.type == "debit" -> {
+            val bid = tx.billTypeId ?: tx.whoOrBill
+            val billName = config?.billTypes?.find { it.id == bid }?.name ?: bid
+            if (billName.equals("Other", ignoreCase = true) && tx.note.isNotEmpty()) {
+                tx.note
+            } else {
+                billName
+            }
+        }
         else -> tx.whoOrBill
     }
 
-    val subtitle = when {
-        tx.type == "credit" -> if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
-        tx.whoOrBill == "Other" && tx.note.isNotEmpty() -> "Other • $localDate"
-        else -> if (tx.note.isNotEmpty()) "${tx.note} • $localDate" else localDate
-    }
+    val subtitle = if (tx.note.isNotEmpty() && tx.note != title) "${tx.note} • $localDate" else localDate
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
@@ -323,10 +306,7 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double, onClick: () -> Unit)
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(42.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
                 Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
@@ -338,7 +318,7 @@ fun ProfileTransactionRow(tx: Transaction, myShare: Double, onClick: () -> Unit)
             Column(horizontalAlignment = Alignment.End) {
                 val amountDisplay = abs(myShare)
                 val sign = if (isPositiveEffect) "+" else "-"
-                Text(text = "$sign${"%.2f".format(amountDisplay)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
+                Text(text = "$sign${FormatUtils.formatAmount(amountDisplay)}", color = color, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
                 if (tx.type == "debit") Text(text = "My Share", fontSize = 10.sp, color = Color.LightGray, textAlign = TextAlign.End)
             }
         }

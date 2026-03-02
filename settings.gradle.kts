@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Kharcha"
+rootProject.name = "Fund"
 include(":app")

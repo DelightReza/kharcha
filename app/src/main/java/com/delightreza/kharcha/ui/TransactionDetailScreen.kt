@@ -1,12 +1,10 @@
 package com.delightreza.kharcha.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -24,9 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.delightreza.kharcha.data.AppConfig
 import com.delightreza.kharcha.data.Repository
 import com.delightreza.kharcha.data.Transaction
 import com.delightreza.kharcha.utils.DateUtils
+import com.delightreza.kharcha.utils.FormatUtils
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +40,7 @@ fun TransactionDetailScreen(
 ) {
     var transaction by remember { mutableStateOf<Transaction?>(null) }
     var groupTransactions by remember { mutableStateOf<List<Transaction>>(emptyList()) }
+    var config by remember { mutableStateOf<AppConfig?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var isDeleting by remember { mutableStateOf(false) }
@@ -47,15 +48,14 @@ fun TransactionDetailScreen(
     val scope = rememberCoroutineScope()
     
     LaunchedEffect(transactionId) {
-        val data = repository.fetchData() // Fetch fresh data
+        val data = repository.fetchData()
+        config = repository.getAppConfig()
         
-        // 1. Try to find Single Transaction
         val single = data?.transactions?.find { it.id == transactionId }
         
         if (single != null) {
             transaction = single
         } else {
-            // 2. Try to find Group (By Parent ID)
             val group = data?.transactions?.filter { it.parentId == transactionId }
             if (!group.isNullOrEmpty()) {
                 groupTransactions = group
@@ -69,10 +69,7 @@ fun TransactionDetailScreen(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Delete Transaction") },
             text = { 
-                Text(
-                    if (groupTransactions.isNotEmpty()) "This is a Group Transaction. Deleting it will remove ALL associated entries (Settlement/Transfer). This cannot be undone."
-                    else "Are you sure you want to delete this? This cannot be undone."
-                ) 
+                Text(if (groupTransactions.isNotEmpty()) "This is a Group Transaction. Deleting it will remove ALL entries." else "Delete this transaction?") 
             },
             confirmButton = {
                 Button(
@@ -81,9 +78,7 @@ fun TransactionDetailScreen(
                         showDeleteDialog = false
                         scope.launch {
                             if (token != null) {
-                                // ID to delete is either single ID or Parent ID (if group, pick first child's parentId, which is == transactionId)
                                 val targetId = transaction?.id ?: groupTransactions.firstOrNull()?.id
-                                
                                 if (targetId != null) {
                                     val success = repository.deleteTransaction(token, targetId)
                                     if (success) navController.popBackStack()
@@ -95,9 +90,7 @@ fun TransactionDetailScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) { Text("Delete") }
             },
-            dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
-            }
+            dismissButton = { OutlinedButton(onClick = { showDeleteDialog = false }) { Text("Cancel") } }
         )
     }
 
@@ -108,37 +101,25 @@ fun TransactionDetailScreen(
                 navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowBack, "") } },
                 actions = {
                     if (hasToken && !isDeleting && (transaction != null || groupTransactions.isNotEmpty())) {
-                        // Editing only allowed for single transactions currently
                         if (transaction != null && transaction!!.parentId == null) {
                             IconButton(onClick = { 
                                 navController.navigate("add_transaction?txId=${transaction!!.id}") 
-                            }) {
-                                Icon(Icons.Default.Edit, "Edit")
-                            }
+                            }) { Icon(Icons.Default.Edit, "Edit") }
                         }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, "Delete", tint = Color.Red)
-                        }
+                        IconButton(onClick = { showDeleteDialog = true }) { Icon(Icons.Default.Delete, "Delete", tint = Color.Red) }
                     }
                 }
             )
         }
     ) { p ->
         if (isDeleting) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(color = Color.Red)
-                    Text("Deleting...", modifier = Modifier.padding(top = 16.dp))
-                }
-            }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Color.Red) }
         } else if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (groupTransactions.isNotEmpty()) {
-            // --- GROUP VIEW ---
-            GroupDetailView(groupTransactions, p)
+            GroupDetailView(groupTransactions, p, config)
         } else if (transaction != null) {
-            // --- SINGLE VIEW ---
-            SingleTransactionView(transaction!!, p, navController)
+            SingleTransactionView(transaction!!, p, navController, config)
         } else {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Transaction not found") }
         }
@@ -146,49 +127,44 @@ fun TransactionDetailScreen(
 }
 
 @Composable
-fun GroupDetailView(transactions: List<Transaction>, paddingValues: PaddingValues) {
+fun GroupDetailView(transactions: List<Transaction>, paddingValues: PaddingValues, config: AppConfig?) {
     val totalCredit = transactions.filter { it.type == "credit" }.sumOf { it.amount }
     val totalDebit = transactions.filter { it.type == "debit" }.sumOf { it.amount }
     val firstTx = transactions.first()
-    
-    // Determine title based on note (e.g. "Settlement", "Transfer")
-    val groupTitle = if(firstTx.note.contains("Settlement")) "Settlement Group" 
-                     else if (firstTx.note.contains("Transfer")) "Transfer Group" 
-                     else "Transaction Group"
+    val groupTitle = if(firstTx.note.contains("Settlement")) "Settlement Group" else if (firstTx.note.contains("Transfer")) "Transfer Group" else "Transaction Group"
+    val currency = config?.currency ?: "SOM"
 
     Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
-        
-        // Header Card
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Default.Layers, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(groupTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text(DateUtils.formatToLocal(firstTx.date), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-                Spacer(modifier = Modifier.height(24.dp))
                 
+                // DATE UTILS USED HERE
+                Text(DateUtils.formatToLocal(firstTx.date), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                
+                Spacer(modifier = Modifier.height(24.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Total Credit", style = MaterialTheme.typography.labelMedium)
-                        Text("${totalCredit.toInt()}", style = MaterialTheme.typography.titleLarge, color = Color(0xFF059669), fontWeight = FontWeight.Bold)
+                        Text("${FormatUtils.formatAmount(totalCredit)} $currency", style = MaterialTheme.typography.titleLarge, color = Color(0xFF059669), fontWeight = FontWeight.Bold)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Total Debit", style = MaterialTheme.typography.labelMedium)
-                        Text("${totalDebit.toInt()}", style = MaterialTheme.typography.titleLarge, color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
+                        Text("${FormatUtils.formatAmount(totalDebit)} $currency", style = MaterialTheme.typography.titleLarge, color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
-        
         Spacer(modifier = Modifier.height(16.dp))
         Text("Included Transactions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(transactions) { tx ->
+                val name = if (tx.type == "credit") config?.members?.find { it.id == (tx.payerId ?: tx.whoOrBill) }?.name ?: tx.whoOrBill else tx.whoOrBill
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Row(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -196,14 +172,10 @@ fun GroupDetailView(transactions: List<Transaction>, paddingValues: PaddingValue
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text(tx.whoOrBill, fontWeight = FontWeight.Bold)
+                            Text(name, fontWeight = FontWeight.Bold)
                             if(tx.note.isNotEmpty()) Text(tx.note, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
-                        Text(
-                            "${if(tx.amount>=0) "+" else ""}${tx.amount.toInt()}", 
-                            color = if(tx.amount>=0) Color(0xFF059669) else Color(0xFFDC2626),
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("${if(tx.amount>=0) "+" else ""}${FormatUtils.formatAmount(tx.amount)} $currency", color = if(tx.amount>=0) Color(0xFF059669) else Color(0xFFDC2626), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -212,41 +184,33 @@ fun GroupDetailView(transactions: List<Transaction>, paddingValues: PaddingValue
 }
 
 @Composable
-fun SingleTransactionView(tx: Transaction, paddingValues: PaddingValues, navController: NavController) {
+fun SingleTransactionView(tx: Transaction, paddingValues: PaddingValues, navController: NavController, config: AppConfig?) {
     Column(modifier = Modifier.padding(paddingValues).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         
         Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(32.dp).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(modifier = Modifier.padding(32.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(if(tx.type=="credit") Color(0xFFD1FAE5) else Color(0xFFFFE4E6)),
+                    modifier = Modifier.size(64.dp).clip(CircleShape).background(if(tx.type=="credit") Color(0xFFD1FAE5) else Color(0xFFFFE4E6)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        if(tx.type=="credit") Icons.Default.Check else Icons.Default.Receipt,
-                        contentDescription = null,
-                        tint = if(tx.type=="credit") Color(0xFF059669) else Color(0xFFE11D48),
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Icon(if(tx.type=="credit") Icons.Default.Check else Icons.Default.Receipt, null, tint = if(tx.type=="credit") Color(0xFF059669) else Color(0xFFE11D48), modifier = Modifier.size(32.dp))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(if(tx.type=="credit") "Money Received" else "Bill Payment", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text("${FormatUtils.formatAmount(tx.amount)} ${config?.currency ?: "SOM"}", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.5f))
+            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+                val displayName = if(tx.type == "credit") {
+                    config?.members?.find { it.id == (tx.payerId ?: tx.whoOrBill) }?.name ?: tx.whoOrBill
+                } else {
+                    config?.billTypes?.find { it.id == (tx.billTypeId ?: tx.whoOrBill) }?.name ?: tx.whoOrBill
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(if(tx.type=="credit") "Money Received" else "Bill Payment", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray, style = MaterialTheme.typography.labelMedium)
-                Text("${tx.amount}", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
-                Text("SOM", fontSize = 12.sp, color = Color.Gray)
-            }
-            
-            Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.5f))
-            
-            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
-                DetailRow("Subject", tx.whoOrBill)
+                DetailRow("Subject", displayName)
+                
+                // DATE UTILS USED HERE
                 DetailRow("Date", DateUtils.formatToLocal(tx.date))
-                DetailRow("ID", tx.id.takeLast(8))
                 
                 if (tx.note.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
@@ -254,22 +218,20 @@ fun SingleTransactionView(tx: Transaction, paddingValues: PaddingValues, navCont
                     Text(tx.note, fontSize = 16.sp)
                 }
 
-                if (!tx.exemptions.isNullOrEmpty()) {
+                if (tx.type == "debit" && !tx.splitAmong.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED))) {
+                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF))) {
                         Column(modifier = Modifier.padding(12.dp).fillMaxWidth()) {
-                            Text("Exemptions", color = Color(0xFFC2410C), fontWeight = FontWeight.Bold)
-                            Text(tx.exemptions.joinToString(", "), color = Color(0xFF9A3412))
+                            Text("Split Among", color = Color(0xFF1E3A8A), fontWeight = FontWeight.Bold)
+                            val names = tx.splitAmong.map { id -> config?.members?.find { it.id == id }?.name ?: id }
+                            Text(names.joinToString(", "), color = Color(0xFF1E40AF))
                         }
                     }
                 }
                 
                 if (tx.parentId != null) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedButton(
-                        onClick = { navController.navigate("detail/${tx.parentId}") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    OutlinedButton(onClick = { navController.navigate("detail/${tx.parentId}") }, modifier = Modifier.fillMaxWidth()) {
                         Text("View Group Transaction")
                     }
                 }

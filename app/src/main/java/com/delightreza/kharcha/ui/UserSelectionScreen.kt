@@ -16,8 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.delightreza.kharcha.data.MemberConfig
 import com.delightreza.kharcha.data.Repository
-import com.delightreza.kharcha.utils.Constants
 
 @Composable
 fun UserSelectionScreen(
@@ -25,38 +25,32 @@ fun UserSelectionScreen(
     onUserSelected: (String) -> Unit,
     onChangeRepo: () -> Unit
 ) {
-    var peopleList by remember { mutableStateOf(Constants.DEFAULT_MEMBERS) }
+    var peopleList by remember { mutableStateOf(listOf<MemberConfig>()) }
     var isLoading by remember { mutableStateOf(true) }
-    var repoTitle by remember { mutableStateOf("Kharcha") }
+    var repoTitle by remember { mutableStateOf("Fund") }
 
     LaunchedEffect(Unit) {
-        val config = repository.getAppConfig()
-        if (config != null) {
-            peopleList = config.people.sorted()
-            repoTitle = config.siteTitle
-            isLoading = false
-        } else {
-            // Fallback logic if needed
-            val fetched = repository.fetchData() // this will force cache config
-            if (fetched != null) {
-                // If fetch data succeeds, config should be in cache now
-                val newConfig = repository.getAppConfig()
-                if (newConfig != null) {
-                    peopleList = newConfig.people.sorted()
-                    repoTitle = newConfig.siteTitle
-                } else {
-                    // Fallback to data keys
-                    peopleList = fetched.people.keys.sorted()
-                }
+        var config = repository.getAppConfig()
+        
+        // Retry fetch if config is null or members are empty (first launch edge case)
+        if (config == null) {
+            val fetchedData = repository.fetchData()
+            if (fetchedData != null) {
+                config = repository.getAppConfig()
             }
-            isLoading = false
         }
+
+        if (config != null) {
+            // FIX: Handle potential null list safely with .orEmpty()
+            peopleList = config!!.members.orEmpty().filter { it.active }.sortedBy { it.name }
+            repoTitle = config!!.siteTitle
+        }
+        
+        isLoading = false
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -74,7 +68,7 @@ fun UserSelectionScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(peopleList) { person ->
-                    UserCard(person) { onUserSelected(person) }
+                    UserCard(person.name) { onUserSelected(person.id) } 
                 }
             }
         }
@@ -90,19 +84,14 @@ fun UserSelectionScreen(
 fun UserCard(name: String, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
         Column(
             modifier = Modifier.padding(24.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.5f)),
+                modifier = Modifier.size(50.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(name.take(1), fontWeight = FontWeight.Bold, fontSize = 20.sp)

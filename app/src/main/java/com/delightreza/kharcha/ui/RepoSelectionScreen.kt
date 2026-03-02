@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.delightreza.kharcha.data.Repository
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.net.URI
 
 @Composable
@@ -109,8 +110,10 @@ fun RepoSelectionScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(savedRepos.toList()) { url ->
+                items(savedRepos.toList()) { entry ->
+                    val (title, url) = parseRepoEntry(entry)
                     SavedRepoItem(
+                        title = title,
                         url = url,
                         onClick = { attemptConnection(url) },
                         onDelete = { 
@@ -123,17 +126,30 @@ fun RepoSelectionScreen(
     }
 }
 
-@Composable
-fun SavedRepoItem(url: String, onClick: () -> Unit, onDelete: () -> Unit) {
-    // Attempt to extract repo name from URL for display title
-    val name = try {
-        val uri = URI(url)
-        val parts = uri.path.split("/")
-        if (parts.size >= 3) parts[2] else "Repository" // e.g. /delightreza/kharcha/config.json -> kharcha
-    } catch (e: Exception) {
-        "Repository"
+// Helper to parse saved entry (JSON or Legacy String)
+fun parseRepoEntry(entry: String): Pair<String, String> {
+    return if (entry.trim().startsWith("{")) {
+        try {
+            val json = JSONObject(entry)
+            val t = json.optString("t", "Repository")
+            val u = json.optString("u", "")
+            t to u
+        } catch (e: Exception) {
+            "Repository" to entry
+        }
+    } else {
+        // Legacy String handling
+        val name = try {
+            val uri = URI(entry)
+            val parts = uri.path.split("/")
+            if (parts.size >= 3) parts[2].replaceFirstChar { it.uppercase() } else "Repository"
+        } catch (e: Exception) { "Repository" }
+        name to entry
     }
+}
 
+@Composable
+fun SavedRepoItem(title: String, url: String, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(12.dp),
@@ -145,7 +161,7 @@ fun SavedRepoItem(url: String, onClick: () -> Unit, onDelete: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(name.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Bold)
+                Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Text(url, style = MaterialTheme.typography.bodySmall, color = Color.Gray, maxLines = 1)
             }
             IconButton(onClick = onDelete) {

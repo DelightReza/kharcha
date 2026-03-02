@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.delightreza.kharcha.data.AppConfig
 import com.delightreza.kharcha.data.BillTypeConfig
+import com.delightreza.kharcha.data.MemberConfig
 import com.delightreza.kharcha.data.Repository
 import kotlinx.coroutines.launch
 
@@ -75,7 +76,7 @@ fun SettingsScreen(
                 modifier = Modifier.padding(p).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // PEOPLE SECTION
+                // MEMBERS SECTION
                 item {
                     Text("People", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -91,8 +92,10 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
                             onClick = {
-                                if (newPersonName.isNotBlank() && !config!!.people.contains(newPersonName)) {
-                                    config = config!!.copy(people = config!!.people + newPersonName.trim())
+                                if (newPersonName.isNotBlank() && config!!.members.none { it.name == newPersonName }) {
+                                    val id = newPersonName.trim().lowercase().replace("\\s+".toRegex(), "_")
+                                    val newMember = MemberConfig(id = id, name = newPersonName.trim(), active = true)
+                                    config = config!!.copy(members = config!!.members + newMember)
                                     newPersonName = ""
                                 }
                             },
@@ -101,18 +104,32 @@ fun SettingsScreen(
                     }
                 }
 
-                items(config!!.people) { person ->
+                items(config!!.members) { member ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("👤 $person")
-                        IconButton(
-                            onClick = {
-                                config = config!!.copy(people = config!!.people - person)
-                            }
-                        ) { Icon(Icons.Default.Delete, "", tint = Color.Red.copy(alpha = 0.6f)) }
+                        Column {
+                            Text("👤 ${member.name}")
+                            Text(if(member.active) "Active" else "Inactive", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
+                        
+                        Row {
+                            // Toggle Active
+                            TextButton(onClick = {
+                                val updatedMembers = config!!.members.map { 
+                                    if(it.id == member.id) it.copy(active = !it.active) else it 
+                                }
+                                config = config!!.copy(members = updatedMembers)
+                            }) { Text(if(member.active) "Disable" else "Enable") }
+                            
+                            IconButton(
+                                onClick = {
+                                    config = config!!.copy(members = config!!.members.filter { it.id != member.id })
+                                }
+                            ) { Icon(Icons.Default.Delete, "", tint = Color.Red.copy(alpha = 0.6f)) }
+                        }
                     }
                     Divider(color = Color.LightGray.copy(alpha = 0.3f))
                 }
@@ -144,7 +161,8 @@ fun SettingsScreen(
                             onClick = {
                                 if (newBillName.isNotBlank() && config!!.billTypes.none { it.name == newBillName }) {
                                     val icon = if (newBillIcon.isBlank()) "🧾" else newBillIcon.trim()
-                                    val newBill = BillTypeConfig(newBillName.trim(), icon)
+                                    val id = newBillName.trim().lowercase().replace("\\s+".toRegex(), "_")
+                                    val newBill = BillTypeConfig(id = id, name = newBillName.trim(), icon = icon, active = true)
                                     config = config!!.copy(billTypes = config!!.billTypes + newBill)
                                     newBillName = ""
                                     newBillIcon = ""
@@ -164,7 +182,7 @@ fun SettingsScreen(
                         Text("${bill.icon} ${bill.name}")
                         IconButton(
                             onClick = {
-                                config = config!!.copy(billTypes = config!!.billTypes.filter { it.name != bill.name })
+                                config = config!!.copy(billTypes = config!!.billTypes.filter { it.id != bill.id })
                             }
                         ) { Icon(Icons.Default.Delete, "", tint = Color.Red.copy(alpha = 0.6f)) }
                     }

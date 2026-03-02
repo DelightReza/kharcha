@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONObject
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -22,7 +23,7 @@ class AppDataStore(private val context: Context) {
         val CONFIG_URL = stringPreferencesKey("config_url")
         val CACHED_CONFIG = stringPreferencesKey("cached_config_json")
 
-        // History
+        // History (Stores JSON string {"t":"Title", "u":"URL"})
         val SAVED_REPOS = stringSetPreferencesKey("saved_repo_urls")
     }
 
@@ -43,18 +44,45 @@ class AppDataStore(private val context: Context) {
         context.dataStore.edit { it[CONFIG_URL] = url }
     }
 
-    // Add to History (Set ensures uniqueness)
-    suspend fun addSavedRepo(url: String) {
+    // Updated: Save Title + URL
+    suspend fun addSavedRepo(url: String, title: String) {
         context.dataStore.edit { preferences ->
             val currentSet = preferences[SAVED_REPOS] ?: emptySet()
-            preferences[SAVED_REPOS] = currentSet + url
+            
+            // Remove any existing entry for this URL (legacy string OR new json)
+            val filtered = currentSet.filter { entry ->
+                val storedUrl = parseUrlFromEntry(entry)
+                storedUrl != url
+            }.toMutableSet()
+
+            // Add new JSON entry
+            val jsonEntry = JSONObject().apply {
+                put("t", title)
+                put("u", url)
+            }.toString()
+            
+            filtered.add(jsonEntry)
+            preferences[SAVED_REPOS] = filtered
         }
     }
 
     suspend fun removeSavedRepo(url: String) {
         context.dataStore.edit { preferences ->
             val currentSet = preferences[SAVED_REPOS] ?: emptySet()
-            preferences[SAVED_REPOS] = currentSet - url
+            val filtered = currentSet.filter { entry ->
+                val storedUrl = parseUrlFromEntry(entry)
+                storedUrl != url
+            }.toSet()
+            preferences[SAVED_REPOS] = filtered
+        }
+    }
+    
+    // Helper to handle both "https://..." (Legacy) and "{"u":"..."}" (New)
+    private fun parseUrlFromEntry(entry: String): String {
+        return if (entry.trim().startsWith("{")) {
+            try { JSONObject(entry).optString("u") } catch (e: Exception) { entry }
+        } else {
+            entry
         }
     }
 
@@ -85,14 +113,12 @@ class AppDataStore(private val context: Context) {
         context.dataStore.edit { it.remove(SELECTED_USER) }
     }
     
-    // Updated: Only clears ACTIVE session data, NOT the saved repo history
     suspend fun clearConfig() {
         context.dataStore.edit { 
             it.remove(CONFIG_URL)
             it.remove(CACHED_CONFIG)
             it.remove(CACHED_DATA)
             it.remove(SELECTED_USER)
-            // Note: SAVED_REPOS is intentionally NOT removed
         }
     }
 }
