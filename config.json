@@ -11,18 +11,18 @@
     {"id": "raza", "name": "Raza", "active": true},
     {"id": "gulam", "name": "Gulam", "active": true},
     {"id": "mujeeb", "name": "Mujeeb", "active": true},
-    {"id": "rana", "name": "Rana", "active": false},
-    {"id": "naved", "name": "Naved", "active": false},
+    {"id": "rana", "name": "Rana", "active": true},
+    {"id": "naved", "name": "Naved", "active": true},
     {"id": "musawwar", "name": "Musawwar", "active": true},
     {"id": "nizamuddin", "name": "Nizamuddin", "active": true},
     {"id": "salman", "name": "Salman", "active": true}
   ],
   "billTypes": [
-    { "id": "electricity", "name": "Electricity", "icon": "⚡" },
-    { "id": "water", "name": "Water", "icon": "💧" },
-    { "id": "gas", "name": "Gas", "icon": "🔥" },
-    { "id": "garbage", "name": "Garbage", "icon": "🗑️" },
-    { "id": "internet", "name": "Internet", "icon": "🌐" },
-    { "id": "other", "name": "Other", "icon": "📦" }
+    {"id": "electricity", "name": "Electricity", "icon": "⚡"},
+    {"id": "water", "name": "Water", "icon": "💧"},
+    {"id": "gas", "name": "Gas", "icon": "🔥"},
+    {"id": "garbage", "name": "Garbage", "icon": "🗑️"},
+    {"id": "internet", "name": "Internet", "icon": "🌐"},
+    {"id": "other", "name": "Other", "icon": "📦"}
   ]
 }

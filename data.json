@@ -1,27 +1,27 @@
 {
   "billTypes": {
-    "Electricity": 19230.6,
-    "Water": 402,
-    "Gas": 2431,
-    "Garbage": 1321.4,
-    "Internet": 3800,
-    "Other": 14236
+    "electricity": 19230.6,
+    "water": 402,
+    "gas": 2431,
+    "garbage": 1321.4,
+    "internet": 3800,
+    "other": 14236
   },
   "people": {
-    "Musawwar": 5657.5,
-    "Raza": 5937.5,
-    "Salman": 5437.5,
-    "Mujeeb": 5128.5,
-    "Gulam": 5837.5,
-    "Rana": 4937.5,
-    "Naved": 5437.5,
-    "Nizamuddin": 5437.5
+    "musawwar": 5657.5,
+    "raza": 5937.5,
+    "salman": 5437.5,
+    "mujeeb": 5128.5,
+    "gulam": 5837.5,
+    "rana": 4937.5,
+    "naved": 5437.5,
+    "nizamuddin": 5437.5
   },
   "transactions": [
     {
       "id": "tx_dist_1772461265591_hb761_7",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -31,7 +31,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_6",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -41,7 +41,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_5",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -51,7 +51,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_4",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -61,7 +61,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_3",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -71,7 +71,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_2",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -81,7 +81,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_1",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -91,7 +91,7 @@
     {
       "id": "tx_dist_1772461265591_hb761_0",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "Rent",
       "amount": 250,
       "date": "2026-03-02T14:21:05.591Z",
@@ -101,7 +101,7 @@
     {
       "id": "tx_1772237531782_app",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 500,
       "date": "2026-02-28T00:12:11.782118Z"
@@ -109,15 +109,16 @@
     {
       "id": "tx_1772188723103_app",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "",
       "amount": 3605,
-      "date": "2026-02-27T10:38:43.103672Z"
+      "date": "2026-02-27T10:38:43.103672Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1772188653511_app",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 1000,
       "date": "2026-02-27T10:37:33.511070Z"
@@ -125,7 +126,7 @@
     {
       "id": "tx_1772182421109_app",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 1000,
       "date": "2026-02-27T08:53:41.109809Z"
@@ -133,7 +134,7 @@
     {
       "id": "tx_1772182390810_app",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 500,
       "date": "2026-02-27T08:53:10.810125Z"
@@ -141,7 +142,7 @@
     {
       "id": "tx_1772181683145_app",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "",
       "amount": 500,
       "date": "2026-02-27T08:41:23.145424Z"
@@ -149,15 +150,16 @@
     {
       "id": "tx_1771157961549_app",
       "type": "debit",
-      "whoOrBill": "Internet",
+      "whoOrBill": "internet",
       "note": "",
       "amount": 990,
-      "date": "2026-02-15T12:19:21.549501Z"
+      "date": "2026-02-15T12:19:21.549501Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1770797946074_app",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 300,
       "date": "2026-02-11T08:19:06.074726Z"
@@ -165,23 +167,25 @@
     {
       "id": "tx_1770559333341_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Milkwa",
       "amount": 90,
-      "date": "2026-02-08T14:02:13.340140Z"
+      "date": "2026-02-08T14:02:13.340140Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1770366535133_app",
       "type": "debit",
-      "whoOrBill": "Internet",
+      "whoOrBill": "internet",
       "note": "Wifi Charger",
       "amount": 350,
-      "date": "2026-02-06T08:28:55.133252Z"
+      "date": "2026-02-06T08:28:55.133252Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_dist_1769954897721_7",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -191,7 +195,7 @@
     {
       "id": "tx_dist_1769954897721_6",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -201,7 +205,7 @@
     {
       "id": "tx_dist_1769954897721_5",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -211,7 +215,7 @@
     {
       "id": "tx_dist_1769954897721_4",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -221,7 +225,7 @@
     {
       "id": "tx_dist_1769954897721_3",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -231,7 +235,7 @@
     {
       "id": "tx_dist_1769954897721_2",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -241,7 +245,7 @@
     {
       "id": "tx_dist_1769954897721_1",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -251,7 +255,7 @@
     {
       "id": "tx_dist_1769954897721_0",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "Rent Remaining",
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
@@ -261,7 +265,7 @@
     {
       "id": "tx_1769759773575_app",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 1000,
       "date": "2026-01-30T07:56:13.575844Z"
@@ -269,23 +273,25 @@
     {
       "id": "tx_1769753219101_app",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "",
       "amount": 9244,
-      "date": "2026-01-30T06:06:59.094990Z"
+      "date": "2026-01-30T06:06:59.094990Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769699898723_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Toti Pipe",
       "amount": 90,
-      "date": "2026-01-29T15:18:18.723820Z"
+      "date": "2026-01-29T15:18:18.723820Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769699316699_app",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "",
       "amount": 2000,
       "date": "2026-01-29T15:08:36.699853Z"
@@ -293,7 +299,7 @@
     {
       "id": "tx_1769615113880_app",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 2000,
       "date": "2026-01-28T15:45:13.880807Z"
@@ -301,7 +307,7 @@
     {
       "id": "tx_1769614961881_app",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "",
       "amount": 2000,
       "date": "2026-01-28T15:42:41.881445Z"
@@ -309,7 +315,7 @@
     {
       "id": "tx_1769599476500_app",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 500,
       "date": "2026-01-28T11:24:36.500438Z"
@@ -317,7 +323,7 @@
     {
       "id": "tx_1769599316626_app",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 1000,
       "date": "2026-01-28T11:21:56.618893Z"
@@ -325,15 +331,16 @@
     {
       "id": "tx_1769523141658_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Toti Repair",
       "amount": 500,
-      "date": "2026-01-27T14:12:21.658812Z"
+      "date": "2026-01-27T14:12:21.658812Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769523094309_app",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 500,
       "date": "2026-01-27T14:11:34.309470Z"
@@ -341,7 +348,7 @@
     {
       "id": "tx_1769523057576_app",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 500,
       "date": "2026-01-27T14:10:57.576222Z"
@@ -349,7 +356,7 @@
     {
       "id": "tx_1769505926624_app",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 1000,
       "date": "2026-01-27T09:25:26.624891Z"
@@ -357,31 +364,34 @@
     {
       "id": "tx_1769499563426_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Coal",
       "amount": 1420,
-      "date": "2026-01-27T07:39:23.426002Z"
+      "date": "2026-01-27T07:39:23.426002Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769499513598_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Toti",
       "amount": 1700,
-      "date": "2026-01-27T07:38:33.592718Z"
+      "date": "2026-01-27T07:38:33.592718Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769345993166_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Epoxy",
       "amount": 341,
-      "date": "2026-01-25T12:59:53.166035Z"
+      "date": "2026-01-25T12:59:53.166035Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769345948281_app",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 341,
       "date": "2026-01-25T12:59:08.281140Z"
@@ -389,18 +399,16 @@
     {
       "id": "tx_1769151723262_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Cake",
       "amount": 1635,
       "date": "2026-01-23T07:02:03.262157Z",
-      "exemptions": [
-        "Raza"
-      ]
+      "splitAmong": ["gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1769087131697_app",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 500,
       "date": "2026-01-22T13:05:31.697058Z"
@@ -408,7 +416,7 @@
     {
       "id": "tx_1769087082375_app",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 500,
       "date": "2026-01-22T13:04:42.375066Z"
@@ -416,15 +424,16 @@
     {
       "id": "tx_1768711923550_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Lighter 🔥",
       "amount": 40,
-      "date": "2026-01-18T04:52:03.550810Z"
+      "date": "2026-01-18T04:52:03.550810Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1768644136590_app",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 850,
       "date": "2026-01-17T10:02:16.589049Z"
@@ -432,15 +441,16 @@
     {
       "id": "tx_1768551059573_app",
       "type": "debit",
-      "whoOrBill": "Internet",
+      "whoOrBill": "internet",
       "note": "",
       "amount": 990,
-      "date": "2026-01-16T08:10:59.573528Z"
+      "date": "2026-01-16T08:10:59.573528Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1768551020253_app",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 1000,
       "date": "2026-01-16T08:10:20.253890Z"
@@ -448,63 +458,61 @@
     {
       "id": "tx_1768496736238_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Owner",
       "amount": 1500,
-      "date": "2026-01-15T17:05:36.238508Z"
+      "date": "2026-01-15T17:05:36.238508Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1768022586119_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Coal",
       "amount": 1500,
-      "date": "2026-01-10T05:23:06.119184Z"
+      "date": "2026-01-10T05:23:06.119184Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767962989372_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Chai Malik Chai",
       "amount": 90,
-      "date": "2026-01-09T12:49:49.372147Z"
+      "date": "2026-01-09T12:49:49.372147Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767956720762_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "2 Lighter",
       "amount": 40,
-      "date": "2026-01-09T11:05:20.762267Z"
+      "date": "2026-01-09T11:05:20.762267Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767807953385_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Chai Garam Chai",
       "amount": 153,
       "date": "2026-01-07T17:45:53.384659Z",
-      "exemptions": [
-        "Mujeeb",
-        "Salman"
-      ]
+      "splitAmong": ["raza", "gulam", "rana", "naved", "musawwar", "nizamuddin"]
     },
     {
       "id": "tx_1767624929323_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Tea",
       "amount": 100,
       "date": "2026-01-05T14:55:29.323468Z",
-      "exemptions": [
-        "Salman",
-        "Mujeeb"
-      ]
+      "splitAmong": ["raza", "gulam", "rana", "naved", "musawwar", "nizamuddin"]
     },
     {
       "id": "tx_1767525519663_app",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 420,
       "date": "2026-01-04T11:18:39.663568Z"
@@ -512,48 +520,43 @@
     {
       "id": "tx_1767517317666_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Pan",
       "amount": 450,
       "date": "2026-01-04T09:01:57.665898Z",
-      "exemptions": [
-        "Gulam"
-      ]
+      "splitAmong": ["raza", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767181912744_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Milk",
       "amount": 84,
       "date": "2025-12-31T11:51:52.744191Z",
-      "exemptions": [
-        "Rana"
-      ]
+      "splitAmong": ["raza", "gulam", "mujeeb", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767180891633_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Cake",
       "amount": 1650,
       "date": "2025-12-31T11:34:51.633587Z",
-      "exemptions": [
-        "Rana"
-      ]
+      "splitAmong": ["raza", "gulam", "mujeeb", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1767095458710_app",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Namak",
       "amount": 126,
-      "date": "2025-12-30T11:50:58.710600Z"
+      "date": "2025-12-30T11:50:58.710600Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_dist_1766915262640_7",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -563,7 +566,7 @@
     {
       "id": "tx_dist_1766915262640_6",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -573,7 +576,7 @@
     {
       "id": "tx_dist_1766915262640_5",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -583,7 +586,7 @@
     {
       "id": "tx_dist_1766915262640_4",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -593,7 +596,7 @@
     {
       "id": "tx_dist_1766915262640_3",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -603,7 +606,7 @@
     {
       "id": "tx_dist_1766915262640_2",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -613,7 +616,7 @@
     {
       "id": "tx_dist_1766915262640_1",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -623,7 +626,7 @@
     {
       "id": "tx_dist_1766915262640_0",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "Rent Remaining",
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
@@ -633,7 +636,7 @@
     {
       "id": "tx_1766915153625_app",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "",
       "amount": 1000,
       "date": "2025-12-28T09:45:53.624872Z"
@@ -641,7 +644,7 @@
     {
       "id": "tx_1766908638259_app",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 1000,
       "date": "2025-12-28T07:57:18.259538Z"
@@ -649,7 +652,7 @@
     {
       "id": "tx_1766852223160_app",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 1000,
       "date": "2025-12-27T14:16:54.990Z"
@@ -657,69 +660,70 @@
     {
       "id": "tx_1766836265799_x1e8z",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Chart",
       "amount": 38,
-      "date": "2025-12-27T11:51:05.285Z"
+      "date": "2025-12-27T11:51:05.285Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1766214958962_uuk55",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Lighter",
       "amount": 20,
-      "date": "2025-12-20T07:15:58.452Z"
+      "date": "2025-12-20T07:15:58.452Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765949464471_5ppky",
       "type": "debit",
-      "whoOrBill": "Internet",
+      "whoOrBill": "internet",
       "note": "",
       "amount": 960,
-      "date": "2025-12-17T05:31:03.964Z"
+      "date": "2025-12-17T05:31:03.964Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765701346854_td06m",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Kooda Uthane Wala",
       "amount": 50,
-      "date": "2025-12-14T08:35:46.344Z"
+      "date": "2025-12-14T08:35:46.344Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765530384772_xxs2g",
       "type": "debit",
-      "whoOrBill": "Gas",
+      "whoOrBill": "gas",
       "note": "",
       "amount": 1118,
       "date": "2025-12-12T09:06:24.262Z",
-      "exemptions": [
-        "Gulam"
-      ]
+      "splitAmong": ["raza", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765439162653_qzbg4",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Liquid Cleaning",
       "amount": 140,
-      "date": "2025-12-11T07:46:02.137Z"
+      "date": "2025-12-11T07:46:02.137Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765203912422_puqbm",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Pakodi + Chai",
       "amount": 220,
       "date": "2025-12-08T14:25:11.912Z",
-      "exemptions": [
-        "Nizamuddin"
-      ]
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "salman"]
     },
     {
       "id": "tx_1765187710155_cfg5o",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 1000,
       "date": "2025-12-08T09:55:09.639Z"
@@ -727,15 +731,16 @@
     {
       "id": "tx_1765124354164_9j6mh",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Ranjan Chai",
       "amount": 70,
-      "date": "2025-12-05T16:19:00.000Z"
+      "date": "2025-12-05T16:19:00.000Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1765124309348_kfuzy",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 70,
       "date": "2025-12-05T15:18:00.000Z"
@@ -743,7 +748,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_7",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -753,7 +758,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_6",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -763,7 +768,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_5",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -773,7 +778,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_4",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -783,7 +788,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_3",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -793,7 +798,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_2",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -803,7 +808,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_1",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -813,7 +818,7 @@
     {
       "id": "tx_dist_1764848143420_mffno_0",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "Rent",
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
@@ -823,39 +828,43 @@
     {
       "id": "tx_1764843118200_xo9oh",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "",
       "amount": 758,
-      "date": "2025-12-04T10:11:57.688Z"
+      "date": "2025-12-04T10:11:57.688Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764842911202_n5nw8",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Toilet Sheet Cover",
       "amount": 660,
-      "date": "2025-12-04T10:08:30.673Z"
+      "date": "2025-12-04T10:08:30.673Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764842715189_w14w3",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "MCB",
       "amount": 240,
-      "date": "2025-12-04T10:05:14.673Z"
+      "date": "2025-12-04T10:05:14.673Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764760842577_iwico",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Namak",
       "amount": 126,
-      "date": "2025-12-03T11:20:42.066Z"
+      "date": "2025-12-03T11:20:42.066Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764676971101_vy554",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 1000,
       "date": "2025-12-02T12:02:50.590Z"
@@ -863,7 +872,7 @@
     {
       "id": "tx_1764670729027_9ff04",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 1000,
       "date": "2025-12-02T10:18:48.515Z"
@@ -871,44 +880,34 @@
     {
       "id": "tx_1764523394896_09m5i",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Pakodi",
       "amount": 50,
       "date": "2025-11-30T17:23:14.386Z",
-      "exemptions": [
-        "Raza",
-        "Salman",
-        "Mujeeb",
-        "Gulam",
-        "Rana",
-        "Naved",
-        "Nizamuddin"
-      ]
+      "splitAmong": ["musawwar"]
     },
     {
       "id": "tx_1764523014260_zrd92",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Pakodi",
       "amount": 120,
       "date": "2025-11-30T05:16:00.000Z",
-      "exemptions": [
-        "Raza",
-        "Naved"
-      ]
+      "splitAmong": ["gulam", "mujeeb", "rana", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764434672945_5gnw5",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "",
       "amount": 3342,
-      "date": "2025-11-29T16:44:32.427Z"
+      "date": "2025-11-29T16:44:32.427Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764410212643_1th0q",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 1000,
       "date": "2025-11-29T09:56:52.130Z"
@@ -916,7 +915,7 @@
     {
       "id": "tx_1764405530584_54xc1",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "",
       "amount": 1000,
       "date": "2025-11-29T08:38:50.069Z"
@@ -924,18 +923,16 @@
     {
       "id": "tx_1764260971950_zc1yf",
       "type": "debit",
-      "whoOrBill": "Gas",
+      "whoOrBill": "gas",
       "note": "",
       "amount": 1313,
       "date": "2025-11-27T16:29:31.433Z",
-      "exemptions": [
-        "Gulam"
-      ]
+      "splitAmong": ["raza", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1764260387659_5gwky",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 1000,
       "date": "2025-11-27T16:19:47.152Z"
@@ -943,7 +940,7 @@
     {
       "id": "tx_1764260371078_zrsmf",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 1000,
       "date": "2025-11-27T16:19:30.559Z"
@@ -951,31 +948,34 @@
     {
       "id": "tx_1763953455944_jf3zg",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Namak + Powder",
       "amount": 138,
-      "date": "2025-11-23T10:04:00.000Z"
+      "date": "2025-11-23T10:04:00.000Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1763358310132_sibg5",
       "type": "debit",
-      "whoOrBill": "Internet",
+      "whoOrBill": "internet",
       "note": "",
       "amount": 510,
-      "date": "2025-11-17T05:45:09.625Z"
+      "date": "2025-11-17T05:45:09.625Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1763122539224_giijo",
       "type": "debit",
-      "whoOrBill": "Garbage",
+      "whoOrBill": "garbage",
       "note": "",
       "amount": 1321.4,
-      "date": "2025-11-14T12:15:38.713Z"
+      "date": "2025-11-14T12:15:38.713Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_multi_1763053865251_yo232_1",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 250,
       "date": "2025-11-13T17:11:05.251Z",
@@ -984,7 +984,7 @@
     {
       "id": "tx_multi_1763053865251_yo232_0",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 250,
       "date": "2025-11-13T17:11:05.251Z",
@@ -993,15 +993,16 @@
     {
       "id": "tx_1762586316983_sdmar",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Cleaning Ka Saman",
       "amount": 275,
-      "date": "2025-11-09T07:18:00.000Z"
+      "date": "2025-11-09T07:18:00.000Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_multi_1762182050433_4suco_5",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1010,7 +1011,7 @@
     {
       "id": "tx_multi_1762182050433_4suco_4",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1019,7 +1020,7 @@
     {
       "id": "tx_multi_1762182050433_4suco_3",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1028,7 +1029,7 @@
     {
       "id": "tx_multi_1762182050433_4suco_2",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1037,7 +1038,7 @@
     {
       "id": "tx_multi_1762182050433_4suco_1",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1046,7 +1047,7 @@
     {
       "id": "tx_multi_1762182050433_4suco_0",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 250,
       "date": "2025-11-03T15:00:50.435Z",
@@ -1055,7 +1056,7 @@
     {
       "id": "tx_1762094858573_b4ezk",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 500,
       "date": "2025-11-02T14:47:37.765Z"
@@ -1063,7 +1064,7 @@
     {
       "id": "tx_1762092531795_w6hl8",
       "type": "credit",
-      "whoOrBill": "Rana",
+      "whoOrBill": "rana",
       "note": "",
       "amount": 500,
       "date": "2025-11-02T14:08:50.987Z"
@@ -1071,15 +1072,16 @@
     {
       "id": "tx_1761988310176_r0rbi",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "",
       "amount": 2271.6,
-      "date": "2025-11-01T09:11:49.372Z"
+      "date": "2025-11-01T09:11:49.372Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1761987572538_6gejl",
       "type": "credit",
-      "whoOrBill": "Salman",
+      "whoOrBill": "salman",
       "note": "",
       "amount": 500,
       "date": "2025-11-01T08:59:31.735Z"
@@ -1087,7 +1089,7 @@
     {
       "id": "tx_1761987563638_ju1o7",
       "type": "credit",
-      "whoOrBill": "Mujeeb",
+      "whoOrBill": "mujeeb",
       "note": "",
       "amount": 500,
       "date": "2025-11-01T08:59:22.814Z"
@@ -1095,23 +1097,25 @@
     {
       "id": "tx_1761579008728_j5494",
       "type": "debit",
-      "whoOrBill": "Electricity",
+      "whoOrBill": "electricity",
       "note": "Test",
       "amount": 10,
-      "date": "2025-10-27T15:30:07.907Z"
+      "date": "2025-10-27T15:30:07.907Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1761495942902_dbyn0",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Toti Repair",
       "amount": 400,
-      "date": "2025-10-26T16:25:42.067Z"
+      "date": "2025-10-26T16:25:42.067Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1761489474828_hz936",
       "type": "credit",
-      "whoOrBill": "Nizamuddin",
+      "whoOrBill": "nizamuddin",
       "note": "",
       "amount": 500,
       "date": "2025-10-26T14:37:54.005Z"
@@ -1119,7 +1123,7 @@
     {
       "id": "tx_1761141764453_sc2aq",
       "type": "credit",
-      "whoOrBill": "Naved",
+      "whoOrBill": "naved",
       "note": "",
       "amount": 500,
       "date": "2025-10-22T14:02:43.638Z"
@@ -1127,7 +1131,7 @@
     {
       "id": "tx_1760800689994_eafn0",
       "type": "credit",
-      "whoOrBill": "Gulam",
+      "whoOrBill": "gulam",
       "note": "",
       "amount": 330,
       "date": "2025-10-18T15:18:09.178Z"
@@ -1135,15 +1139,16 @@
     {
       "id": "tx_1760768305497_ljjw2",
       "type": "debit",
-      "whoOrBill": "Water",
+      "whoOrBill": "water",
       "note": "",
       "amount": 402,
-      "date": "2025-10-18T06:18:24.672Z"
+      "date": "2025-10-18T06:18:24.672Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1760766646713_s8dzj",
       "type": "credit",
-      "whoOrBill": "Raza",
+      "whoOrBill": "raza",
       "note": "",
       "amount": 500,
       "date": "2025-10-18T05:50:46.713Z"
@@ -1151,15 +1156,16 @@
     {
       "id": "tx_1760698882474_sr9ky",
       "type": "debit",
-      "whoOrBill": "Other",
+      "whoOrBill": "other",
       "note": "Liquid detergent ",
       "amount": 180,
-      "date": "2025-10-17T11:01:22.474Z"
+      "date": "2025-10-17T11:01:22.474Z",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
     },
     {
       "id": "tx_1760273481126_ndz4w",
       "type": "credit",
-      "whoOrBill": "Musawwar",
+      "whoOrBill": "musawwar",
       "note": "",
       "amount": 500,
       "date": "2025-10-12T12:51:21.127Z"
