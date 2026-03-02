@@ -1,23 +1,103 @@
 {
   "billTypes": {
     "Electricity": 19230.6,
-    "Water": 402.0,
-    "Gas": 2431.0,
+    "Water": 402,
+    "Gas": 2431,
     "Garbage": 1321.4,
-    "Internet": 3800.0,
-    "Other": 14236.0
+    "Internet": 3800,
+    "Other": 14236
   },
   "people": {
-    "Musawwar": 5407.5,
-    "Raza": 5687.5,
-    "Salman": 5187.5,
-    "Mujeeb": 4878.5,
-    "Gulam": 5587.5,
-    "Rana": 4687.5,
-    "Naved": 5187.5,
-    "Nizamuddin": 5187.5
+    "Musawwar": 5657.5,
+    "Raza": 5937.5,
+    "Salman": 5437.5,
+    "Mujeeb": 5128.5,
+    "Gulam": 5837.5,
+    "Rana": 4937.5,
+    "Naved": 5437.5,
+    "Nizamuddin": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_dist_1772461265591_hb761_7",
+      "type": "credit",
+      "whoOrBill": "Nizamuddin",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_6",
+      "type": "credit",
+      "whoOrBill": "Musawwar",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_5",
+      "type": "credit",
+      "whoOrBill": "Naved",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_4",
+      "type": "credit",
+      "whoOrBill": "Rana",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_3",
+      "type": "credit",
+      "whoOrBill": "Gulam",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_2",
+      "type": "credit",
+      "whoOrBill": "Mujeeb",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_1",
+      "type": "credit",
+      "whoOrBill": "Salman",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
+    {
+      "id": "tx_dist_1772461265591_hb761_0",
+      "type": "credit",
+      "whoOrBill": "Raza",
+      "note": "Rent",
+      "amount": 250,
+      "date": "2026-03-02T14:21:05.591Z",
+      "parentId": "tx_dist_1772461265591_hb761",
+      "distributionTotal": 2000
+    },
     {
       "id": "tx_1772237531782_app",
       "type": "credit",
@@ -106,7 +186,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_6",
@@ -116,7 +196,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_5",
@@ -126,7 +206,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_4",
@@ -136,7 +216,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_3",
@@ -146,7 +226,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_2",
@@ -156,7 +236,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_1",
@@ -166,7 +246,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_dist_1769954897721_0",
@@ -176,7 +256,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500.0
+      "distributionTotal": 3500
     },
     {
       "id": "tx_1769759773575_app",
@@ -478,7 +558,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_6",
@@ -488,7 +568,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_5",
@@ -498,7 +578,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_4",
@@ -508,7 +588,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_3",
@@ -518,7 +598,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_2",
@@ -528,7 +608,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_1",
@@ -538,7 +618,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1766915262640_0",
@@ -548,7 +628,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_1766915153625_app",
@@ -668,7 +748,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_6",
@@ -678,7 +758,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_5",
@@ -688,7 +768,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_4",
@@ -698,7 +778,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_3",
@@ -708,7 +788,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_2",
@@ -718,7 +798,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_1",
@@ -728,7 +808,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_dist_1764848143420_mffno_0",
@@ -738,7 +818,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000.0
+      "distributionTotal": 2000
     },
     {
       "id": "tx_1764843118200_xo9oh",
