@@ -21,7 +21,6 @@ const App = {
           { name: 'Other', icon: '📦' }
         ],
         currency: 'INR',
-        timeOffset: 5.5,
         transactionsPerPage: 14
       };
     }

@@ -9,28 +9,24 @@ const Utils = {
     return parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ' + curr;
   },
 
-  // Convert to UTC+{offset} time (offset from config)
-  toUTC6(dateString) { // Keeping function name for compatibility, but logic is dynamic
-    const offset = AppState.config?.timeOffset || 6;
+  // Format a stored date string for display
+  formatDate(dateString) {
     const date = new Date(dateString);
-    const localDate = new Date(date.getTime() + (offset * 60 * 60 * 1000));
-    return localDate.toLocaleString('en-GB', {
+    return date.toLocaleString('en-GB', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
+      timeZone: 'UTC'
     }).replace(',', '');
   },
 
-  // Convert local date/time to UTC ISO string
+  // Build a UTC ISO string from date/time inputs — name kept for compatibility
   localToUTC(localDate, localTime) {
     const timePart = localTime || '12:00';
-    const localDateTimeString = `${localDate}T${timePart}:00`;
-    const localDateObj = new Date(localDateTimeString);
-    const utcDateObj = new Date(localDateObj.getTime() - (localDateObj.getTimezoneOffset() * 60000));
-    return utcDateObj.toISOString();
+    return `${localDate}T${timePart}:00.000Z`;
   },
 
   // Generate unique transaction ID

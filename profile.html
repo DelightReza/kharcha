@@ -60,24 +60,14 @@
     </main>
 
     <script>
-        let appConfig = {
-            currency: 'SOM',
-            timeOffset: 6
-        };
+        let appConfig = {};
 
         // Utilities
         const formatCurrency = (amount) => parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ' + appConfig.currency;
         
         const formatDateTime = (isoString) => {
             try {
-                const date = new Date(isoString);
-                // Convert to offset from config for display
-                const offsetMs = appConfig.timeOffset * 60 * 60 * 1000;
-                const localDate = new Date(date.getTime() + offsetMs);
-                
-                return localDate.toISOString()
-                    .replace('T', ' ')
-                    .substring(0, 16);
+                return isoString.replace('T', ' ').substring(0, 16);
             } catch (e) {
                 return isoString;
             }
@@ -107,8 +97,7 @@
                     const configResp = await fetch('config.json');
                     if (configResp.ok) {
                         const loadedConfig = await configResp.json();
-                        appConfig.currency = loadedConfig.currency || 'SOM';
-                        appConfig.timeOffset = loadedConfig.timeOffset || 6;
+                        appConfig.currency = loadedConfig.currency;
                         // Build lookup maps (supports V1 string array and V2 object array)
                         const people = loadedConfig.people || [];
                         if (people.length && typeof people[0] === 'object') {

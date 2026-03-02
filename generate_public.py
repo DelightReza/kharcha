@@ -2,7 +2,7 @@
 import json
 import os
 import datetime
-from datetime import timezone, timedelta
+from datetime import timezone
 from jinja2 import Environment, FileSystemLoader
 
 CONFIG_FILE = 'config.json'
@@ -38,25 +38,11 @@ def load_data(config):
     with open(DATA_FILE, 'r') as f:
         return json.load(f)
 
-def format_utc_offset(offset_hours):
-    """Format UTC offset string like 'UTC+6' or 'UTC-5.5'."""
-    hours = int(offset_hours)
-    minutes = int(abs(offset_hours - hours) * 60)
-    sign = "+" if offset_hours >= 0 else "-"
-    
-    if minutes == 0:
-        return f"UTC{sign}{abs(hours)}"
-    else:
-        return f"UTC{sign}{abs(hours)}.{int(minutes/60*10)}"
-
-def format_local_time(iso_date, offset_hours):
-    """Convert ISO date to local time string."""
+def format_local_time(iso_date):
+    """Format stored date string for display (no timezone offset applied)."""
     try:
         utc_time = datetime.datetime.fromisoformat(iso_date.replace('Z', '+00:00'))
-        hours = int(offset_hours)
-        minutes = int((offset_hours - hours) * 60)
-        local_time = utc_time + timedelta(hours=hours, minutes=minutes)
-        return local_time.strftime('%Y-%m-%d %H:%M')
+        return utc_time.strftime('%Y-%m-%d %H:%M')
     except:
         return iso_date
 
@@ -84,7 +70,7 @@ def calculate_finance(data, config):
 
     for tx in data['transactions']:
         tx_copy = tx.copy()
-        tx_copy['display_date'] = format_local_time(tx['date'], config["timeOffset"])
+        tx_copy['display_date'] = format_local_time(tx['date'])
         # Resolve whoOrBill ID to display name
         if tx['type'] == 'credit':
             tx_copy['whoOrBill'] = id_to_name.get(tx['whoOrBill'], tx['whoOrBill'])
@@ -155,13 +141,7 @@ def main():
 
     # Time calculations
     utc_now = datetime.datetime.now(timezone.utc)
-    offset = config["timeOffset"]
-    hours = int(offset)
-    minutes = int((offset - hours) * 60)
-    local_now = utc_now + timedelta(hours=hours, minutes=minutes)
-    
-    offset_str = format_utc_offset(offset)
-    dashboard_time = local_now.strftime('%Y-%m-%d %H:%M ') + offset_str
+    dashboard_time = utc_now.strftime('%Y-%m-%d %H:%M')
     
     site_subtitle = config.get("siteSubtitle", "House Fund")
 
@@ -196,7 +176,7 @@ def main():
             currency=config["currency"],
             site_title=config["siteTitle"],
             site_subtitle=site_subtitle,
-            last_updated=f"{tx['display_date']} {offset_str}"
+            last_updated=tx['display_date']
         )
         path = f"{TRANSACTIONS_DIR}/{tx['id']}.html"
         if smart_write(path, tx_html):
@@ -220,7 +200,7 @@ def main():
             currency=config["currency"],
             site_title=config["siteTitle"],
             site_subtitle=site_subtitle,
-            last_updated=f"{txs[0]['display_date']} {offset_str}"
+            last_updated=txs[0]['display_date']
         )
         path = f"{TRANSACTIONS_DIR}/{gid}.html"
         if smart_write(path, html):

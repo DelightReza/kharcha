@@ -146,7 +146,7 @@ const UI = {
     let transactionsHTML = '';
 
     transactionsToShow.forEach(tx => {
-      const formattedDate = Utils.toUTC6(tx.date);
+      const formattedDate = Utils.formatDate(tx.date);
       const typeClass = tx.type === 'credit' ? 'text-green-600' : 'text-red-600';
       const typeIcon = tx.type === 'credit' ? 
         '<i class="fas fa-arrow-down mr-1"></i>' : 

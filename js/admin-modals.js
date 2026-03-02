@@ -8,10 +8,8 @@ const Modals = {
   showTransactionDetail(transaction) {
     const { balanceBefore, balanceAfter } = Calculations.calculateRunningBalance(transaction.id);
     const currency = AppState.config?.currency || 'SOM';
-    const offset = AppState.config?.timeOffset || 0;
-    const timeLabel = `UTC${offset >= 0 ? '+' : ''}${offset}`;
     
-    const formattedDate = Utils.toUTC6(transaction.date);
+    const formattedDate = Utils.formatDate(transaction.date);
     const typeClass = transaction.type === 'credit' ? 'text-green-600' : 'text-red-600';
     const typeIcon = transaction.type === 'credit' ? 
       '<i class="fas fa-arrow-down mr-1"></i>' : 
@@ -83,7 +81,7 @@ const Modals = {
           <div class="text-sm ${typeClass} font-medium flex items-center">${typeIcon} ${transaction.type}</div>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Date (${timeLabel})</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
           <div class="text-sm text-gray-900">${formattedDate}</div>
         </div>
       </div>
@@ -155,17 +153,14 @@ const Modals = {
   // Show edit transaction modal
   showEditTransactionModal(transaction) {
     const currency = AppState.config?.currency || 'SOM';
-    const offset = AppState.config?.timeOffset || 0;
-    const timeLabel = `UTC${offset >= 0 ? '+' : ''}${offset}`;
     
     const typeClass = transaction.type === 'credit' ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
     const typeIcon = transaction.type === 'credit' ? 'fa-plus-circle text-green-600' : 'fa-minus-circle text-red-600';
     
-    // Convert UTC date to local date for editing
+    // Show the stored UTC date directly for editing (no offset conversion)
     const utcDate = new Date(transaction.date);
-    const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
-    const formattedDate = localDate.toISOString().split('T')[0];
-    const formattedTime = localDate.toTimeString().split(' ')[0].substring(0, 5);
+    const formattedDate = utcDate.toISOString().split('T')[0];
+    const formattedTime = utcDate.toISOString().split('T')[1].substring(0, 5);
     
     let whoOrBillOptions = '';
     let splitAmongSection = '';
@@ -284,7 +279,7 @@ const Modals = {
                   <input type="date" id="editDate" value="${formattedDate}" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-${transaction.type === 'credit' ? 'green' : 'red'}-500">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">Time (${timeLabel})</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">Time</label>
                   <input type="time" id="editTime" value="${formattedTime}" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-${transaction.type === 'credit' ? 'green' : 'red'}-500">
                 </div>
               </div>
@@ -422,7 +417,7 @@ const Modals = {
           ...tx,
           personRole: 'credit',
           personAmount: tx.amount,
-          formattedDate: Utils.toUTC6(tx.date)
+          formattedDate: Utils.formatDate(tx.date)
         });
       }
       
@@ -447,7 +442,7 @@ const Modals = {
             personRole: 'debit',
             personAmount: amountPerPerson,
             payingPeople: payingNames,
-            formattedDate: Utils.toUTC6(tx.date)
+            formattedDate: Utils.formatDate(tx.date)
           });
         }
       }
