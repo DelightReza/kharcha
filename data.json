@@ -8,7 +8,7 @@
     "other": 14236
   },
   "people": {
-    "musawwar": 5657.5,
+    "musawwar": 6657.5,
     "raza": 5937.5,
     "salman": 5437.5,
     "mujeeb": 5128.5,
@@ -18,6 +18,14 @@
     "nizamuddin": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1772549705866_ymuby",
+      "type": "credit",
+      "whoOrBill": "musawwar",
+      "note": "",
+      "amount": 1000,
+      "date": "2026-03-03T20:55:00.000Z"
+    },
     {
       "id": "tx_dist_1772461265591_hb761_7",
       "type": "credit",
