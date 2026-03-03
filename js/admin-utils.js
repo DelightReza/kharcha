@@ -3,30 +3,25 @@
  */
 
 const Utils = {
-  // Format currency with commas, two decimals, and currency symbol from config
+  // Format currency
   formatCurrency(amount) {
     const curr = AppState.config?.currency || 'SOM';
     return parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' ' + curr;
   },
 
   // Format a stored date string for display
+  // Input: "2025-01-20T10:00:00"
+  // Output: "2025-01-20 10:00"
   formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-GB', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: 'UTC'
-    }).replace(',', '');
+    if (!dateString) return '';
+    return dateString.replace('T', ' ').substring(0, 16);
   },
 
-  // Build a UTC ISO string from date/time inputs — name kept for compatibility
+  // Name kept for compatibility, but logic CHANGED to be Local
+  // Returns: "YYYY-MM-DDTHH:MM:00" (Local Device Time)
   localToUTC(localDate, localTime) {
     const timePart = localTime || '12:00';
-    return `${localDate}T${timePart}:00.000Z`;
+    return `${localDate}T${timePart}:00`;
   },
 
   // Generate unique transaction ID
@@ -39,7 +34,7 @@ const Utils = {
     return new Date().toISOString().split('T')[0];
   },
 
-  // Save data to localStorage
+  // Save/Load helpers
   saveToLocalStorage(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
@@ -50,7 +45,6 @@ const Utils = {
     }
   },
 
-  // Load data from localStorage
   loadFromLocalStorage(key) {
     try {
       const data = localStorage.getItem(key);
@@ -61,14 +55,12 @@ const Utils = {
     }
   },
 
-  // Escape HTML to prevent XSS
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   },
 
-  // Get bill icon – delegate to AppState
   getBillIcon(billName) {
     return AppState.getBillIcon(billName);
   }
