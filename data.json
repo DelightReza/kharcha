@@ -8,12 +8,12 @@
     "other": 14236
   },
   "people": {
-    "musawwar": 6657.5,
+    "musawwar": 5657.5,
     "raza": 5937.5,
     "salman": 5437.5,
     "mujeeb": 5128.5,
     "gulam": 5837.5,
-    "rana": 4937.5,
+    "rana": 5937.5,
     "naved": 5437.5,
     "nizamuddin": 5437.5
   },
@@ -21,7 +21,7 @@
     {
       "id": "tx_1772549705866_ymuby",
       "type": "credit",
-      "whoOrBill": "musawwar",
+      "whoOrBill": "rana",
       "note": "",
       "amount": 1000,
       "date": "2026-03-03T20:55:00.000Z"
