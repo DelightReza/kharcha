@@ -55,7 +55,7 @@ fun AddTransactionScreen(
     var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
     
     var activeMembers by remember { mutableStateOf(listOf<MemberConfig>()) }
-    var activeBillTypes by remember { mutableStateOf(listOf<BillTypeConfig>()) }
+    var billTypes by remember { mutableStateOf(listOf<BillTypeConfig>()) }
     var currency by remember { mutableStateOf("SOM") }
     
     var originalId by remember { mutableStateOf("") }
@@ -65,7 +65,7 @@ fun AddTransactionScreen(
         val config = repository.getAppConfig()
         if (config != null) {
             activeMembers = config.members.filter { it.active }
-            activeBillTypes = config.billTypes.filter { it.active }
+            billTypes = config.billTypes
             currency = config.currency
         }
 
@@ -187,7 +187,7 @@ fun AddTransactionScreen(
                     if (type == "credit") {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(activeMembers.size) { i -> val m = activeMembers[i]; InputChip(selected = selectedId == m.id, onClick = { selectedId = m.id }, label = { Text(m.name) }, colors = InputChipDefaults.inputChipColors(selectedContainerColor = themeColor, selectedLabelColor = Color.White)) } }
                     } else {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(activeBillTypes.size) { i -> val b = activeBillTypes[i]; InputChip(selected = selectedId == b.id, onClick = { selectedId = b.id }, label = { Text("${b.icon} ${b.name}") }, colors = InputChipDefaults.inputChipColors(selectedContainerColor = themeColor, selectedLabelColor = Color.White)) } }
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(billTypes.size) { i -> val b = billTypes[i]; InputChip(selected = selectedId == b.id, onClick = { selectedId = b.id }, label = { Text("${b.icon} ${b.name}") }, colors = InputChipDefaults.inputChipColors(selectedContainerColor = themeColor, selectedLabelColor = Color.White)) } }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }

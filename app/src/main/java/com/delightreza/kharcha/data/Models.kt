@@ -30,8 +30,7 @@ data class MemberConfig(
 data class BillTypeConfig(
     val id: String,
     val name: String,
-    val icon: String,
-    val active: Boolean = true
+    val icon: String
 )
 
 // --- DATA MODEL ---
