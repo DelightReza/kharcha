@@ -162,7 +162,7 @@ fun SettingsScreen(
                                 if (newBillName.isNotBlank() && config!!.billTypes.none { it.name == newBillName }) {
                                     val icon = if (newBillIcon.isBlank()) "🧾" else newBillIcon.trim()
                                     val id = newBillName.trim().lowercase().replace("\\s+".toRegex(), "_")
-                                    val newBill = BillTypeConfig(id = id, name = newBillName.trim(), icon = icon, active = true)
+                                    val newBill = BillTypeConfig(id = id, name = newBillName.trim(), icon = icon)
                                     config = config!!.copy(billTypes = config!!.billTypes + newBill)
                                     newBillName = ""
                                     newBillIcon = ""
