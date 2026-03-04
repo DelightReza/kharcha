@@ -157,10 +157,9 @@ const Modals = {
     const typeClass = transaction.type === 'credit' ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-orange-50 border-red-200';
     const typeIcon = transaction.type === 'credit' ? 'fa-plus-circle text-green-600' : 'fa-minus-circle text-red-600';
     
-    // Show the stored UTC date directly for editing (no offset conversion)
-    const utcDate = new Date(transaction.date);
-    const formattedDate = utcDate.toISOString().split('T')[0];
-    const formattedTime = utcDate.toISOString().split('T')[1].substring(0, 5);
+    // Parse the stored local date string directly for editing
+    const formattedDate = transaction.date.split('T')[0];
+    const formattedTime = transaction.date.split('T')[1]?.substring(0, 5) || '12:00';
     
     let whoOrBillOptions = '';
     let splitAmongSection = '';

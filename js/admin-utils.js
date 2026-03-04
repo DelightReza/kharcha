@@ -29,9 +29,20 @@ const Utils = {
     return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   },
 
-  // Get today's date in YYYY-MM-DD format
+  // Get current local datetime as "YYYY-MM-DDTHH:MM:00"
+  getLocalNow() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+  },
+
+  // Get today's date in YYYY-MM-DD format (local time)
   getTodayDate() {
-    return new Date().toISOString().split('T')[0];
+    return this.getLocalNow().split('T')[0];
   },
 
   // Save/Load helpers

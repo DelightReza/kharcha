@@ -33,7 +33,7 @@ const TransactionManager = {
         }
         transactionDate = Utils.localToUTC(DOM.creditDate.value, DOM.creditTime.value);
       } else {
-        transactionDate = new Date().toISOString();
+        transactionDate = Utils.getLocalNow();
       }
     } else {
       amount = parseFloat(DOM.debitAmount.value);
@@ -64,7 +64,7 @@ const TransactionManager = {
         }
         transactionDate = Utils.localToUTC(DOM.debitDate.value, DOM.debitTime.value);
       } else {
-        transactionDate = new Date().toISOString();
+        transactionDate = Utils.getLocalNow();
       }
     }
 
@@ -229,7 +229,7 @@ const TransactionManager = {
     
     const allPeople = AppState.getPeopleList();
     const amountPerPerson = amount / allPeople.length;
-    const transactionDate = new Date().toISOString();
+    const transactionDate = Utils.getLocalNow();
     const baseTransactionId = Utils.generateTransactionId('tx_dist');
     
     UI.showTransactionStatus('🔄 Distributing money...', 'processing');
@@ -303,7 +303,7 @@ const TransactionManager = {
     setTimeout(() => {
       try {
         const data = AppState.getData();
-        const transactionDate = new Date().toISOString();
+        const transactionDate = Utils.getLocalNow();
         const baseId = Utils.generateTransactionId('tx_set');
 
         // Payer paid cash: Their balance goes UP (less debt) -> Positive Credit
@@ -380,7 +380,7 @@ const TransactionManager = {
     setTimeout(() => {
       try {
         const data = AppState.getData();
-        const transactionDate = new Date().toISOString();
+        const transactionDate = Utils.getLocalNow();
         const baseId = Utils.generateTransactionId('tx_trf');
 
         // Sender gives fund: Balance goes DOWN -> Negative Credit
