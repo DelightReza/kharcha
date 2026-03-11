@@ -1,23 +1,32 @@
 {
   "billTypes": {
     "electricity": 19230.6,
-    "water": 402,
-    "gas": 2431,
+    "water": 402.0,
+    "gas": 2431.0,
     "garbage": 1321.4,
-    "internet": 3800,
-    "other": 14236
+    "internet": 3800.0,
+    "other": 14396.0
   },
   "people": {
-    "musawwar": 5657.5,
     "raza": 5937.5,
-    "salman": 5437.5,
-    "mujeeb": 5128.5,
     "gulam": 5837.5,
+    "mujeeb": 5128.5,
     "rana": 5937.5,
     "naved": 5437.5,
-    "nizamuddin": 5437.5
+    "musawwar": 5657.5,
+    "nizamuddin": 5437.5,
+    "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1773236831007_myon9",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Namak",
+      "amount": 160,
+      "date": "2026-03-11T19:47:11",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1772549705866_ymuby",
       "type": "credit",
@@ -34,7 +43,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_6",
@@ -44,7 +53,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_5",
@@ -54,7 +63,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_4",
@@ -64,7 +73,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_3",
@@ -74,7 +83,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_2",
@@ -84,7 +93,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_1",
@@ -94,7 +103,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1772461265591_hb761_0",
@@ -104,7 +113,7 @@
       "amount": 250,
       "date": "2026-03-02T20:21:05.591Z",
       "parentId": "tx_dist_1772461265591_hb761",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_1772237531782_app",
@@ -198,7 +207,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_6",
@@ -208,7 +217,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_5",
@@ -218,7 +227,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_4",
@@ -228,7 +237,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_3",
@@ -238,7 +247,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_2",
@@ -248,7 +257,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_1",
@@ -258,7 +267,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_dist_1769954897721_0",
@@ -268,7 +277,7 @@
       "amount": 437.5,
       "date": "2026-02-01T14:08:16.625086Z",
       "parentId": "tx_dist_1769954897721",
-      "distributionTotal": 3500
+      "distributionTotal": 3500.0
     },
     {
       "id": "tx_1769759773575_app",
@@ -569,7 +578,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_6",
@@ -579,7 +588,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_5",
@@ -589,7 +598,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_4",
@@ -599,7 +608,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_3",
@@ -609,7 +618,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_2",
@@ -619,7 +628,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_1",
@@ -629,7 +638,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1766915262640_0",
@@ -639,7 +648,7 @@
       "amount": 250,
       "date": "2025-12-28T09:47:41.449069Z",
       "parentId": "tx_dist_1766915262640",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_1766915153625_app",
@@ -761,7 +770,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_6",
@@ -771,7 +780,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_5",
@@ -781,7 +790,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_4",
@@ -791,7 +800,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_3",
@@ -801,7 +810,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_2",
@@ -811,7 +820,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_1",
@@ -821,7 +830,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_dist_1764848143420_mffno_0",
@@ -831,7 +840,7 @@
       "amount": 250,
       "date": "2025-12-04T11:35:43.420Z",
       "parentId": "tx_dist_1764848143420_mffno",
-      "distributionTotal": 2000
+      "distributionTotal": 2000.0
     },
     {
       "id": "tx_1764843118200_xo9oh",
