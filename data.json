@@ -4,7 +4,7 @@
     "water": 520.0,
     "gas": 2431.0,
     "garbage": 1321.4,
-    "internet": 3800.0,
+    "internet": 4790.0,
     "other": 14633.0
   },
   "people": {
@@ -18,6 +18,15 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1773731816297_kuof3",
+      "type": "debit",
+      "whoOrBill": "internet",
+      "note": "",
+      "amount": 990,
+      "date": "2026-03-17T13:16:56",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1773731783627_a7s1y",
       "type": "debit",
