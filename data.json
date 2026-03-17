@@ -5,7 +5,7 @@
     "gas": 2431.0,
     "garbage": 1321.4,
     "internet": 3800.0,
-    "other": 14514.0
+    "other": 14633.0
   },
   "people": {
     "raza": 5937.5,
@@ -18,6 +18,15 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1773731783627_a7s1y",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Taxi",
+      "amount": 119,
+      "date": "2026-03-15T21:15:00",
+      "splitAmong": ["raza", "gulam", "mujeeb"]
+    },
     {
       "id": "tx_1773731728560_wk5ti",
       "type": "debit",
