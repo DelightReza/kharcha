@@ -5,7 +5,7 @@
     "gas": 2431.0,
     "garbage": 1321.4,
     "internet": 4790.0,
-    "other": 16323.0
+    "other": 16358.0
   },
   "people": {
     "raza": 5555.5,
@@ -18,6 +18,15 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1774199515082_yqhv0",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Paw",
+      "amount": 35,
+      "date": "2026-03-22T23:11:55",
+      "splitAmong": ["raza", "gulam", "mujeeb", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1774199432008_pacxn",
       "type": "debit",
