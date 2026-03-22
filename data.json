@@ -9,7 +9,7 @@
   },
   "people": {
     "raza": 5937.5,
-    "gulam": 5837.5,
+    "gulam": 6287.5,
     "mujeeb": 5198.5,
     "rana": 5937.5,
     "naved": 5437.5,
@@ -18,6 +18,14 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1774197355192_1n4z4",
+      "type": "credit",
+      "whoOrBill": "gulam",
+      "note": "",
+      "amount": 450,
+      "date": "2026-03-16T22:35:00"
+    },
     {
       "id": "tx_1774197305162_263o9",
       "type": "credit",
