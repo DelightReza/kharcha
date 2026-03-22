@@ -8,7 +8,7 @@
     "other": 15303.0
   },
   "people": {
-    "raza": 5541.5,
+    "raza": 5555.5,
     "gulam": 5852.5,
     "mujeeb": 7125.5,
     "rana": 5937.5,
@@ -18,6 +18,14 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1774198767846_50x1a",
+      "type": "credit",
+      "whoOrBill": "raza",
+      "note": "Ramzan Fund Remaining",
+      "amount": 14,
+      "date": "2026-03-22T22:59:27"
+    },
     {
       "id": "tx_1774198688146_n8r0p",
       "type": "credit",
