@@ -10,14 +10,32 @@
   "people": {
     "raza": 5541.5,
     "gulam": 5852.5,
-    "mujeeb": 6029.5,
+    "mujeeb": 7021.5,
     "rana": 5937.5,
     "naved": 5437.5,
     "musawwar": 5657.5,
-    "nizamuddin": 6437.5,
+    "nizamuddin": 5445.5,
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_trf_1774197800015_rcpt",
+      "type": "credit",
+      "whoOrBill": "mujeeb",
+      "note": "Transfer from Nizamuddin: 770 Ramzan Fund + 222 Biryani",
+      "amount": 992,
+      "date": "2026-03-22T22:43:19",
+      "parentId": "tx_trf_1774197800015"
+    },
+    {
+      "id": "tx_trf_1774197800015_send",
+      "type": "credit",
+      "whoOrBill": "nizamuddin",
+      "note": "Transfer to Mujeeb: 770 Ramzan Fund + 222 Biryani",
+      "amount": -992,
+      "date": "2026-03-22T22:43:19",
+      "parentId": "tx_trf_1774197800015"
+    },
     {
       "id": "tx_trf_1774197628987_rcpt",
       "type": "credit",
