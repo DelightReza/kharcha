@@ -14,10 +14,18 @@
     "rana": 5937.5,
     "naved": 5437.5,
     "musawwar": 5657.5,
-    "nizamuddin": 5437.5,
+    "nizamuddin": 5667.5,
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1774195477168_kiyth",
+      "type": "credit",
+      "whoOrBill": "nizamuddin",
+      "note": "",
+      "amount": 230,
+      "date": "2026-03-21T17:04:00"
+    },
     {
       "id": "tx_1774178891455_p2yv0",
       "type": "debit",
