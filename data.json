@@ -5,7 +5,7 @@
     "gas": 2431.0,
     "garbage": 1321.4,
     "internet": 4790.0,
-    "other": 14783.0
+    "other": 15303.0
   },
   "people": {
     "raza": 5937.5,
@@ -18,6 +18,15 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_1774197422159_wob80",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Cake Aabid",
+      "amount": 520,
+      "date": "2026-03-16T22:36:00",
+      "splitAmong": ["rana", "naved"]
+    },
     {
       "id": "tx_1774197355192_1n4z4",
       "type": "credit",
