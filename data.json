@@ -8,9 +8,9 @@
     "other": 15303.0
   },
   "people": {
-    "raza": 5937.5,
+    "raza": 5541.5,
     "gulam": 6287.5,
-    "mujeeb": 5198.5,
+    "mujeeb": 5594.5,
     "rana": 5937.5,
     "naved": 5437.5,
     "musawwar": 5657.5,
@@ -18,6 +18,24 @@
     "salman": 5437.5
   },
   "transactions": [
+    {
+      "id": "tx_trf_1774197543551_rcpt",
+      "type": "credit",
+      "whoOrBill": "mujeeb",
+      "note": "Transfer from Raza: Biryani",
+      "amount": 396,
+      "date": "2026-03-22T22:39:02",
+      "parentId": "tx_trf_1774197543551"
+    },
+    {
+      "id": "tx_trf_1774197543551_send",
+      "type": "credit",
+      "whoOrBill": "raza",
+      "note": "Transfer to Mujeeb: Biryani",
+      "amount": -396,
+      "date": "2026-03-22T22:39:02",
+      "parentId": "tx_trf_1774197543551"
+    },
     {
       "id": "tx_1774197422159_wob80",
       "type": "debit",
