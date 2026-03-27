@@ -8,7 +8,7 @@
     "other": 16358.0
   },
   "people": {
-    "raza": 5555.5,
+    "raza": 6055.5,
     "gulam": 5852.5,
     "mujeeb": 7125.5,
     "rana": 5937.5,
@@ -18,6 +18,14 @@
     "salman": 5937.5
   },
   "transactions": [
+    {
+      "id": "tx_1774607850352_j9hk2",
+      "type": "credit",
+      "whoOrBill": "raza",
+      "note": "",
+      "amount": 500,
+      "date": "2026-03-27T16:37:30"
+    },
     {
       "id": "tx_1774605730458_crga7",
       "type": "credit",
