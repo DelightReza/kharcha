@@ -15,9 +15,17 @@
     "naved": 5937.5,
     "musawwar": 6126.5,
     "nizamuddin": 5970.5,
-    "salman": 5437.5
+    "salman": 5937.5
   },
   "transactions": [
+    {
+      "id": "tx_1774605730458_crga7",
+      "type": "credit",
+      "whoOrBill": "salman",
+      "note": "",
+      "amount": 500,
+      "date": "2026-03-27T16:02:10"
+    },
     {
       "id": "tx_1774605490791_stsgk",
       "type": "credit",
