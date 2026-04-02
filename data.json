@@ -8,16 +8,96 @@
     "other": 16358.0
   },
   "people": {
-    "raza": 6055.5,
-    "gulam": 5852.5,
-    "mujeeb": 7125.5,
-    "rana": 5937.5,
-    "naved": 5937.5,
-    "musawwar": 6126.5,
-    "nizamuddin": 5970.5,
-    "salman": 5937.5
+    "raza": 6305.5,
+    "gulam": 6102.5,
+    "mujeeb": 7375.5,
+    "rana": 6187.5,
+    "naved": 6187.5,
+    "musawwar": 6376.5,
+    "nizamuddin": 6220.5,
+    "salman": 6187.5
   },
   "transactions": [
+    {
+      "id": "tx_dist_1775145476904_7",
+      "type": "credit",
+      "whoOrBill": "salman",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_6",
+      "type": "credit",
+      "whoOrBill": "nizamuddin",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_5",
+      "type": "credit",
+      "whoOrBill": "musawwar",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_4",
+      "type": "credit",
+      "whoOrBill": "naved",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_3",
+      "type": "credit",
+      "whoOrBill": "rana",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_2",
+      "type": "credit",
+      "whoOrBill": "mujeeb",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_1",
+      "type": "credit",
+      "whoOrBill": "gulam",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
+    {
+      "id": "tx_dist_1775145476904_0",
+      "type": "credit",
+      "whoOrBill": "raza",
+      "note": "Rent Remaining",
+      "amount": 250,
+      "date": "2026-04-02T21:57:55",
+      "parentId": "tx_dist_1775145476904",
+      "distributionTotal": 2000.0
+    },
     {
       "id": "tx_1774609038813_pcggc",
       "type": "debit",
