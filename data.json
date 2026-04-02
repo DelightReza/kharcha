@@ -5,7 +5,7 @@
     "gas": 2431.0,
     "garbage": 1321.4,
     "internet": 4790.0,
-    "other": 16358.0
+    "other": 17732.0
   },
   "people": {
     "raza": 6305.5,
@@ -18,6 +18,15 @@
     "salman": 6187.5
   },
   "transactions": [
+    {
+      "id": "tx_1775145560891_b8wdr",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Naved Birthday",
+      "amount": 1374,
+      "date": "2026-04-02T21:59:20",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1775145509691_0k71f",
       "type": "credit",
