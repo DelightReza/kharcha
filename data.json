@@ -15,9 +15,17 @@
     "naved": 6187.5,
     "musawwar": 6876.5,
     "nizamuddin": 6720.5,
-    "salman": 6187.5
+    "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1775240089594_odkea",
+      "type": "credit",
+      "whoOrBill": "salman",
+      "note": "",
+      "amount": 500,
+      "date": "2026-04-04T00:14:49"
+    },
     {
       "id": "tx_1775239955238_78ixs",
       "type": "credit",
