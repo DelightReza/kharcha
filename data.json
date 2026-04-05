@@ -12,12 +12,20 @@
     "gulam": 6602.5,
     "mujeeb": 7983.5,
     "rana": 6187.5,
-    "naved": 6187.5,
+    "naved": 6687.5,
     "musawwar": 6876.5,
     "nizamuddin": 6720.5,
     "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1775401217421_d3bdk",
+      "type": "credit",
+      "whoOrBill": "naved",
+      "note": "",
+      "amount": 500,
+      "date": "2026-04-05T21:00:17"
+    },
     {
       "id": "tx_1775240089594_odkea",
       "type": "credit",
