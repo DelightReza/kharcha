@@ -5,7 +5,7 @@
     "gas": 6626.0,
     "garbage": 1321.4,
     "internet": 4790.0,
-    "other": 17732.0
+    "other": 17987.0
   },
   "people": {
     "raza": 6805.5,
@@ -18,6 +18,15 @@
     "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1776250289869_p67gz",
+      "type": "debit",
+      "whoOrBill": "other",
+      "note": "Namak + Liquid Detergent",
+      "amount": 255,
+      "date": "2026-04-15T16:51:29",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1775408349397_and94",
       "type": "debit",
