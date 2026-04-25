@@ -13,11 +13,19 @@
     "mujeeb": 7983.5,
     "rana": 6187.5,
     "naved": 6687.5,
-    "musawwar": 6876.5,
+    "musawwar": 7263.5,
     "nizamuddin": 6720.5,
     "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1777132228334_ftj55",
+      "type": "credit",
+      "whoOrBill": "musawwar",
+      "note": "",
+      "amount": 387,
+      "date": "2026-04-25T21:50:28"
+    },
     {
       "id": "tx_1777022681031_lg81a",
       "type": "debit",
