@@ -11,13 +11,21 @@
     "raza": 7805.5,
     "gulam": 7202.5,
     "mujeeb": 8283.5,
-    "rana": 6187.5,
+    "rana": 6864.5,
     "naved": 6687.5,
     "musawwar": 7273.5,
     "nizamuddin": 7220.5,
     "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1777388547795_4m8iu",
+      "type": "credit",
+      "whoOrBill": "rana",
+      "note": "",
+      "amount": 677,
+      "date": "2026-04-28T21:02:27"
+    },
     {
       "id": "tx_1777309166938_akvqb",
       "type": "credit",
