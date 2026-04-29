@@ -1,6 +1,6 @@
 {
   "billTypes": {
-    "electricity": 22910.6,
+    "electricity": 24905.6,
     "water": 520.0,
     "gas": 6666.0,
     "garbage": 1321.4,
@@ -18,6 +18,15 @@
     "salman": 6687.5
   },
   "transactions": [
+    {
+      "id": "tx_1777466739827_c3tzl",
+      "type": "debit",
+      "whoOrBill": "electricity",
+      "note": "",
+      "amount": 1995,
+      "date": "2026-04-29T18:45:39",
+      "splitAmong": ["raza", "gulam", "mujeeb", "rana", "naved", "musawwar", "nizamuddin", "salman"]
+    },
     {
       "id": "tx_1777388547795_4m8iu",
       "type": "credit",
